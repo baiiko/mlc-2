@@ -1,0 +1,81 @@
+services:
+  php:
+    build:
+      context: .
+      target: web
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    container_name: mlc_app
+    environment:
+      APP_ENV: ${APP_ENV:-prod}
+      DATABASE_URL: ${DATABASE_URL}
+      MAILER_DSN: ${MAILER_DSN}
+    networks:
+      - mlc_network
+    depends_on:
+      database:
+        condition: service_healthy
+    restart: unless-stopped
+
+  nginx:
+    build:
+      context: .
+      target: nginx
+    container_name: mlc_server_web
+    environment:
+      NGINX_HOST: ${NGINX_HOST:-localhost}
+      PHP_FPM_HOST: ${PHP_FPM_HOST:-php}
+      VITE_HOST: ${VITE_HOST:-localhost}
+    ports:
+      - "${NGINX_EXTERNAL_PORT:-8080}:80"
+    networks:
+      - mlc_network
+    depends_on:
+      - php
+    restart: unless-stopped
+
+  database:
+    image: mysql:8
+    container_name: mlc_database
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-mlc_app}
+      MYSQL_USER: ${MYSQL_USER:-mlc_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-mlc_password}
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - mlc_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  messenger:
+    build:
+      context: .
+      target: worker
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    container_name: mlc_messenger
+    environment:
+      APP_ENV: ${APP_ENV:-prod}
+      DATABASE_URL: ${DATABASE_URL}
+      MAILER_DSN: ${MAILER_DSN}
+    networks:
+      - mlc_network
+    depends_on:
+      database:
+        condition: service_healthy
+    restart: unless-stopped
+
+networks:
+  mlc_network:
+    driver: bridge
+
+volumes:
+  db_data:

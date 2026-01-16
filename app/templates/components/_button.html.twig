@@ -1,0 +1,36 @@
+{#
+    Button Component
+    @param label string - Button text
+    @param type string - Button type: primary|secondary|outline (default: primary)
+    @param submit bool - Is submit button (default: false)
+    @param href string|null - If defined, renders as <a> instead of <button>
+    @param full_width bool - Full width (default: false)
+    @param disabled bool - Is disabled (default: false)
+#}
+{% set type = type|default('primary') %}
+{% set submit = submit|default(false) %}
+{% set full_width = full_width|default(false) %}
+{% set disabled = disabled|default(false) %}
+
+{% set base_classes = 'inline-flex items-center justify-center px-8 py-4 font-semibold text-sm uppercase tracking-wider rounded transition-all duration-300 no-underline' %}
+
+{% set type_classes = {
+    'primary': 'bg-gradient-to-br from-orange to-orange-dark text-white shadow-[0_4px_15px_rgba(255,140,0,0.4)] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(255,140,0,0.5)]',
+    'secondary': 'bg-turquoise text-white hover:bg-turquoise-light',
+    'outline': 'bg-transparent text-white border-2 border-metal-light hover:border-turquoise hover:text-turquoise'
+} %}
+
+{% set width_class = full_width ? 'w-full' : '' %}
+{% set disabled_class = disabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : '' %}
+
+{% set all_classes = [base_classes, type_classes[type], width_class, disabled_class]|join(' ') %}
+
+{% if href is defined and href %}
+    <a href="{{ href }}" class="{{ all_classes }}">
+        {{ label }}
+    </a>
+{% else %}
+    <button type="{{ submit ? 'submit' : 'button' }}" class="{{ all_classes }}" {% if disabled %}disabled{% endif %}>
+        {{ label }}
+    </button>
+{% endif %}

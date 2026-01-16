@@ -1,0 +1,52 @@
+{#
+    Ranking Row Component
+    @param player object - { rank, name, team, initials, points, wins, podiums, trend: 'up'|'down'|'same', trend_value }
+#}
+<tr class="hover:bg-orange/5 transition-colors">
+    {# Position #}
+    <td class="px-5 py-4 border-b border-metal-dark">
+        <span class="font-russo text-lg
+            {{ player.rank == 1 ? 'text-yellow-400' : '' }}
+            {{ player.rank == 2 ? 'text-gray-300' : '' }}
+            {{ player.rank == 3 ? 'text-amber-600' : '' }}
+            {{ player.rank > 3 ? 'text-gray-mid' : '' }}">
+            #{{ player.rank }}
+        </span>
+    </td>
+
+    {# Pilote #}
+    <td class="px-5 py-4 border-b border-metal-dark">
+        <div class="flex items-center gap-4">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-orange to-turquoise
+                        flex items-center justify-center font-bold text-sm">
+                {{ player.initials }}
+            </div>
+            <div>
+                <div class="font-semibold">{{ player.name }}</div>
+                <div class="text-xs text-gray-mid">{{ player.team }}</div>
+            </div>
+        </div>
+    </td>
+
+    {# Points #}
+    <td class="px-5 py-4 border-b border-metal-dark">
+        <span class="font-russo text-lg text-orange">{{ player.points|number_format(0, ',', ' ') }}</span>
+    </td>
+
+    {# Victoires #}
+    <td class="px-5 py-4 border-b border-metal-dark">{{ player.wins }}</td>
+
+    {# Podiums #}
+    <td class="px-5 py-4 border-b border-metal-dark">{{ player.podiums }}</td>
+
+    {# Évolution #}
+    <td class="px-5 py-4 border-b border-metal-dark">
+        {% if player.trend == 'up' %}
+            <span class="text-green-500">▲ {{ player.trend_value }}</span>
+        {% elseif player.trend == 'down' %}
+            <span class="text-red-500">▼ {{ player.trend_value }}</span>
+        {% else %}
+            <span class="text-gray-mid">—</span>
+        {% endif %}
+    </td>
+</tr>

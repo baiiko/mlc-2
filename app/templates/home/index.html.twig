@@ -1,0 +1,109 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Accueil - MLC ModLap Championship{% endblock %}
+
+{% block body %}
+    {# ===== HERO ===== #}
+    <section class="relative h-[500px] bg-gradient-to-br from-metal-dark via-bg-dark to-metal-dark overflow-hidden">
+        <div class="hero-pattern absolute inset-0"></div>
+        <div class="relative max-w-[1400px] mx-auto px-10 py-16 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center h-full">
+            <div>
+                <h1 class="font-russo text-6xl leading-tight mb-5">
+                    La compétition<br>
+                    <span class="text-orange">TrackMania</span><br>
+                    de référence
+                </h1>
+                <p class="text-gray-light text-lg mb-8 max-w-lg">
+                    Rejoignez la communauté MLC et participez aux courses les plus
+                    intenses de TrackMania. Classements en temps réel, évènements
+                    réguliers et une communauté passionnée.
+                </p>
+                <div class="flex gap-4">
+                    <a href="{{ path('app_register') }}" class="inline-block px-8 py-4 font-semibold text-sm uppercase tracking-wider rounded
+                                       bg-gradient-to-br from-orange to-orange-dark text-white
+                                       shadow-[0_4px_15px_rgba(255,140,0,0.4)]
+                                       hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(255,140,0,0.5)]
+                                       transition-all duration-300 no-underline">
+                        S'inscrire
+                    </a>
+                    <a href="#" class="inline-block px-8 py-4 font-semibold text-sm uppercase tracking-wider rounded
+                                       bg-transparent text-white border-2 border-metal-light
+                                       hover:border-turquoise hover:text-turquoise
+                                       transition-all duration-300">
+                        Voir le classement
+                    </a>
+                </div>
+            </div>
+            <div class="hidden lg:flex items-center justify-center">
+                <div class="font-russo text-[150px] text-metal-mid/30">MLC</div>
+            </div>
+        </div>
+    </section>
+
+    {# ===== CLASSEMENT ===== #}
+    <section class="max-w-[1400px] mx-auto px-10 py-16">
+        {% include 'components/_section_header.html.twig' with {
+            title: 'Classement Saison 12',
+            link: '#',
+            link_text: 'Voir le classement complet →'
+        } %}
+
+        <div class="bg-bg-card rounded-lg overflow-x-auto border border-metal-dark">
+            <table class="w-full min-w-[700px]">
+                <thead>
+                    <tr class="bg-metal-dark border-b-2 border-b-orange">
+                        <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-mid">Pos</th>
+                        <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-mid">Pilote</th>
+                        <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-mid">Points</th>
+                        <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-mid">Victoires</th>
+                        <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-mid">Podiums</th>
+                        <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-mid">Évolution</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for player in players %}
+                        {% include 'components/_ranking_row.html.twig' with { player: player } %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    {# ===== CALENDRIER ===== #}
+    <section class="max-w-[1400px] mx-auto px-10 py-16">
+        {% include 'components/_section_header.html.twig' with {
+            title: 'Prochaines Courses',
+            link: '#',
+            link_text: 'Voir le calendrier complet →'
+        } %}
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for event in events %}
+                {% include 'components/_event_card.html.twig' with { event: event } %}
+            {% endfor %}
+        </div>
+    </section>
+
+    {# ===== ACTUALITES ===== #}
+    <section class="max-w-[1400px] mx-auto px-10 py-16">
+        {% include 'components/_section_header.html.twig' with {
+            title: 'Actualités',
+            link: '#',
+            link_text: 'Toutes les actualités →'
+        } %}
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {# Featured news #}
+            <div class="lg:col-span-2">
+                {% include 'components/_news_card.html.twig' with { news: news[0] } %}
+            </div>
+
+            {# Sidebar news #}
+            <div class="space-y-4">
+                {% for item in news[1:] %}
+                    {% include 'components/_news_card.html.twig' with { news: item } %}
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+{% endblock %}

@@ -1,0 +1,203 @@
+<header class="bg-gradient-to-b from-metal-mid to-metal-dark border-b-[3px] border-b-orange sticky top-0 z-50">
+    {# Barre colorée en haut #}
+    <div class="h-1 bg-gradient-to-r from-orange via-orange to-turquoise"></div>
+
+    <div class="max-w-[1400px] mx-auto px-4 md:px-10 py-4 flex items-center justify-between">
+        {# Logo #}
+        <a href="{{ path('app_home') }}" class="flex items-center gap-4 no-underline">
+            <div>
+                <div class="font-russo text-4xl md:text-5xl tracking-tight flex">
+                    <span class="text-orange drop-shadow-md">M</span>
+                    <span class="text-gray-light drop-shadow-md">L</span>
+                    <span class="text-turquoise drop-shadow-md">C</span>
+                </div>
+                <div class="text-[10px] md:text-[11px] text-gray-mid tracking-[3px] uppercase mt-1">ModLap Championship</div>
+            </div>
+            <div class="bg-metal-dark border border-metal-light rounded px-2.5 py-1 text-center hidden sm:block">
+                <div class="font-russo text-sm text-white">TM</div>
+                <div class="logo-badge-forever text-[8px] tracking-widest">FOREVER</div>
+            </div>
+        </a>
+
+        {# Bouton hamburger mobile #}
+        <button id="mobile-menu-btn" class="lg:hidden flex flex-col gap-1.5 p-2" aria-label="Menu">
+            <span class="block w-6 h-0.5 bg-gray-light"></span>
+            <span class="block w-6 h-0.5 bg-gray-light"></span>
+            <span class="block w-6 h-0.5 bg-gray-light"></span>
+        </button>
+
+        {# Navigation desktop #}
+        <nav class="hidden lg:flex gap-2 items-center">
+            {% set current_route = app.request.attributes.get('_route') %}
+            {% set route_params = app.request.attributes.get('_route_params')|default({}) %}
+            {% set nav_items = [
+                { route: 'app_home', label: 'nav.home'|trans({}, 'common') },
+                { route: 'app_ranking', label: 'nav.ranking'|trans({}, 'common') },
+                { route: 'app_calendar', label: 'nav.calendar'|trans({}, 'common') },
+                { route: 'app_rules', label: 'nav.rules'|trans({}, 'common') }
+            ] %}
+
+            {% set available_routes = ['app_home', 'app_register', 'app_login'] %}
+            {% for item in nav_items %}
+                <a href="{{ item.route in available_routes ? path(item.route) : '#' }}"
+                   class="relative px-5 py-3 text-sm font-medium uppercase tracking-wider rounded
+                          {{ current_route == item.route
+                             ? 'text-white bg-orange/20 active'
+                             : 'text-gray-light hover:text-white hover:bg-orange/10' }}">
+                    {{ item.label }}
+                </a>
+            {% endfor %}
+
+            <div class="w-px h-6 bg-metal-light mx-2"></div>
+
+            {% if app.user %}
+                <div class="flex items-center gap-3">
+                    {% if app.user.hasTeam() %}
+                        {% set is_team_active = current_route starts with 'app_team' %}
+                        <a href="{{ path('app_team_edit') }}"
+                           class="relative px-4 py-2 text-sm font-medium uppercase tracking-wider rounded
+                                  {{ is_team_active
+                                     ? 'text-white bg-orange/20 active'
+                                     : 'hover:text-white hover:bg-orange/10' }}">
+                            {{ 'nav.my_team'|trans({}, 'common') }}
+                        </a>
+                    {% endif %}
+                    {% set is_profile_active = current_route in ['app_profile', 'app_change_password'] %}
+                    <a href="{{ path('app_profile') }}"
+                       class="relative px-4 py-2 text-sm font-medium tracking-wider rounded max-w-44 overflow-hidden text-ellipsis whitespace-nowrap
+                              {{ is_profile_active
+                                 ? 'text-white bg-orange/20 active'
+                                 : 'text-gray-light hover:text-white hover:bg-orange/10' }}">
+                        {{ app.user.displayName|tm_color }}
+                    </a>
+                    <a href="{{ path('app_logout') }}"
+                       class="px-4 py-2 text-sm font-medium uppercase tracking-wider rounded
+                              text-gray-light hover:text-white hover:bg-red-500/20">
+                        {{ 'nav.logout'|trans({}, 'common') }}
+                    </a>
+                </div>
+            {% else %}
+                <a href="{{ path('app_login') }}"
+                   class="px-4 py-2 text-sm font-medium uppercase tracking-wider rounded
+                          {{ current_route == 'app_login'
+                             ? 'text-white bg-orange/20'
+                             : 'text-gray-light hover:text-white hover:bg-orange/10' }}">
+                    {{ 'nav.login'|trans({}, 'common') }}
+                </a>
+                <a href="{{ path('app_register') }}"
+                   class="px-4 py-2 text-sm font-medium uppercase tracking-wider rounded
+                          bg-gradient-to-br from-orange to-orange-dark text-white">
+                    {{ 'nav.register'|trans({}, 'common') }}
+                </a>
+            {% endif %}
+
+            {# Language switcher desktop - compact style #}
+            <div class="ml-3 flex items-center bg-metal-dark/50 rounded border border-metal-light/30 overflow-hidden text-xs">
+                <a href="{{ path(current_route, route_params|merge({_locale: 'fr'})) }}"
+                   class="px-2 py-1.5 {{ app.request.locale == 'fr' ? 'bg-orange/20 text-orange font-semibold' : 'text-gray-mid hover:text-white hover:bg-metal-light/20' }}">
+                    FR
+                </a>
+                <a href="{{ path(current_route, route_params|merge({_locale: 'en'})) }}"
+                   class="px-2 py-1.5 {{ app.request.locale == 'en' ? 'bg-orange/20 text-orange font-semibold' : 'text-gray-mid hover:text-white hover:bg-metal-light/20' }}">
+                    EN
+                </a>
+            </div>
+        </nav>
+    </div>
+
+    {# Menu mobile #}
+    <nav id="mobile-menu" class="hidden lg:hidden bg-metal-dark border-t border-metal-light">
+        <div class="max-w-[1400px] mx-auto px-4 py-4 flex flex-col gap-2">
+            {% set current_route = app.request.attributes.get('_route') %}
+            {% set route_params = app.request.attributes.get('_route_params')|default({}) %}
+            {% set nav_items = [
+                { route: 'app_home', label: 'nav.home'|trans({}, 'common') },
+                { route: 'app_ranking', label: 'nav.ranking'|trans({}, 'common') },
+                { route: 'app_calendar', label: 'nav.calendar'|trans({}, 'common') },
+                { route: 'app_rules', label: 'nav.rules'|trans({}, 'common') }
+            ] %}
+
+            {% set available_routes = ['app_home', 'app_register', 'app_login'] %}
+            {% for item in nav_items %}
+                <a href="{{ item.route in available_routes ? path(item.route) : '#' }}"
+                   class="px-4 py-3 text-sm font-medium uppercase tracking-wider rounded
+                          {{ current_route == item.route
+                             ? 'text-white bg-orange/20'
+                             : 'text-gray-light hover:text-white hover:bg-orange/10' }}">
+                    {{ item.label }}
+                </a>
+            {% endfor %}
+
+            <div class="h-px bg-metal-light my-2"></div>
+
+            {% if app.user %}
+                {% if app.user.hasTeam() %}
+                    <a href="{{ path('app_team_edit') }}"
+                       class="px-4 py-3 text-sm font-medium uppercase tracking-wider rounded
+                              {{ current_route starts with 'app_team'
+                                 ? 'text-white bg-turquoise/20'
+                                 : 'text-turquoise hover:text-white hover:bg-turquoise/10' }}">
+                        {{ 'nav.my_team'|trans({}, 'common') }} : {{ app.user.team.tag }}
+                    </a>
+                {% endif %}
+                <a href="{{ path('app_profile') }}"
+                   class="px-4 py-3 text-sm font-medium uppercase tracking-wider rounded
+                          {{ current_route in ['app_profile', 'app_change_password']
+                             ? 'text-white bg-orange/20'
+                             : 'text-gray-light hover:text-white hover:bg-orange/10' }}">
+                    {{ app.user.login }}
+                </a>
+                <a href="{{ path('app_logout') }}"
+                   class="px-4 py-3 text-sm font-medium uppercase tracking-wider rounded
+                          text-gray-light hover:text-white hover:bg-red-500/20">
+                    {{ 'nav.logout'|trans({}, 'common') }}
+                </a>
+            {% else %}
+                <a href="{{ path('app_login') }}"
+                   class="px-4 py-3 text-sm font-medium uppercase tracking-wider rounded
+                          {{ current_route == 'app_login'
+                             ? 'text-white bg-orange/20'
+                             : 'text-gray-light hover:text-white hover:bg-orange/10' }}">
+                    {{ 'nav.login'|trans({}, 'common') }}
+                </a>
+                <a href="{{ path('app_register') }}"
+                   class="px-4 py-3 text-sm font-medium uppercase tracking-wider rounded text-center
+                          bg-gradient-to-br from-orange to-orange-dark text-white">
+                    {{ 'nav.register'|trans({}, 'common') }}
+                </a>
+            {% endif %}
+
+            {# Language switcher mobile - compact at bottom #}
+            <div class="flex items-center justify-center gap-1 pt-3 mt-2 border-t border-metal-light/30">
+                <span class="text-gray-mid text-xs mr-2">🌐</span>
+                <a href="{{ path(current_route, route_params|merge({_locale: 'fr'})) }}"
+                   class="px-3 py-1.5 text-xs rounded {{ app.request.locale == 'fr' ? 'bg-orange/20 text-orange font-semibold' : 'text-gray-mid hover:text-white' }}">
+                    Français
+                </a>
+                <a href="{{ path(current_route, route_params|merge({_locale: 'en'})) }}"
+                   class="px-3 py-1.5 text-xs rounded {{ app.request.locale == 'en' ? 'bg-orange/20 text-orange font-semibold' : 'text-gray-mid hover:text-white' }}">
+                    English
+                </a>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<script>
+    document.getElementById('mobile-menu-btn').addEventListener('click', function() {
+        const menu = document.getElementById('mobile-menu');
+        const spans = this.querySelectorAll('span');
+
+        menu.classList.toggle('hidden');
+
+        if (!menu.classList.contains('hidden')) {
+            spans[0].classList.add('rotate-45', 'translate-y-2');
+            spans[1].classList.add('opacity-0');
+            spans[2].classList.add('-rotate-45', '-translate-y-2');
+        } else {
+            spans[0].classList.remove('rotate-45', 'translate-y-2');
+            spans[1].classList.remove('opacity-0');
+            spans[2].classList.remove('-rotate-45', '-translate-y-2');
+        }
+    });
+</script>

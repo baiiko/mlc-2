@@ -1,0 +1,58 @@
+# Common translations - French
+nav:
+    home: "Accueil"
+    ranking: "Classement"
+    calendar: "Calendrier"
+    rules: "Règlement"
+    my_team: "Mon équipe"
+    login: "Connexion"
+    register: "S'inscrire"
+    logout: "Déconnexion"
+    menu: "Menu"
+
+footer:
+    description: "ModLap Championship est une compétition TrackMania communautaire créée par des passionnés, pour des passionnés. Rejoignez-nous !"
+    navigation: "Navigation"
+    community: "Communauté"
+    follow_us: "Nous suivre"
+    rights: "Tous droits réservés."
+    trademark: "TrackMania est une marque de Ubisoft Nadeo."
+
+buttons:
+    save: "Enregistrer"
+    cancel: "Annuler"
+    back: "Retour"
+    back_home: "Retour à l'accueil"
+    submit: "Envoyer"
+    confirm: "Confirmer"
+    delete: "Supprimer"
+    edit: "Modifier"
+    create: "Créer"
+    close: "Fermer"
+    accept: "Accepter"
+    reject: "Refuser"
+    view: "Voir"
+    see_all: "Voir tout"
+
+status:
+    pending: "En attente"
+    accepted: "Accepté"
+    rejected: "Refusé"
+    active: "Actif"
+    inactive: "Inactif"
+    coming: "À VENIR"
+    finished: "TERMINÉ"
+
+dates:
+    member_since: "Membre depuis"
+    sent_on: "Envoyée le"
+    at: "à"
+
+misc:
+    or: "ou"
+    and: "et"
+    yes: "Oui"
+    no: "Non"
+    loading: "Chargement..."
+    error: "Erreur"
+    success: "Succès"

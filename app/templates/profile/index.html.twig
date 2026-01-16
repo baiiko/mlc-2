@@ -1,0 +1,150 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'title.profile'|trans({}, 'player') }}{% endblock %}
+
+{% form_theme form 'register/_form_theme.html.twig' %}
+
+{% block body %}
+    <section class="max-w-[1400px] mx-auto px-10 py-16">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2">
+                <h1 class="font-russo text-4xl mb-2">{{ 'profile.title'|trans({}, 'player') }}</h1>
+                <p class="text-gray-light mb-8">{{ 'profile.subtitle'|trans({}, 'player') }}</p>
+
+                {% if success %}
+                    <div class="bg-green-500/20 border border-green-500 rounded-lg p-4 mb-6">
+                        <p class="text-green-400">{{ 'profile.success'|trans({}, 'player') }}</p>
+                    </div>
+                {% endif %}
+
+                <div class="bg-bg-card rounded-lg p-6 border border-metal-dark mb-6">
+                    <h2 class="font-russo text-xl text-orange mb-6">{{ 'profile.account_info'|trans({}, 'player') }}</h2>
+
+                    <div class="mb-6 p-4 bg-bg-dark rounded-lg border border-metal-dark">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">🎮</span>
+                            <div>
+                                <div class="text-sm text-gray-mid">{{ 'profile.login_label'|trans({}, 'player') }}</div>
+                                <div class="font-russo text-xl text-white">{{ player.login }}</div>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-mid mt-2">{{ 'profile.login_readonly'|trans({}, 'player') }}</p>
+                    </div>
+
+                    {{ form_start(form, {'attr': {'class': 'space-y-4', 'autocomplete': 'off'}}) }}
+                        {{ form_row(form.pseudo, {'icon': '👤'}) }}
+                        {{ form_row(form.email, {'icon': '📧'}) }}
+                        {{ form_row(form.discord, {'icon': '💬'}) }}
+
+                        <div class="pt-4 border-t border-metal-dark">
+                            <h3 class="font-semibold text-white mb-4">{{ 'profile.preferences'|trans({}, 'player') }}</h3>
+                            {{ form_row(form.newsletter) }}
+                        </div>
+
+                        <div class="pt-4">
+                            <button type="submit" class="inline-flex items-center justify-center px-8 py-4 font-semibold text-sm uppercase tracking-wider rounded transition-all duration-300 no-underline bg-gradient-to-br from-orange to-orange-dark text-white shadow-[0_4px_15px_rgba(255,140,0,0.4)] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(255,140,0,0.5)]">
+                                    {{ 'profile.save_changes'|trans({}, 'player') }}
+                            </button>
+                        </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+
+            <div>
+                <div class="bg-bg-card rounded-lg p-6 border border-metal-dark mb-6">
+                    <h3 class="font-russo text-xl mb-4">{{ 'profile.title'|trans({}, 'team') }}</h3>
+                    {% if player.team %}
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="text-2xl">👥</span>
+                            <div>
+                                <div class="text-sm text-gray-mid">{{ 'members.member_of'|trans({}, 'team') }}</div>
+                                <div class="font-russo text-xl text-orange">{{ player.team.tag }}</div>
+                                <div class="text-white">{{ player.team.fullName }}</div>
+                            </div>
+                        </div>
+                        {% if player.isTeamCreator() %}
+                            <a href="{{ path('app_team_edit') }}" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium uppercase tracking-wider rounded transition-all duration-300 no-underline bg-transparent text-white border border-metal-light hover:border-orange hover:text-orange">
+                                {{ 'profile.edit_team'|trans({}, 'team') }}
+                            </a>
+                        {% else %}
+                            <form action="{{ path('app_team_leave') }}" method="post" onsubmit="return confirm('{{ 'members.leave_confirm'|trans({}, 'team')|e('js') }}');">
+                                <button type="submit" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium uppercase tracking-wider rounded transition-all duration-300 no-underline bg-transparent text-red-400 border border-red-400 hover:bg-red-400/10">
+                                    {{ 'members.leave'|trans({}, 'team') }}
+                                </button>
+                            </form>
+                        {% endif %}
+                    {% else %}
+                        {% if pendingRequest %}
+                            <div class="p-4 bg-turquoise/10 border border-turquoise/30 rounded-lg mb-4">
+                                <p class="text-sm text-turquoise mb-1">{{ 'join.pending_request'|trans({}, 'team') }}</p>
+                                <p class="text-white font-medium">{{ pendingRequest.team.tag }} - {{ pendingRequest.team.fullName }}</p>
+                                <p class="text-xs text-gray-mid mt-1">{{ 'join.sent_on'|trans({}, 'team') }} {{ pendingRequest.createdAt|date('d/m/Y') }}</p>
+                            </div>
+                            <form action="{{ path('app_team_join_cancel') }}" method="post">
+                                <button type="submit" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium uppercase tracking-wider rounded transition-all duration-300 no-underline bg-transparent text-red-400 border border-red-400 hover:bg-red-400/10">
+                                    {{ 'join.cancel_request'|trans({}, 'team') }}
+                                </button>
+                            </form>
+                        {% else %}
+                            <p class="text-sm text-gray-light mb-4">
+                                {{ 'profile.no_team'|trans({}, 'team') }}
+                            </p>
+                            <div class="flex flex-col gap-2">
+                                <a href="{{ path('app_team_join') }}" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium uppercase tracking-wider rounded transition-all duration-300 no-underline bg-gradient-to-br from-turquoise to-turquoise-dark text-white hover:-translate-y-0.5">
+                                    {{ 'profile.join_team'|trans({}, 'team') }}
+                                </a>
+                                <a href="{{ path('app_team_create') }}" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium uppercase tracking-wider rounded transition-all duration-300 no-underline bg-transparent text-white border border-metal-light hover:border-orange hover:text-orange">
+                                    {{ 'profile.create_team'|trans({}, 'team') }}
+                                </a>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+
+                <div class="bg-bg-card rounded-lg p-6 border border-metal-dark mb-6">
+                    <h3 class="font-russo text-xl mb-4">{{ 'profile.statistics'|trans({}, 'player') }}</h3>
+                    <ul class="space-y-4">
+                        <li class="flex items-center justify-between">
+                            <span class="text-gray-light">{{ 'dates.member_since'|trans({}, 'common') }}</span>
+                            <span class="text-white font-semibold">{{ player.createdAt|date('d/m/Y') }}</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="bg-bg-card rounded-lg p-6 border border-metal-dark mb-6">
+                    <h3 class="font-russo text-xl mb-4">{{ 'profile.security'|trans({}, 'player') }}</h3>
+                    <p class="text-sm text-gray-light mb-4">
+                        {{ 'profile.security_description'|trans({}, 'player') }}
+                    </p>
+                    <a href="{{ path('app_change_password') }}" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium uppercase tracking-wider rounded transition-all duration-300 no-underline bg-transparent text-white border border-metal-light hover:border-orange hover:text-orange">
+                        {{ 'profile.change_password'|trans({}, 'player') }}
+                    </a>
+                </div>
+
+                <div class="bg-bg-card rounded-lg p-6 border border-red-500/30">
+                    <h3 class="font-russo text-xl text-red-400 mb-2">{{ 'profile.close_account'|trans({}, 'player') }}</h3>
+                    <p class="text-gray-light text-sm mb-4">
+                        {{ 'profile.close_account_warning'|trans({}, 'player') }}
+                    </p>
+                    {% if player.isTeamCreator() %}
+                        <div class="p-4 bg-orange/10 border border-orange/30 rounded-lg mb-4">
+                            <p class="text-sm text-orange">
+                                {{ 'profile.close_account_team_warning'|trans({'%team%': player.team.tag}, 'player')|raw }}
+                                <a href="{{ path('app_team_edit') }}" class="underline hover:text-white">{{ 'edit.transfer_ownership'|trans({}, 'team') }}</a>
+                            </p>
+                        </div>
+                        <button type="button" disabled class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium uppercase tracking-wider rounded transition-all duration-300 bg-red-500/20 text-red-400/50 border border-red-500/50 cursor-not-allowed">
+                            {{ 'profile.close_account'|trans({}, 'player') }}
+                        </button>
+                    {% else %}
+                        <form action="{{ path('app_close_account') }}" method="post" onsubmit="return confirm('{{ 'profile.confirm_close'|trans({}, 'player')|e('js') }}');">
+                            <button type="submit" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium uppercase tracking-wider rounded transition-all duration-300 bg-red-500/20 text-red-400 border border-red-500 hover:bg-red-500/30">
+                                {{ 'profile.close_account'|trans({}, 'player') }}
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

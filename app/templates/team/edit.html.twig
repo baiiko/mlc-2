@@ -1,0 +1,160 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'title.edit'|trans({}, 'team') }}{% endblock %}
+
+{% form_theme form 'register/_form_theme.html.twig' %}
+
+{% block body %}
+    <section class="max-w-[1400px] mx-auto px-10 py-16">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+            {# Formulaire #}
+            <div>
+                <h1 class="font-russo text-4xl mb-2">{{ 'edit.title'|trans({}, 'team') }}</h1>
+                <p class="text-gray-light mb-8">{{ 'edit.subtitle'|trans({}, 'team') }}</p>
+
+                {% if success is defined and success %}
+                    <div class="bg-green-500/20 border border-green-500 rounded-lg p-4 mb-6">
+                        <p class="text-green-400">{{ 'edit.success'|trans({}, 'team') }}</p>
+                    </div>
+                {% endif %}
+
+                {% if error is defined and error %}
+                    <div class="bg-red-500/20 border border-red-500 rounded-lg p-4 mb-6">
+                        <p class="text-red-400">{{ error }}</p>
+                    </div>
+                {% endif %}
+
+                {% if form.vars.errors|length > 0 %}
+                    <div class="bg-red-500/20 border border-red-500 rounded-lg p-4 mb-6">
+                        {% for error in form.vars.errors %}
+                            <p class="text-red-400">{{ error.message }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {{ form_start(form, {'attr': {'class': 'space-y-2', 'autocomplete': 'off'}}) }}
+                    {# Informations de l'équipe #}
+                    <div class="bg-bg-card rounded-lg p-6 border border-metal-dark mb-6">
+                        <h2 class="font-russo text-xl text-orange mb-6">{{ 'edit.team_info'|trans({}, 'team') }}</h2>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {{ form_row(form.tag) }}
+                            {{ form_row(form.fullName) }}
+                        </div>
+                    </div>
+
+                    {# Submit #}
+                    <div class="flex gap-4">
+                        <button type="submit" class="inline-flex items-center justify-center px-8 py-4 font-semibold text-sm uppercase tracking-wider rounded transition-all duration-300 no-underline bg-gradient-to-br from-orange to-orange-dark text-white shadow-[0_4px_15px_rgba(255,140,0,0.4)] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(255,140,0,0.5)]">
+                            {{ 'edit.submit'|trans({}, 'team') }}
+                        </button>
+
+                        <a href="{{ path('app_profile') }}" class="inline-flex items-center justify-center px-8 py-4 font-semibold text-sm uppercase tracking-wider rounded transition-all duration-300 no-underline bg-transparent text-white border-2 border-metal-light hover:border-turquoise hover:text-turquoise">
+                            {{ 'edit.back_to_profile'|trans({}, 'team') }}
+                        </a>
+                    </div>
+                {{ form_end(form) }}
+
+                {# Transfert de propriété #}
+                {% set other_members = team.activeMembers|filter(p => p.id != app.user.id) %}
+                {% if other_members|length > 0 %}
+                    <div class="bg-bg-card rounded-lg p-6 border border-metal-dark mt-6">
+                        <h2 class="font-russo text-xl text-orange mb-4">{{ 'edit.transfer_ownership'|trans({}, 'team') }}</h2>
+                        <p class="text-sm text-gray-light mb-4">
+                            {{ 'edit.transfer_description'|trans({}, 'team') }}
+                        </p>
+
+                        <form action="{{ path('app_team_transfer') }}" method="post" onsubmit="return confirm('{{ 'edit.transfer_confirm'|trans({}, 'team')|e('js') }}');">
+                            <div class="mb-4">
+                                <label for="new_creator_id" class="block text-sm font-medium text-gray-light mb-2">
+                                    {{ 'edit.new_owner'|trans({}, 'team') }}
+                                </label>
+                                <select name="new_creator_id" id="new_creator_id" class="w-full px-4 py-3 bg-metal-dark border border-metal-light rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange focus:border-transparent">
+                                    {% for member in other_members %}
+                                        <option value="{{ member.id }}">{{ member.displayName|tm_color }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <button type="submit" class="inline-flex items-center justify-center px-6 py-3 font-semibold text-sm uppercase tracking-wider rounded transition-all duration-300 no-underline bg-transparent text-red-400 border border-red-400 hover:bg-red-400/10">
+                                {{ 'edit.transfer_button'|trans({}, 'team') }}
+                            </button>
+                        </form>
+                    </div>
+                {% endif %}
+            </div>
+
+            {# Sidebar infos #}
+            <div class="lg:sticky lg:top-24">
+                <div class="bg-bg-card rounded-lg p-6 border border-metal-dark mb-6">
+                    <h3 class="font-russo text-xl mb-4">{{ 'edit.your_team'|trans({}, 'team') }}</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">👥</span>
+                            <div>
+                                <div class="text-sm text-gray-mid">{{ 'edit.current_tag'|trans({}, 'team') }}</div>
+                                <div class="font-russo text-xl text-orange">{{ team.tag }}</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="text-sm text-gray-mid">{{ 'edit.full_name'|trans({}, 'team') }}</div>
+                            <div class="text-white font-semibold">{{ team.fullName }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                {# Liste des membres #}
+                <div class="bg-bg-card rounded-lg p-6 border border-metal-dark mb-6">
+                    <h3 class="font-russo text-xl mb-4">{{ 'members.title'|trans({}, 'team') }} ({{ team.activeMembers|length }})</h3>
+                    <div class="space-y-3">
+                        {% for member in team.activeMembers %}
+                            <div class="flex items-center justify-between p-3 bg-metal-dark rounded-lg">
+                                <div>
+                                    <div class="text-white font-medium">
+                                        {{ member.displayName|tm_color }}
+                                        {% if team.isCreator(member) %}
+                                            <span class="text-xs text-orange ml-1">{{ 'members.you'|trans({}, 'team') }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="text-xs text-gray-mid">{{ member.login }}</div>
+                                </div>
+                                {% if not team.isCreator(member) %}
+                                    <form action="{{ path('app_team_remove_member', {playerId: member.id}) }}" method="post" onsubmit="return confirm('{{ 'members.remove_confirm'|trans({'%name%': member.displayName|tm_strip}, 'team')|e('js') }}');">
+                                        <button type="submit" class="px-3 py-1 text-xs font-medium uppercase rounded transition-all duration-300 text-red-400 border border-red-400 hover:bg-red-400/10">
+                                            {{ 'members.remove'|trans({}, 'team') }}
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {% if pendingRequests|length > 0 %}
+                    <div class="bg-bg-card rounded-lg p-6 border border-metal-dark mb-6">
+                        <h3 class="font-russo text-xl mb-4">{{ 'requests.title'|trans({}, 'team') }}</h3>
+                        <p class="text-sm text-gray-light mb-4">
+                            {{ 'requests.pending_count'|trans({'%count%': pendingRequests|length}, 'team') }}
+                        </p>
+                        <a href="{{ path('app_team_requests') }}" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium uppercase tracking-wider rounded transition-all duration-300 no-underline bg-gradient-to-br from-turquoise to-turquoise-dark text-white hover:-translate-y-0.5">
+                            {{ 'requests.view_requests'|trans({}, 'team') }}
+                        </a>
+                    </div>
+                {% endif %}
+
+                {# Clôturer l'équipe #}
+                <div class="bg-bg-card rounded-lg p-6 border border-red-500/30">
+                    <h3 class="font-russo text-xl text-red-400 mb-2">{{ 'edit.close_team'|trans({}, 'team') }}</h3>
+                    <p class="text-gray-light text-sm mb-4">
+                        {{ 'edit.close_description'|trans({}, 'team') }}
+                    </p>
+                    <form action="{{ path('app_team_close') }}" method="post" onsubmit="return confirm('{{ 'edit.close_confirm'|trans({'%team%': team.tag}, 'team')|e('js') }}');">
+                        <button type="submit" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium uppercase tracking-wider rounded transition-all duration-300 bg-red-500/20 text-red-400 border border-red-500 hover:bg-red-500/30">
+                            {{ 'edit.close_button'|trans({}, 'team') }}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

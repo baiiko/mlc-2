@@ -1,0 +1,135 @@
+# Team Domain translations - French
+
+# Page titles
+title:
+    create: "Créer une équipe - MLC ModLap Championship"
+    edit: "Modifier l'équipe - MLC ModLap Championship"
+    join: "Rejoindre une équipe - MLC ModLap Championship"
+    requests: "Demandes d'adhésion - MLC ModLap Championship"
+
+# Create page
+create:
+    title: "Créer une équipe"
+    subtitle: "Créez votre équipe pour participer aux compétitions en groupe"
+    team_info: "Informations de l'équipe"
+    submit: "Créer l'équipe"
+    why_create: "Pourquoi créer une équipe ?"
+    play_together: "Jouez en groupe"
+    play_together_desc: "Invitez vos amis à rejoindre votre équipe"
+    team_ranking: "Classement équipe"
+    team_ranking_desc: "Cumulez vos points pour grimper au classement"
+    visual_identity: "Identité visuelle"
+    visual_identity_desc: "Votre tag sera affiché à côté de votre pseudo"
+    tips: "Conseils"
+    tip_tag: "Le tag est le nom court affiché en jeu (2-10 caractères)"
+    tip_fullname: "Le nom complet est le nom officiel de votre équipe"
+    tip_member: "Vous deviendrez automatiquement membre de l'équipe"
+
+# Edit page
+edit:
+    title: "Modifier l'équipe"
+    subtitle: "Modifiez les informations de votre équipe"
+    success: "Les informations de l'équipe ont été mises à jour."
+    team_info: "Informations de l'équipe"
+    submit: "Enregistrer"
+    back_to_profile: "Retour au profil"
+    your_team: "Votre équipe"
+    current_tag: "Tag actuel"
+    full_name: "Nom complet"
+    transfer_ownership: "Transférer la propriété"
+    transfer_description: "Vous pouvez transférer la propriété de l'équipe à un autre membre. Cette action est irréversible."
+    transfer_confirm: "Êtes-vous sûr de vouloir transférer la propriété de l'équipe ? Cette action est irréversible."
+    new_owner: "Nouveau propriétaire"
+    transfer_button: "Transférer la propriété"
+    close_team: "Clôturer l'équipe"
+    close_description: "Cette action est irréversible. Tous les membres seront retirés de l'équipe."
+    close_confirm: "Êtes-vous sûr de vouloir clôturer l'équipe %team% ? Cette action est irréversible."
+    close_button: "Clôturer l'équipe"
+
+# Members section
+members:
+    title: "Membres"
+    count: "%count% membre(s)"
+    you: "(vous)"
+    remove: "Retirer"
+    remove_confirm: "Retirer %name% de l'équipe ?"
+    leave: "Quitter l'équipe"
+    leave_confirm: "Êtes-vous sûr de vouloir quitter cette équipe ?"
+    member_of: "Membre de"
+
+# Join page
+join:
+    title: "Rejoindre une équipe"
+    subtitle: "Envoyez une demande pour rejoindre une équipe"
+    pending_request: "Demande en attente"
+    pending_description: "Vous avez envoyé une demande pour rejoindre l'équipe %team%"
+    sent_on: "Envoyée le"
+    cancel: "Annuler"
+    request_sent: "Demande envoyée"
+    request_join: "Demander à rejoindre"
+    create_team: "Créer une équipe"
+    back_to_profile: "Retour au profil"
+    cancel_request: "Annuler la demande"
+
+# Requests page
+requests:
+    title: "Demandes d'adhésion"
+    subtitle: "Gérez les demandes pour rejoindre votre équipe %team%"
+    pending_count: "%count% demande(s) en attente."
+    view_requests: "Voir les demandes"
+    request_sent_on: "Demande envoyée le"
+    accept: "Accepter"
+    reject: "Refuser"
+    no_requests: "Aucune demande d'adhésion en attente."
+    back_to_edit: "Retour à l'édition"
+
+# Profile team section
+profile:
+    title: "Équipe"
+    no_team: "Vous n'avez pas encore d'équipe."
+    join_team: "Rejoindre une équipe"
+    create_team: "Créer une équipe"
+    edit_team: "Modifier l'équipe"
+
+# Form labels
+form:
+    tag: "Tag de l'équipe"
+    tag_placeholder: "Ex: MLC"
+    tag_help: "Nom court affiché en jeu (2-10 caractères)"
+    fullname: "Nom complet"
+    fullname_placeholder: "Ex: ManiaClan"
+    fullname_help: "Nom officiel de l'équipe"
+
+# Validation messages
+validation:
+    tag_required: "Le tag est requis."
+    tag_min_length: "Le tag doit contenir au moins {{ limit }} caractères."
+    tag_max_length: "Le tag ne peut pas dépasser {{ limit }} caractères."
+    tag_exists: "Une équipe avec ce tag existe déjà."
+    fullname_required: "Le nom complet est requis."
+    fullname_min_length: "Le nom complet doit contenir au moins {{ limit }} caractères."
+    fullname_max_length: "Le nom complet ne peut pas dépasser {{ limit }} caractères."
+
+# Error messages
+error:
+    not_creator: "Vous n'êtes pas le créateur de cette équipe."
+    not_member: "Ce joueur n'est pas membre de votre équipe."
+    cannot_remove_creator: "Impossible de retirer le créateur de l'équipe."
+    creator_cannot_leave: "Le créateur ne peut pas quitter l'équipe."
+    request_not_found: "Demande introuvable."
+    player_not_found: "Joueur introuvable."
+    no_player_selected: "Aucun joueur sélectionné."
+    access_denied: "Accès refusé."
+
+# Success messages
+success:
+    created: "Équipe créée avec succès !"
+    updated: "Informations de l'équipe mises à jour."
+    left: "Vous avez quitté l'équipe."
+    closed: "L'équipe a été clôturée."
+    member_removed: "Le membre a été retiré de l'équipe."
+    ownership_transferred: "La propriété de l'équipe a été transférée."
+    request_sent: "Demande envoyée avec succès."
+    request_cancelled: "Demande annulée."
+    request_accepted: "Demande acceptée."
+    request_rejected: "Demande refusée."

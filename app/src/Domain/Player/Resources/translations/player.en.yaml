@@ -1,0 +1,218 @@
+# Player Domain translations - English
+
+# Pages titles
+title:
+    profile: "My Profile - MLC ModLap Championship"
+    login: "Login - MLC ModLap Championship"
+    register: "Register - MLC ModLap Championship"
+    register_success: "Registration Successful - MLC ModLap Championship"
+    forgot_password: "Forgot Password - MLC ModLap Championship"
+    email_sent: "Email Sent - MLC ModLap Championship"
+    reset_password: "New Password - MLC ModLap Championship"
+    invalid_link: "Invalid Link - MLC ModLap Championship"
+    password_changed: "Password Changed - MLC ModLap Championship"
+    change_password: "Change Password - MLC ModLap Championship"
+    activate: "Account Activation - MLC ModLap Championship"
+
+# Profile page
+profile:
+    title: "My Profile"
+    subtitle: "Manage your personal information"
+    success: "Your information has been updated successfully."
+    account_info: "Account Information"
+    login_label: "TrackMania Login"
+    login_readonly: "TrackMania login cannot be changed."
+    preferences: "Preferences"
+    save_changes: "Save changes"
+    statistics: "Statistics"
+    security: "Security"
+    security_description: "Change your login password."
+    change_password: "Change my password"
+    close_account: "Close my account"
+    close_account_warning: "This action is irreversible. All your data will be deleted."
+    close_account_team_warning: "You are the creator of the team %team%. You must first transfer ownership or close the team before closing your account."
+    confirm_close: "Are you sure you want to close your account? This action is irreversible."
+
+# Login page
+login:
+    title: "Login"
+    subtitle: "Sign in to access your pilot dashboard"
+    credentials: "Credentials"
+    login_placeholder: "Your TrackMania login"
+    password_placeholder: "Your password"
+    remember_me: "Remember me"
+    submit: "Sign in"
+    no_account: "Don't have an account?"
+    create_account: "Create an account"
+    help: "Need help?"
+    forgot_password: "Forgot password?"
+    reset_password: "Reset my password"
+    no_activation_email: "Didn't receive the activation email?"
+    check_spam: "Check your spam folder or"
+    request_new_link: "request a new link"
+
+# Register page
+register:
+    title: "Join the competition"
+    subtitle: "Register to participate in MLC races"
+    personal_info: "Personal Information"
+    conditions: "Terms"
+    submit: "Register"
+    why_join: "Why join us?"
+    regular_competition: "Regular competition"
+    active_community: "Active community"
+    realtime_ranking: "Real-time ranking"
+    track_progress: "Track your progress"
+    season_info: "The new season starts in February! Register now to be ready."
+    season_start: "Start: February 1st, 2025"
+
+# Register success page
+register_success:
+    title: "Registration successful!"
+    message: "Welcome to the MLC community! You will receive a confirmation email shortly."
+    next_steps: "Next steps"
+    step1: "Check your email to confirm your registration"
+    step2: "Join our Discord server to meet the community"
+    step3: "Check the calendar to see upcoming races"
+
+# Forgot password page
+forgot_password:
+    title: "Forgot Password"
+    subtitle: "Enter your email address to receive a reset link."
+    email: "Email address"
+    email_placeholder: "your@email.com"
+    submit: "Send link"
+    back_to_login: "Back to login"
+    success: "If an account exists with this email address, you will receive a reset link."
+
+# Forgot password sent page
+forgot_password_sent:
+    title: "Email sent!"
+    message: "If an account exists with this email address, you will receive a link to reset your password."
+    check_spam: "Remember to check your spam folder if you don't receive anything."
+
+# Activate account page
+activate:
+    title: "Account Activation"
+    subtitle: "Set your password to activate your account."
+    password: "Password"
+    password_placeholder: "Minimum 8 characters"
+    confirm_password: "Confirm password"
+    confirm_password_placeholder: "Repeat your password"
+    submit: "Activate my account"
+    success: "Your account has been activated successfully!"
+
+# Reset password page
+reset_password:
+    title: "New Password"
+    subtitle: "Choose a new password."
+    choose_password: "choose your new password."
+    password: "New password"
+    password_placeholder: "Minimum 8 characters"
+    confirm_password: "Confirm password"
+    confirm_password_placeholder: "Repeat your password"
+    submit: "Change my password"
+    password_hint: "Password must be at least 8 characters."
+    success: "Your password has been reset successfully."
+
+# Reset password invalid page
+reset_password_invalid:
+    title: "Invalid or expired link"
+    message: "This reset link is no longer valid. It may have expired or has already been used."
+    request_new: "Request a new link"
+
+# Reset password success page
+reset_password_success:
+    title: "Password changed!"
+    message: "Your password has been changed. You can now log in with your new password."
+
+# Change password page
+change_password:
+    title: "Change my password"
+    subtitle: "Change your login password."
+    current_password: "Current password"
+    current_password_placeholder: "Your current password"
+    new_password: "New password"
+    new_password_placeholder: "Minimum 8 characters"
+    confirm_password: "Confirm new password"
+    confirm_password_placeholder: "Repeat new password"
+    submit: "Change my password"
+    success: "Your password has been changed successfully."
+    back_to_profile: "Back to profile"
+
+# Form labels
+form:
+    login: "TrackMania Login"
+    login_help: "Your login to connect to the game"
+    pseudo: "Nickname"
+    pseudo_help: "The name that will be displayed publicly"
+    email: "Email address"
+    email_placeholder: "your@email.com"
+    password: "Password"
+    discord: "Discord (optional)"
+    discord_placeholder: "username#1234"
+    discord_help: "Recommended to join our server"
+    rules_accepted: "I have read and accept the competition rules"
+    newsletter: "I agree to receive MLC news by email"
+
+# Validation messages
+validation:
+    login_required: "TrackMania login is required."
+    login_min_length: "Login must be at least {{ limit }} characters."
+    login_exists: "A player with this login already exists."
+    pseudo_required: "Nickname is required."
+    pseudo_min_length: "Nickname must be at least {{ limit }} characters."
+    pseudo_max_length: "Nickname cannot exceed {{ limit }} characters."
+    email_required: "Email address is required."
+    email_invalid: "Email address is not valid."
+    email_exists: "A player with this email already exists."
+    rules_required: "You must accept the rules."
+    password_required: "Password is required."
+    confirm_password_required: "Password confirmation is required."
+    current_password_required: "Current password is required."
+    new_password_required: "New password is required."
+    password_min_length: "Password must be at least {{ limit }} characters."
+    password_uppercase: "Password must contain at least one uppercase letter."
+    password_lowercase: "Password must contain at least one lowercase letter."
+    password_digit: "Password must contain at least one digit."
+    password_special: "Password must contain at least one special character."
+    password_weak: "Password is too weak."
+    password_compromised: "This password has been compromised in a data breach."
+    password_mismatch: "Passwords do not match."
+
+# Error messages
+error:
+    access_denied: "Access denied."
+    account_not_found: "Account not found."
+    invalid_link: "This link is invalid or has expired."
+    close_account_team_creator: "You must transfer ownership or close your team before closing your account."
+
+# Success messages
+success:
+    registration: "Registration successful! Check your email to activate your account."
+    account_activated: "Account activated! You can now log in."
+    password_changed: "Password changed successfully."
+    email_sent: "Email sent! Check your inbox."
+
+# Emails
+email:
+    footer: "This email was sent automatically, please do not reply."
+    welcome:
+        subject: "Welcome to the MLC - Create your password"
+        title: "Welcome %login%!"
+        message: "Your registration to the MLC has been successfully recorded. To finalize your account and be able to log in, you must create your password."
+        warning: "This link is unique and will only be visible once. It expires in 24 hours."
+        button: "Create my password"
+        link_help: "If the button doesn't work, copy this link into your browser:"
+        features_intro: "Once your password is created, you will be able to:"
+        feature1: "Log in to the MLC website"
+        feature2: "Check the race calendar"
+        feature3: "Track your ranking"
+    reset_password:
+        subject: "MLC - Reset your password"
+        title: "Password Reset"
+        greeting: "Hi %login%,"
+        message: "You have requested to reset your password. Click the button below to choose a new password."
+        warning: "This link expires in 1 hour. If you didn't make this request, ignore this email."
+        button: "Reset my password"
+        link_help: "If the button doesn't work, copy this link into your browser:"

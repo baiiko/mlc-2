@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Créer mon mot de passe - MLC ModLap Championship{% endblock %}
+
+{% form_theme form 'register/_form_theme.html.twig' %}
+
+{% block body %}
+    <section class="max-w-[500px] mx-auto px-10 py-16">
+        <div class="bg-bg-card rounded-lg p-8 border border-metal-dark">
+            <div class="text-center mb-8">
+                <div class="text-5xl mb-4">🔐</div>
+                <h1 class="font-russo text-3xl mb-2">Créer mon mot de passe</h1>
+                <p class="text-gray-light">
+                    Bienvenue <span class="text-orange font-semibold">{{ player.login }}</span> !<br>
+                    Choisis un mot de passe pour accéder à ton compte.
+                </p>
+            </div>
+
+            {{ form_start(form, {'attr': {'class': 'space-y-4', 'autocomplete': 'off'}}) }}
+                {{ form_row(form.password, {'icon': '🔒'}) }}
+                {{ form_row(form.confirmPassword, {'icon': '🔒'}) }}
+
+                <div class="pt-4">
+                    <button type="submit" class="w-full inline-flex items-center justify-center px-8 py-4 font-semibold text-sm uppercase tracking-wider rounded transition-all duration-300 no-underline bg-gradient-to-br from-orange to-orange-dark text-white shadow-[0_4px_15px_rgba(255,140,0,0.4)] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(255,140,0,0.5)]">
+                        Créer mon mot de passe
+                    </button>
+                </div>
+            {{ form_end(form) }}
+
+            <p class="text-center text-sm text-gray-mid mt-6">
+                Le mot de passe doit contenir au moins 8 caractères.
+            </p>
+        </div>
+    </section>
+{% endblock %}

@@ -1,0 +1,98 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'title.login'|trans({}, 'player') }}{% endblock %}
+
+{% block body %}
+    <section class="max-w-[1400px] mx-auto px-10 py-16">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+            <div>
+                <h1 class="font-russo text-4xl mb-2">{{ 'login.title'|trans({}, 'player') }}</h1>
+                <p class="text-gray-light mb-8">{{ 'login.subtitle'|trans({}, 'player') }}</p>
+
+                {% if error %}
+                    <div class="bg-red-500/20 border border-red-500 rounded-lg p-4 mb-6">
+                        <p class="text-red-400">{{ error.messageKey|trans(error.messageData, 'security') }}</p>
+                    </div>
+                {% endif %}
+
+                <form method="post" class="space-y-2" autocomplete="off">
+                    <div class="bg-bg-card rounded-lg p-6 border border-metal-dark mb-6">
+                        <h2 class="font-russo text-xl text-orange mb-6">{{ 'login.credentials'|trans({}, 'player') }}</h2>
+
+                        <div class="space-y-4">
+                            <div>
+                                <label for="login" class="block text-sm text-gray-light mb-2">{{ 'form.login'|trans({}, 'player') }}</label>
+                                <input type="text" id="login" name="login" value="{{ last_username }}" required
+                                    class="w-full bg-bg-dark border border-metal-dark rounded-lg px-4 py-3 text-white focus:border-orange focus:outline-none transition-colors"
+                                    placeholder="{{ 'login.login_placeholder'|trans({}, 'player') }}">
+                            </div>
+
+                            <div>
+                                <label for="password" class="block text-sm text-gray-light mb-2">{{ 'form.password'|trans({}, 'player') }}</label>
+                                <input type="password" id="password" name="password" required
+                                    class="w-full bg-bg-dark border border-metal-dark rounded-lg px-4 py-3 text-white focus:border-orange focus:outline-none transition-colors"
+                                    placeholder="{{ 'login.password_placeholder'|trans({}, 'player') }}">
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="remember_me" name="_remember_me"
+                                    class="w-4 h-4 rounded border-metal-dark bg-bg-dark text-orange focus:ring-orange">
+                                <label for="remember_me" class="text-sm text-gray-light">{{ 'login.remember_me'|trans({}, 'player') }}</label>
+                            </div>
+                        </div>
+
+                        <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+                    </div>
+
+                    <div class="flex gap-4">
+                        <button type="submit" class="inline-flex items-center justify-center px-8 py-4 font-semibold text-sm uppercase tracking-wider rounded transition-all duration-300 no-underline bg-gradient-to-br from-orange to-orange-dark text-white shadow-[0_4px_15px_rgba(255,140,0,0.4)] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(255,140,0,0.5)]">
+                                {{ 'login.submit'|trans({}, 'player') }}
+                        </button>
+
+                        <a href="{{ path('app_home') }}" class="inline-flex items-center justify-center px-8 py-4 font-semibold text-sm uppercase tracking-wider rounded transition-all duration-300 no-underline bg-transparent text-white border-2 border-metal-light hover:border-turquoise hover:text-turquoise">
+                            {{ 'buttons.cancel'|trans({}, 'common') }}
+                        </a>
+                    </div>
+                </form>
+
+                <div class="mt-6 text-center">
+                    <p class="text-gray-light">
+                        {{ 'login.no_account'|trans({}, 'player') }}
+                        <a href="{{ path('app_register') }}" class="text-orange hover:text-turquoise transition-colors">{{ 'login.create_account'|trans({}, 'player') }}</a>
+                    </p>
+                </div>
+            </div>
+
+            <div class="lg:sticky lg:top-24">
+                <div class="bg-bg-card rounded-lg p-6 border border-metal-dark mb-6">
+                    <h3 class="font-russo text-xl mb-4">{{ 'login.help'|trans({}, 'player') }}</h3>
+                    <ul class="space-y-4">
+                        <li class="flex items-start gap-3">
+                            <span class="text-2xl">🔑</span>
+                            <div>
+                                <div class="font-semibold">{{ 'login.forgot_password'|trans({}, 'player') }}</div>
+                                <div class="text-sm text-gray-mid">
+                                    <a href="{{ path('app_forgot_password') }}" class="text-orange hover:text-turquoise transition-colors">
+                                        {{ 'login.reset_password'|trans({}, 'player') }}
+                                    </a>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="text-2xl">📧</span>
+                            <div>
+                                <div class="font-semibold">{{ 'login.no_activation_email'|trans({}, 'player') }}</div>
+                                <div class="text-sm text-gray-mid">
+                                    {{ 'login.check_spam'|trans({}, 'player') }}
+                                    <a href="{{ path('app_forgot_password') }}" class="text-orange hover:text-turquoise transition-colors">
+                                        {{ 'login.request_new_link'|trans({}, 'player') }}
+                                    </a>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

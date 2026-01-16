@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1A1C1F;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #2A2D32;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(to right, #FF8C00, #00D2D3);
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 32px;
+            color: #ffffff;
+        }
+        .content {
+            padding: 30px;
+        }
+        .content h2 {
+            color: #FF8C00;
+            margin-top: 0;
+        }
+        .info-box {
+            background-color: #1A1C1F;
+            border-radius: 6px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .info-box p {
+            margin: 5px 0;
+        }
+        .info-box strong {
+            color: #00D2D3;
+        }
+        .button {
+            display: inline-block;
+            background: linear-gradient(to right, #FF8C00, #E07800);
+            color: #ffffff !important;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .warning {
+            background-color: #FF8C00;
+            color: #1A1C1F;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        .footer {
+            background-color: #1A1C1F;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #888;
+        }
+        .small {
+            font-size: 12px;
+            color: #888;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>MLC</h1>
+            <p style="margin: 5px 0 0; opacity: 0.9;">ModLap Championship</p>
+        </div>
+
+        <div class="content">
+            <h2>Bienvenue {{ player.login }} !</h2>
+
+            <p>Ton inscription à la MLC a bien été enregistrée. Pour finaliser ton compte et pouvoir te connecter, tu dois créer ton mot de passe.</p>
+
+            <div class="warning">
+                ⚠️ Ce lien est unique et ne sera visible qu'une seule fois. Il expire dans 24 heures.
+            </div>
+
+            <center>
+                <a href="{{ activationUrl }}" class="button">Créer mon mot de passe</a>
+            </center>
+
+            <p class="small">Si le bouton ne fonctionne pas, copie ce lien dans ton navigateur :<br>{{ activationUrl }}</p>
+
+            <div class="info-box">
+                <p><strong>Login :</strong> {{ player.login }}</p>
+                <p><strong>Email :</strong> {{ player.email }}</p>
+                {% if player.discord %}
+                    <p><strong>Discord :</strong> {{ player.discord }}</p>
+                {% endif %}
+            </div>
+
+            <p>Une fois ton mot de passe créé, tu pourras :</p>
+            <ul>
+                <li>Te connecter au site MLC</li>
+                <li>Consulter le calendrier des courses</li>
+                <li>Suivre ton classement</li>
+            </ul>
+        </div>
+
+        <div class="footer">
+            <p>MLC - ModLap Championship</p>
+            <p>Cet email a été envoyé automatiquement, merci de ne pas y répondre.</p>
+        </div>
+    </div>
+</body>
+</html>

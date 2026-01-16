@@ -1,0 +1,47 @@
+{#
+    Event Card Component
+    @param event object - { round, name, date, time, circuit, status: 'live'|'upcoming'|'past' }
+#}
+<div class="bg-bg-card rounded-lg overflow-hidden border border-metal-dark
+            hover:-translate-y-1 hover:border-orange hover:shadow-[0_10px_30px_rgba(255,140,0,0.2)]
+            transition-all duration-300">
+    {# Header #}
+    <div class="bg-metal-dark px-5 py-3 flex justify-between items-center">
+        <span class="font-russo text-sm text-orange">ROUND {{ event.round }}</span>
+        {% if event.status == 'live' %}
+            <span class="text-[11px] font-semibold px-2.5 py-1 rounded-full uppercase tracking-wider
+                         bg-red-500/20 text-red-400 animate-pulse-live">
+                ● EN DIRECT
+            </span>
+        {% elseif event.status == 'upcoming' %}
+            <span class="text-[11px] font-semibold px-2.5 py-1 rounded-full uppercase tracking-wider
+                         bg-turquoise/20 text-turquoise">
+                À VENIR
+            </span>
+        {% else %}
+            <span class="text-[11px] font-semibold px-2.5 py-1 rounded-full uppercase tracking-wider
+                         bg-metal-mid text-gray-mid">
+                TERMINÉ
+            </span>
+        {% endif %}
+    </div>
+
+    {# Body #}
+    <div class="p-5">
+        <h3 class="font-russo text-xl mb-4">{{ event.name }}</h3>
+        <div class="space-y-2">
+            <div class="flex items-center gap-2.5 text-gray-light text-sm">
+                <span>📅</span>
+                <span>{{ event.date }}</span>
+            </div>
+            <div class="flex items-center gap-2.5 text-gray-light text-sm">
+                <span>🕐</span>
+                <span>{{ event.time }}</span>
+            </div>
+            <div class="flex items-center gap-2.5 text-gray-light text-sm">
+                <span>🏁</span>
+                <span>Circuit: {{ event.circuit }}</span>
+            </div>
+        </div>
+    </div>
+</div>

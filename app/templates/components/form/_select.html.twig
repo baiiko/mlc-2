@@ -1,0 +1,55 @@
+{#
+    Select Component (Single Responsibility: only handles select rendering)
+    @param name string - Select name
+    @param label string - Label text
+    @param options array - Array of { value, label } or simple array
+    @param placeholder string|null - Placeholder text
+    @param required bool - Is required (default: false)
+    @param value string|null - Current selected value
+    @param error string|null - Error message
+#}
+{% set required = required|default(false) %}
+
+<div class="mb-5">
+    <label for="{{ name }}" class="block text-sm font-medium text-gray-light mb-2">
+        {{ label }}
+        {% if required %}<span class="text-orange">*</span>{% endif %}
+    </label>
+
+    <select
+        id="{{ name }}"
+        name="{{ name }}"
+        {% if required %}required{% endif %}
+        class="w-full px-4 py-3 bg-metal-dark border rounded-lg
+               text-white appearance-none cursor-pointer
+               focus:outline-none focus:ring-2 focus:ring-orange focus:border-transparent
+               transition-all duration-300
+               {{ error is defined and error ? 'border-red-500' : 'border-metal-light' }}"
+        style="background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 fill=%22%239A9DA0%22 viewBox=%220 0 24 24%22%3E%3Cpath d=%22M7 10l5 5 5-5z%22/%3E%3C/svg%3E');
+               background-repeat: no-repeat;
+               background-position: right 12px center;
+               background-size: 24px;"
+    >
+        {% if placeholder is defined %}
+            <option value="" disabled {{ value is not defined or not value ? 'selected' : '' }}>
+                {{ placeholder }}
+            </option>
+        {% endif %}
+
+        {% for option in options %}
+            {% if option is iterable and option.value is defined %}
+                <option value="{{ option.value }}" {{ value is defined and value == option.value ? 'selected' : '' }}>
+                    {{ option.label }}
+                </option>
+            {% else %}
+                <option value="{{ option }}" {{ value is defined and value == option ? 'selected' : '' }}>
+                    {{ option }}
+                </option>
+            {% endif %}
+        {% endfor %}
+    </select>
+
+    {% if error is defined and error %}
+        <p class="mt-2 text-sm text-red-500">{{ error }}</p>
+    {% endif %}
+</div>

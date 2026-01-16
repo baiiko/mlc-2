@@ -1,0 +1,41 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Inscription réussie - MLC ModLap Championship{% endblock %}
+
+{% block body %}
+    <section class="max-w-[600px] mx-auto px-10 py-16 text-center">
+        <div class="bg-bg-card rounded-lg p-10 border border-metal-dark">
+            <div class="text-6xl mb-6">🎉</div>
+            <h1 class="font-russo text-3xl mb-4">Inscription réussie !</h1>
+            <p class="text-gray-light mb-8">
+                Bienvenue dans la communauté MLC ! Tu recevras bientôt un email de confirmation.
+            </p>
+
+            <div class="bg-metal-dark rounded-lg p-6 mb-8 text-left">
+                <h2 class="font-russo text-lg text-orange mb-4">Prochaines étapes</h2>
+                <ul class="space-y-3 text-sm">
+                    <li class="flex items-start gap-3">
+                        <span class="text-turquoise">1.</span>
+                        <span>Vérifie ta boîte mail pour confirmer ton inscription</span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="text-turquoise">2.</span>
+                        <span>Rejoins notre serveur Discord pour rencontrer la communauté</span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="text-turquoise">3.</span>
+                        <span>Consulte le calendrier pour connaître les prochaines courses</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="flex gap-4 justify-center">
+                {% include 'components/_button.html.twig' with {
+                    label: 'Retour à l\'accueil',
+                    type: 'primary',
+                    href: path('app_home')
+                } %}
+            </div>
+        </div>
+    </section>
+{% endblock %}

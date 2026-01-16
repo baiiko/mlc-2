@@ -1,0 +1,33 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Infrastructure\Http\Form;
+
+use App\Application\Player\DTO\ForgotPasswordDTO;
+use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\EmailType;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
+
+final class ForgotPasswordType extends AbstractType
+{
+    public function buildForm(FormBuilderInterface $builder, array $options): void
+    {
+        $builder
+            ->add('email', EmailType::class, [
+                'label' => 'forgot_password.email',
+                'attr' => [
+                    'placeholder' => 'forgot_password.email_placeholder',
+                ],
+            ]);
+    }
+
+    public function configureOptions(OptionsResolver $resolver): void
+    {
+        $resolver->setDefaults([
+            'data_class' => ForgotPasswordDTO::class,
+            'translation_domain' => 'player',
+        ]);
+    }
+}

@@ -1,0 +1,33 @@
+{#
+    Checkbox Component
+    @param name string - Checkbox name
+    @param label string - Label text (can contain HTML)
+    @param required bool - Is required (default: false)
+    @param checked bool - Is checked (default: false)
+    @param error string|null - Error message
+#}
+{% set required = required|default(false) %}
+{% set checked = checked|default(false) %}
+
+<div class="mb-5">
+    <label class="flex items-start gap-3 cursor-pointer group">
+        <input
+            type="checkbox"
+            id="{{ name }}"
+            name="{{ name }}"
+            {% if required %}required{% endif %}
+            {% if checked %}checked{% endif %}
+            class="mt-1 w-5 h-5 rounded border-metal-light bg-metal-dark
+                   text-orange focus:ring-orange focus:ring-offset-0
+                   cursor-pointer"
+        >
+        <span class="text-sm text-gray-light group-hover:text-white transition-colors">
+            {{ label|raw }}
+            {% if required %}<span class="text-orange">*</span>{% endif %}
+        </span>
+    </label>
+
+    {% if error is defined and error %}
+        <p class="mt-2 text-sm text-red-500">{{ error }}</p>
+    {% endif %}
+</div>

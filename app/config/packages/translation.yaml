@@ -1,0 +1,9 @@
+framework:
+    default_locale: fr
+    translator:
+        default_path: '%kernel.project_dir%/translations'
+        paths:
+            - '%kernel.project_dir%/src/Domain/Player/Resources/translations'
+            - '%kernel.project_dir%/src/Domain/Team/Resources/translations'
+        fallbacks:
+            - fr

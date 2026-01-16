@@ -1,0 +1,135 @@
+# Team Domain translations - English
+
+# Page titles
+title:
+    create: "Create a Team - MLC ModLap Championship"
+    edit: "Edit Team - MLC ModLap Championship"
+    join: "Join a Team - MLC ModLap Championship"
+    requests: "Membership Requests - MLC ModLap Championship"
+
+# Create page
+create:
+    title: "Create a Team"
+    subtitle: "Create your team to participate in group competitions"
+    team_info: "Team Information"
+    submit: "Create Team"
+    why_create: "Why create a team?"
+    play_together: "Play together"
+    play_together_desc: "Invite your friends to join your team"
+    team_ranking: "Team ranking"
+    team_ranking_desc: "Accumulate points to climb the rankings"
+    visual_identity: "Visual identity"
+    visual_identity_desc: "Your tag will be displayed next to your nickname"
+    tips: "Tips"
+    tip_tag: "The tag is the short name displayed in game (2-10 characters)"
+    tip_fullname: "The full name is your team's official name"
+    tip_member: "You will automatically become a member of the team"
+
+# Edit page
+edit:
+    title: "Edit Team"
+    subtitle: "Edit your team information"
+    success: "Team information has been updated."
+    team_info: "Team Information"
+    submit: "Save"
+    back_to_profile: "Back to profile"
+    your_team: "Your Team"
+    current_tag: "Current tag"
+    full_name: "Full name"
+    transfer_ownership: "Transfer Ownership"
+    transfer_description: "You can transfer team ownership to another member. This action is irreversible."
+    transfer_confirm: "Are you sure you want to transfer team ownership? This action is irreversible."
+    new_owner: "New owner"
+    transfer_button: "Transfer ownership"
+    close_team: "Close Team"
+    close_description: "This action is irreversible. All members will be removed from the team."
+    close_confirm: "Are you sure you want to close the team %team%? This action is irreversible."
+    close_button: "Close team"
+
+# Members section
+members:
+    title: "Members"
+    count: "%count% member(s)"
+    you: "(you)"
+    remove: "Remove"
+    remove_confirm: "Remove %name% from the team?"
+    leave: "Leave team"
+    leave_confirm: "Are you sure you want to leave this team?"
+    member_of: "Member of"
+
+# Join page
+join:
+    title: "Join a Team"
+    subtitle: "Send a request to join a team"
+    pending_request: "Pending Request"
+    pending_description: "You have sent a request to join the team %team%"
+    sent_on: "Sent on"
+    cancel: "Cancel"
+    request_sent: "Request sent"
+    request_join: "Request to join"
+    create_team: "Create a team"
+    back_to_profile: "Back to profile"
+    cancel_request: "Cancel request"
+
+# Requests page
+requests:
+    title: "Membership Requests"
+    subtitle: "Manage requests to join your team %team%"
+    pending_count: "%count% pending request(s)."
+    view_requests: "View requests"
+    request_sent_on: "Request sent on"
+    accept: "Accept"
+    reject: "Reject"
+    no_requests: "No pending membership requests."
+    back_to_edit: "Back to edit"
+
+# Profile team section
+profile:
+    title: "Team"
+    no_team: "You don't have a team yet."
+    join_team: "Join a team"
+    create_team: "Create a team"
+    edit_team: "Edit team"
+
+# Form labels
+form:
+    tag: "Team Tag"
+    tag_placeholder: "E.g.: MLC"
+    tag_help: "Short name displayed in game (2-10 characters)"
+    fullname: "Full Name"
+    fullname_placeholder: "E.g.: ManiaClan"
+    fullname_help: "Official team name"
+
+# Validation messages
+validation:
+    tag_required: "Tag is required."
+    tag_min_length: "Tag must be at least {{ limit }} characters."
+    tag_max_length: "Tag cannot exceed {{ limit }} characters."
+    tag_exists: "A team with this tag already exists."
+    fullname_required: "Full name is required."
+    fullname_min_length: "Full name must be at least {{ limit }} characters."
+    fullname_max_length: "Full name cannot exceed {{ limit }} characters."
+
+# Error messages
+error:
+    not_creator: "You are not the creator of this team."
+    not_member: "This player is not a member of your team."
+    cannot_remove_creator: "Cannot remove the team creator."
+    creator_cannot_leave: "The creator cannot leave the team."
+    request_not_found: "Request not found."
+    player_not_found: "Player not found."
+    no_player_selected: "No player selected."
+    access_denied: "Access denied."
+
+# Success messages
+success:
+    created: "Team created successfully!"
+    updated: "Team information updated."
+    left: "You have left the team."
+    closed: "The team has been closed."
+    member_removed: "Member has been removed from the team."
+    ownership_transferred: "Team ownership has been transferred."
+    request_sent: "Request sent successfully."
+    request_cancelled: "Request cancelled."
+    request_accepted: "Request accepted."
+    request_rejected: "Request rejected."

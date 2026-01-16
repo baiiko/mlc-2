@@ -1,0 +1,33 @@
+{#
+    News Card Component
+    @param news object - { tag, title, excerpt, date, author, featured: bool }
+#}
+{% if news.featured|default(false) %}
+    {# Featured News #}
+    <div class="bg-bg-card rounded-lg overflow-hidden border border-metal-dark">
+        <div class="h-[200px] bg-gradient-to-br from-metal-dark to-bg-dark flex items-center justify-center">
+            <span class="font-russo text-5xl text-metal-light">MLC</span>
+        </div>
+        <div class="p-6">
+            <span class="inline-block bg-orange/20 text-orange px-3 py-1 rounded text-[11px] font-semibold uppercase tracking-wider mb-2.5">
+                {{ news.tag }}
+            </span>
+            <h3 class="font-russo text-[22px] mb-2.5 leading-tight">{{ news.title }}</h3>
+            {% if news.excerpt is defined %}
+                <p class="text-gray-light text-sm leading-relaxed mb-4">{{ news.excerpt }}</p>
+            {% endif %}
+            <div class="text-gray-mid text-xs">
+                {{ news.date }}{% if news.author is defined %} • Par {{ news.author }}{% endif %}
+            </div>
+        </div>
+    </div>
+{% else %}
+    {# Small News #}
+    <div class="bg-bg-card p-5 rounded-lg border border-metal-dark hover:border-turquoise transition-colors">
+        <span class="inline-block bg-orange/20 text-orange px-3 py-1 rounded text-[11px] font-semibold uppercase tracking-wider mb-2.5">
+            {{ news.tag }}
+        </span>
+        <h3 class="font-russo text-base mb-2 leading-tight">{{ news.title }}</h3>
+        <div class="text-gray-mid text-xs">{{ news.date }}</div>
+    </div>
+{% endif %}

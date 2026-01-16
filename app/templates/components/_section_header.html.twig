@@ -1,0 +1,18 @@
+{#
+    Section Header Component
+    @param title string - Titre de la section
+    @param link string|null - URL du lien "Voir tout"
+    @param link_text string - Texte du lien (default: "Voir tout")
+#}
+{% set link_text = link_text|default('Voir tout →') %}
+
+<div class="flex justify-between items-center mb-8">
+    <h2 class="section-title font-russo text-3xl relative pl-5">
+        {{ title }}
+    </h2>
+    {% if link is defined and link %}
+        <a href="{{ link }}" class="text-turquoise text-sm font-medium no-underline hover:text-turquoise-light transition-colors">
+            {{ link_text }}
+        </a>
+    {% endif %}
+</div>

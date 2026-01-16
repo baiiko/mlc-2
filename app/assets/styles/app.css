@@ -1,0 +1,74 @@
+@import "tailwindcss";
+
+@theme {
+    /* Couleurs MLC */
+    --color-orange: #FF8C00;
+    --color-orange-dark: #CC7000;
+    --color-orange-light: #FFB347;
+    --color-turquoise: #00D2D3;
+    --color-turquoise-dark: #00A8A8;
+    --color-turquoise-light: #40E0E0;
+
+    /* Metallique/Gris */
+    --color-metal-dark: #2A2D32;
+    --color-metal-mid: #3D4148;
+    --color-metal-light: #5A5F66;
+    --color-metal-shine: #8A8F96;
+
+    /* Texte */
+    --color-gray-light: #C8CACC;
+    --color-gray-mid: #9A9DA0;
+
+    /* Fond */
+    --color-bg-dark: #1A1C1F;
+    --color-bg-card: #252830;
+
+    /* Fonts */
+    --font-russo: 'Russo One', sans-serif;
+    --font-exo: 'Exo 2', sans-serif;
+}
+
+/* Styles impossibles a faire en Tailwind pur */
+.logo-badge-forever {
+    background: linear-gradient(90deg, #ff6b6b, #ffa500, #ffd93d, #6bcb77, #4d96ff, #9b59b6, #ff6b9d);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.hero-pattern {
+    background-image:
+        linear-gradient(45deg, rgba(255,140,0,0.03) 25%, transparent 25%),
+        linear-gradient(-45deg, rgba(0,210,211,0.03) 25%, transparent 25%);
+    background-size: 60px 60px;
+}
+
+.section-title::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 30px;
+    background: linear-gradient(180deg, var(--color-orange), var(--color-turquoise));
+}
+
+nav a.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 20%;
+    right: 20%;
+    height: 2px;
+    background: var(--color-orange);
+}
+
+@keyframes pulse-live {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.animate-pulse-live {
+    animation: pulse-live 2s infinite;
+}

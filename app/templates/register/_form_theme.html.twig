@@ -1,0 +1,84 @@
+{% use 'form_div_layout.html.twig' %}
+
+{# Input text/email #}
+{% block form_row %}
+    <div class="mb-5">
+        {{ form_label(form) }}
+        <div class="relative">
+            {% if icon is defined and icon %}
+                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-mid">{{ icon }}</span>
+            {% endif %}
+            {{ form_widget(form, {'icon': icon|default(null)}) }}
+        </div>
+        {{ form_errors(form) }}
+        {% if help is defined and help %}
+            <p class="mt-2 text-sm text-gray-mid">{{ help }}</p>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block form_label %}
+    {% if label is not same as(false) %}
+        <label for="{{ id }}" class="block text-sm font-medium text-gray-light mb-2">
+            {{ label }}
+            {% if required %}<span class="text-orange">*</span>{% endif %}
+        </label>
+    {% endif %}
+{% endblock %}
+
+{% block form_widget_simple %}
+    {% set has_icon = icon is defined and icon %}
+    {% set input_type = type|default('text') %}
+    <input
+        type="{{ input_type }}"
+        id="{{ id }}"
+        name="{{ full_name }}"
+        autocomplete="off"
+        {% if value is not empty %}value="{{ value }}"{% endif %}
+        {% if required %}required{% endif %}
+        {% if attr.placeholder is defined %}placeholder="{{ attr.placeholder }}"{% endif %}
+        class="w-full px-4 py-3 {{ has_icon ? 'pl-12' : '' }}
+               bg-metal-dark border rounded-lg
+               text-white placeholder-gray-mid
+               focus:outline-none focus:ring-2 focus:ring-orange focus:border-transparent
+               transition-all duration-300
+               {{ errors|length > 0 ? 'border-red-500' : 'border-metal-light' }}"
+    >
+{% endblock %}
+
+{# Checkbox #}
+{% block checkbox_row %}
+    <div class="mb-5">
+        <label class="flex items-center gap-3 cursor-pointer group">
+            {{ form_widget(form) }}
+            <span class="text-sm text-gray-light group-hover:text-white transition-colors">
+                {{ label|raw }}
+                {% if required %}<span class="text-orange">*</span>{% endif %}
+            </span>
+        </label>
+        {{ form_errors(form) }}
+    </div>
+{% endblock %}
+
+{% block checkbox_widget %}
+    <input
+        type="checkbox"
+        id="{{ id }}"
+        name="{{ full_name }}"
+        autocomplete="off"
+        {% if checked %}checked{% endif %}
+        {% if required %}required{% endif %}
+        class="w-5 h-5 rounded border-metal-light bg-metal-dark
+               text-orange focus:ring-orange focus:ring-offset-0
+               cursor-pointer shrink-0"
+    >
+{% endblock %}
+
+{# Errors #}
+{% block form_errors %}
+    {% if errors|length > 0 %}
+        {% for error in errors %}
+            <p class="mt-2 text-sm text-red-500">{{ error.message }}</p>
+        {% endfor %}
+    {% endif %}
+{% endblock %}

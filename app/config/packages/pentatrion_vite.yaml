@@ -1,0 +1,4 @@
+pentatrion_vite:
+    public_directory: public
+    build_directory: build
+    proxy_origin: null
