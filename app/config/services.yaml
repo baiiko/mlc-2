@@ -52,5 +52,30 @@ services:
     App\Domain\Team\Repository\TeamMembershipRepositoryInterface:
         class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrineTeamMembershipRepository
 
+    # Interface bindings - Championship
+    App\Domain\Championship\Repository\SeasonRepositoryInterface:
+        class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrineSeasonRepository
+
+    App\Domain\Championship\Repository\RoundRepositoryInterface:
+        class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrineRoundRepository
+
+    App\Domain\Championship\Repository\PhaseRepositoryInterface:
+        class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrinePhaseRepository
+
+    App\Domain\Championship\Repository\RoundRegistrationRepositoryInterface:
+        class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrineRoundRegistrationRepository
+
+    App\Domain\Championship\Repository\PhaseResultRepositoryInterface:
+        class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrinePhaseResultRepository
+
+    App\Domain\Championship\Repository\MapRecordRepositoryInterface:
+        class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrineMapRecordRepository
+
+    App\Application\Championship\Service\RegisterToRoundServiceInterface:
+        class: App\Application\Championship\Service\RegisterToRoundService
+
+    App\Application\Championship\Service\CalculateRankingServiceInterface:
+        class: App\Application\Championship\Service\CalculateRankingService
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

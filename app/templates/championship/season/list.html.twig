@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'championship.seasons.title'|trans({}, 'championship') }}{% endblock %}
+
+{% block body %}
+    <section class="max-w-[1400px] mx-auto px-10 py-16">
+        <h1 class="font-russo text-4xl mb-2">{{ 'championship.seasons.title'|trans({}, 'championship') }}</h1>
+        <p class="text-gray-light mb-8">{{ 'championship.seasons.subtitle'|trans({}, 'championship') }}</p>
+
+        {% if seasons is empty %}
+            <div class="bg-bg-card rounded-lg p-8 border border-metal-dark text-center">
+                <p class="text-gray-mid">{{ 'championship.seasons.no_seasons'|trans({}, 'championship') }}</p>
+            </div>
+        {% else %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for season in seasons %}
+                    <a href="{{ path('app_championship_season_show', {slug: season.slug}) }}" class="bg-bg-card rounded-lg p-6 border border-metal-dark hover:border-turquoise transition-colors group">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="font-russo text-xl group-hover:text-turquoise transition-colors">{{ season.name }}</h2>
+                            {% if season.isActive %}
+                                <span class="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded uppercase">{{ 'championship.active'|trans({}, 'championship') }}</span>
+                            {% endif %}
+                        </div>
+
+                        {% if season.description %}
+                            <p class="text-gray-mid text-sm mb-4 line-clamp-2">{{ season.description }}</p>
+                        {% endif %}
+
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-gray-light">
+                                {{ season.startDate|date('d/m/Y') }}
+                                {% if season.endDate %}
+                                    - {{ season.endDate|date('d/m/Y') }}
+                                {% endif %}
+                            </span>
+                            <span class="text-turquoise">{{ season.rounds|length }} {{ 'championship.rounds'|trans({}, 'championship') }}</span>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </section>
+{% endblock %}

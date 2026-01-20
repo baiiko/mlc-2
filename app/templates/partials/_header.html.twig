@@ -32,12 +32,12 @@
             {% set route_params = app.request.attributes.get('_route_params')|default({}) %}
             {% set nav_items = [
                 { route: 'app_home', label: 'nav.home'|trans({}, 'common') },
-                { route: 'app_ranking', label: 'nav.ranking'|trans({}, 'common') },
+                { route: 'app_championship_seasons', label: 'nav.championship'|trans({}, 'common') },
                 { route: 'app_calendar', label: 'nav.calendar'|trans({}, 'common') },
                 { route: 'app_rules', label: 'nav.rules'|trans({}, 'common') }
             ] %}
 
-            {% set available_routes = ['app_home', 'app_register', 'app_login'] %}
+            {% set available_routes = ['app_home', 'app_register', 'app_login', 'app_championship_seasons'] %}
             {% for item in nav_items %}
                 <a href="{{ item.route in available_routes ? path(item.route) : '#' }}"
                    class="relative px-5 py-3 text-sm font-medium uppercase tracking-wider rounded
@@ -55,7 +55,7 @@
                     {% if app.user.hasTeam() %}
                         {% set is_team_active = current_route starts with 'app_team' %}
                         <a href="{{ path('app_team_edit') }}"
-                           class="relative px-4 py-2 text-sm font-medium uppercase tracking-wider rounded
+                           class="relative px-4 py-2 text-sm font-medium uppercase tracking-wider rounded max-w-44 overflow-hidden text-ellipsis whitespace-nowrap
                                   {{ is_team_active
                                      ? 'text-white bg-orange/20 active'
                                      : 'hover:text-white hover:bg-orange/10' }}">
@@ -70,6 +70,13 @@
                                  : 'text-gray-light hover:text-white hover:bg-orange/10' }}">
                         {{ app.user.displayName|tm_color }}
                     </a>
+                    {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_MODERATOR') %}
+                        <a href="{{ path('admin') }}"
+                           class="px-4 py-2 text-sm font-medium uppercase tracking-wider rounded
+                                  text-orange hover:text-white hover:bg-orange/20">
+                            <i class="fa fa-cog"></i> Admin
+                        </a>
+                    {% endif %}
                     <a href="{{ path('app_logout') }}"
                        class="px-4 py-2 text-sm font-medium uppercase tracking-wider rounded
                               text-gray-light hover:text-white hover:bg-red-500/20">
@@ -112,12 +119,12 @@
             {% set route_params = app.request.attributes.get('_route_params')|default({}) %}
             {% set nav_items = [
                 { route: 'app_home', label: 'nav.home'|trans({}, 'common') },
-                { route: 'app_ranking', label: 'nav.ranking'|trans({}, 'common') },
+                { route: 'app_championship_seasons', label: 'nav.championship'|trans({}, 'common') },
                 { route: 'app_calendar', label: 'nav.calendar'|trans({}, 'common') },
                 { route: 'app_rules', label: 'nav.rules'|trans({}, 'common') }
             ] %}
 
-            {% set available_routes = ['app_home', 'app_register', 'app_login'] %}
+            {% set available_routes = ['app_home', 'app_register', 'app_login', 'app_championship_seasons'] %}
             {% for item in nav_items %}
                 <a href="{{ item.route in available_routes ? path(item.route) : '#' }}"
                    class="px-4 py-3 text-sm font-medium uppercase tracking-wider rounded
@@ -133,7 +140,7 @@
             {% if app.user %}
                 {% if app.user.hasTeam() %}
                     <a href="{{ path('app_team_edit') }}"
-                       class="px-4 py-3 text-sm font-medium uppercase tracking-wider rounded
+                       class="px-4 py-3 text-sm font-medium uppercase tracking-wider rounded max-w-full overflow-hidden text-ellipsis whitespace-nowrap
                               {{ current_route starts with 'app_team'
                                  ? 'text-white bg-turquoise/20'
                                  : 'text-turquoise hover:text-white hover:bg-turquoise/10' }}">
@@ -147,6 +154,13 @@
                              : 'text-gray-light hover:text-white hover:bg-orange/10' }}">
                     {{ app.user.login }}
                 </a>
+                {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_MODERATOR') %}
+                    <a href="{{ path('admin') }}"
+                       class="px-4 py-3 text-sm font-medium uppercase tracking-wider rounded
+                              text-orange hover:text-white hover:bg-orange/20">
+                        <i class="fa fa-cog"></i> Admin
+                    </a>
+                {% endif %}
                 <a href="{{ path('app_logout') }}"
                    class="px-4 py-3 text-sm font-medium uppercase tracking-wider rounded
                           text-gray-light hover:text-white hover:bg-red-500/20">

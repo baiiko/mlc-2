@@ -1,0 +1,56 @@
+# Admin translations
+Dashboard: Tableau de bord
+admin.dashboard.title: Dashboard MLC
+admin.dashboard.welcome: Bienvenue dans l'administration MLC
+admin.dashboard.description: Utilisez le menu de gauche pour gérer les joueurs et les équipes.
+Gestion: Gestion
+Joueurs: Joueurs
+Joueur: Joueur
+Équipe: Équipe
+Équipes: Équipes
+Retour au site: Retour au site
+
+# Admin menu
+admin.menu.dashboard: Tableau de bord
+admin.menu.management: Gestion
+admin.menu.players: Joueurs
+admin.menu.teams: Équipes
+admin.menu.championship: Championnat
+admin.menu.seasons: Saisons
+admin.menu.rounds: Manches
+admin.menu.phases: Phases
+admin.menu.maps: Maps
+admin.menu.registrations: Inscriptions
+admin.menu.results: Résultats
+admin.menu.infrastructure: Infrastructure
+admin.menu.servers: Serveurs
+admin.menu.phase_servers: Serveurs de phases
+admin.menu.back_to_site: Retour au site
+
+# Fields
+ID: ID
+Tag: Tag
+Nom complet: Nom complet
+Créateur: Créateur
+Membres actifs: Membres actifs
+Créée le: Créée le
+Modifiée le: Modifiée le
+Créé le: Créé le
+Modifié le: Modifié le
+Actif: Actif
+Newsletter: Newsletter
+Rôles: Rôles
+Login: Login
+Pseudo: Pseudo
+Email: Email
+Discord: Discord
+
+# Roles
+Modérateur: Modérateur
+Admin Serveur: Admin Serveur
+Administrateur: Administrateur
+Super Administrateur: Super Administrateur
+
+# Messages
+Impossible de supprimer un administrateur.: Impossible de supprimer un administrateur.
+Vous ne pouvez pas modifier cet utilisateur.: Vous ne pouvez pas modifier cet utilisateur.

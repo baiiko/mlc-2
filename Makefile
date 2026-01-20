@@ -44,8 +44,8 @@ db-shell: ## Accède au shell MySQL
 
 # Symfony commands
 install: ## Installe les dépendances (composer + npm)
-	$(DOCKER_COMPOSE) exec php composer install
-	$(DOCKER_COMPOSE) exec node npm install
+	$(DOCKER_COMPOSE) run --rm php composer install
+	$(DOCKER_COMPOSE) run --rm node npm install
 
 sf: ## Execute une commande Symfony (usage: make sf CMD="cache:clear")
 	$(DOCKER_COMPOSE) exec php php bin/console $(CMD)
@@ -58,7 +58,7 @@ assets: ## Build les assets pour la production
 	$(DOCKER_COMPOSE) exec node npm run build
 
 watch: ## Watch les assets en développement
-	$(DOCKER_COMPOSE) exec node npm run dev
+	$(DOCKER_COMPOSE) run --rm --service-ports node npm run dev
 
 # Init project
 init: ## Initialise un nouveau projet Symfony avec Tailwind

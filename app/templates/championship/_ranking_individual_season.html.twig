@@ -1,0 +1,37 @@
+{# Individual season ranking #}
+{% if ranking is empty %}
+    <p class="text-gray-mid">{{ 'championship.no_ranking'|trans({}, 'championship') }}</p>
+{% else %}
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead>
+                <tr class="text-left text-gray-light text-sm border-b border-metal-dark">
+                    <th class="pb-2 w-12">#</th>
+                    <th class="pb-2">{{ 'championship.player'|trans({}, 'championship') }}</th>
+                    {% for round in rounds %}
+                        <th class="pb-2 text-center text-xs">M{{ round.number }}</th>
+                    {% endfor %}
+                    <th class="pb-2 text-right">{{ 'championship.total'|trans({}, 'championship') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in ranking %}
+                    <tr class="border-b border-metal-dark/50 hover:bg-bg-dark/50">
+                        <td class="py-3 font-semibold {{ item.position <= 3 ? 'text-orange' : '' }}">{{ item.position }}</td>
+                        <td class="py-3 tm-colors">{{ item.entity.pseudo|tm_color|raw }}</td>
+                        {% for round in rounds %}
+                            <td class="py-3 text-center text-sm">
+                                {% if item.roundScores[round.id] is defined %}
+                                    {{ item.roundScores[round.id] }}
+                                {% else %}
+                                    <span class="text-gray-mid">-</span>
+                                {% endif %}
+                            </td>
+                        {% endfor %}
+                        <td class="py-3 text-right font-semibold text-turquoise">{{ item.totalPoints }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endif %}

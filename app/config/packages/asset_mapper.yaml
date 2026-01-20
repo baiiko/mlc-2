@@ -3,7 +3,10 @@ framework:
         # The paths to make available to the asset mapper.
         paths:
             - assets/
-        missing_import_mode: strict
+        excluded_patterns:
+            - '*/styles/*'
+        # Mode 'ignore' because Tailwind CSS imports are handled by Vite, not AssetMapper
+        missing_import_mode: ignore
 
 when@prod:
     framework:

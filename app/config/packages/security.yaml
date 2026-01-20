@@ -8,6 +8,12 @@ security:
                 class: App\Domain\Player\Entity\Player
                 property: login
 
+    role_hierarchy:
+        ROLE_MODERATOR: ROLE_PLAYER
+        ROLE_SERVEUR_ADMIN: ROLE_PLAYER
+        ROLE_ADMIN: [ROLE_MODERATOR, ROLE_SERVEUR_ADMIN]
+        ROLE_SUPER_ADMIN: ROLE_ADMIN
+
     firewalls:
         dev:
             pattern: ^/(_profiler|_wdt|assets|build)/
@@ -38,7 +44,7 @@ security:
         - { path: ^/forgot-password, roles: PUBLIC_ACCESS }
         - { path: ^/reset-password, roles: PUBLIC_ACCESS }
         - { path: ^/profile, roles: ROLE_PLAYER }
-        # - { path: ^/admin, roles: ROLE_ADMIN }
+        - { path: ^/(fr|en)?/admin, roles: [ROLE_ADMIN, ROLE_MODERATOR] }
 
 when@test:
     security:

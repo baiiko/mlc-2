@@ -1,0 +1,76 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ season.name }} - {{ 'championship.title'|trans({}, 'championship') }}{% endblock %}
+
+{% block body %}
+    <section class="max-w-[1400px] mx-auto px-10 py-16">
+        {# Header #}
+        <div class="mb-8">
+            <a href="{{ path('app_championship_seasons') }}" class="text-gray-mid hover:text-turquoise transition-colors mb-4 inline-block">
+                &larr; {{ 'championship.back_to_seasons'|trans({}, 'championship') }}
+            </a>
+            <div class="flex items-center gap-4">
+                <h1 class="font-russo text-4xl">{{ season.name }}</h1>
+                {% if season.isActive %}
+                    <span class="px-3 py-1 bg-green-500/20 text-green-400 text-sm rounded uppercase">{{ 'championship.active'|trans({}, 'championship') }}</span>
+                {% endif %}
+            </div>
+            {% if season.description %}
+                <p class="text-gray-light mt-2">{{ season.description }}</p>
+            {% endif %}
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {# Rounds list #}
+            <div class="lg:col-span-1">
+                <div class="bg-bg-card rounded-lg p-6 border border-metal-dark">
+                    <h2 class="font-russo text-xl text-orange mb-4">{{ 'championship.rounds_list'|trans({}, 'championship') }}</h2>
+
+                    {% if season.rounds is empty %}
+                        <p class="text-gray-mid">{{ 'championship.no_rounds'|trans({}, 'championship') }}</p>
+                    {% else %}
+                        <div class="space-y-3">
+                            {% for round in season.rounds %}
+                                <a href="{{ path('app_championship_round_show', {id: round.id}) }}" class="block p-4 bg-bg-dark rounded border border-metal-dark hover:border-turquoise transition-colors">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="font-semibold">{{ round.name }}</span>
+                                        {% if round.isActive %}
+                                            <span class="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded">{{ 'championship.active'|trans({}, 'championship') }}</span>
+                                        {% endif %}
+                                    </div>
+                                    {% if round.maps is not empty %}
+                                        <p class="text-sm text-gray-mid">
+                                            {% for map in round.maps %}{{ map.name }}{% if not loop.last %}, {% endif %}{% endfor %}
+                                        </p>
+                                    {% endif %}
+                                    <div class="text-xs text-gray-light mt-2">
+                                        {% if round.isRegistrationOpen %}
+                                            <span class="text-turquoise">{{ 'championship.registration_open'|trans({}, 'championship') }}</span>
+                                        {% else %}
+                                            {{ round.registrationStartAt|date('d/m/Y H:i') }} - {{ round.registrationEndAt|date('d/m/Y H:i') }}
+                                        {% endif %}
+                                    </div>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# Rankings #}
+            <div class="lg:col-span-2 space-y-6">
+                {# Individual ranking #}
+                <div class="bg-bg-card rounded-lg p-6 border border-metal-dark">
+                    <h2 class="font-russo text-xl text-orange mb-4">{{ 'championship.season_individual_ranking'|trans({}, 'championship') }}</h2>
+                    {% include 'championship/_ranking_individual_season.html.twig' with {ranking: individualRanking, rounds: season.rounds} %}
+                </div>
+
+                {# Team ranking #}
+                <div class="bg-bg-card rounded-lg p-6 border border-metal-dark">
+                    <h2 class="font-russo text-xl text-orange mb-4">{{ 'championship.season_team_ranking'|trans({}, 'championship') }}</h2>
+                    {% include 'championship/_ranking_team_season.html.twig' with {ranking: teamRanking, rounds: season.rounds} %}
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

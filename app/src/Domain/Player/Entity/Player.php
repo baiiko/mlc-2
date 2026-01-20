@@ -6,6 +6,7 @@ namespace App\Domain\Player\Entity;
 
 use App\Domain\Team\Entity\Team;
 use App\Domain\Team\Entity\TeamMembership;
+use App\Infrastructure\Service\TmColorParser;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -142,6 +143,13 @@ class Player implements UserInterface, PasswordAuthenticatedUserInterface
     public function isActive(): bool
     {
         return $this->isActive;
+    }
+
+    public function setIsActive(bool $isActive): self
+    {
+        $this->isActive = $isActive;
+
+        return $this;
     }
 
     public function activate(): self
@@ -299,5 +307,10 @@ class Player implements UserInterface, PasswordAuthenticatedUserInterface
         $team = $this->getTeam();
 
         return $team !== null && $team->isCreator($this);
+    }
+
+    public function __toString(): string
+    {
+        return TmColorParser::stripColors($this->pseudo);
     }
 }

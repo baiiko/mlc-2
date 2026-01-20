@@ -1,0 +1,16 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block page_title %}{{ 'admin.dashboard.title'|trans }}{% endblock %}
+
+{% block main %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{{ 'admin.dashboard.welcome'|trans }}</h5>
+                    <p class="card-text">{{ 'admin.dashboard.description'|trans }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

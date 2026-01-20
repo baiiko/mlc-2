@@ -39,10 +39,6 @@ RUN apk --no-cache add \
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Install Symfony CLI
-RUN curl -1sLf 'https://dl.cloudsmith.io/public/symfony/stable/setup.alpine.sh' | sh \
-    && apk add --no-cache symfony-cli
-
 # PHP configuration
 RUN cat <<'EOF' > /usr/local/etc/php/conf.d/app.ini
 [PHP]

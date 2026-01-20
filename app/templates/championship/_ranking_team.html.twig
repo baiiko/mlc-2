@@ -1,0 +1,43 @@
+{# Team ranking for a phase #}
+{% if ranking is empty %}
+    <p class="text-gray-mid">{{ 'championship.no_team_ranking'|trans({}, 'championship') }}</p>
+{% else %}
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead>
+                <tr class="text-left text-gray-light text-sm border-b border-metal-dark">
+                    <th class="pb-2 w-12">#</th>
+                    <th class="pb-2">{{ 'championship.team'|trans({}, 'championship') }}</th>
+                    <th class="pb-2 text-center">{{ 'championship.players'|trans({}, 'championship') }}</th>
+                    <th class="pb-2 text-right">{{ 'championship.total_time'|trans({}, 'championship') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in ranking %}
+                    <tr class="border-b border-metal-dark/50 hover:bg-bg-dark/50">
+                        <td class="py-3 font-semibold {{ item.position <= 3 ? 'text-orange' : '' }}">{{ item.position }}</td>
+                        <td class="py-3">
+                            <div class="tm-colors font-semibold">{{ item.team.tag|tm_color|raw }}</div>
+                            <div class="text-sm text-gray-light">{{ item.team.fullName }}</div>
+                        </td>
+                        <td class="py-3 text-center">
+                            <span class="text-turquoise">{{ item.playerCount }}</span>
+                        </td>
+                        <td class="py-3 text-right font-mono">{{ item.formattedTime }}</td>
+                    </tr>
+                    {% if item.topPlayers is not empty %}
+                        <tr class="bg-bg-dark/30">
+                            <td colspan="4" class="py-2 px-4">
+                                <div class="flex flex-wrap gap-4 text-sm text-gray-light">
+                                    {% for player in item.topPlayers %}
+                                        <span class="tm-colors">{{ player.player.pseudo|tm_color|raw }} <span class="text-gray-mid font-mono">({{ player.formattedTime }})</span></span>
+                                    {% endfor %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endif %}

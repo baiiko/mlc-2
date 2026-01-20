@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(wc:*)",
+      "Bash(docker compose run:*)",
+      "Bash(docker compose exec:*)",
+      "Bash(make db-diff:*)",
+      "Bash(make db-migrate:*)"
+    ]
+  }
+}

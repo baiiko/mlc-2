@@ -47,6 +47,11 @@ class Team
         $this->memberships = new ArrayCollection();
     }
 
+    public function __toString(): string
+    {
+        return $this->tag;
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -126,5 +131,15 @@ class Team
     public function isCreator(Player $player): bool
     {
         return $this->creator->getId() === $player->getId();
+    }
+
+    public function getCreatorName(): string
+    {
+        return $this->creator->getPseudo();
+    }
+
+    public function getActiveMembersCount(): string
+    {
+        return (string) count($this->getActiveMembers());
     }
 }
