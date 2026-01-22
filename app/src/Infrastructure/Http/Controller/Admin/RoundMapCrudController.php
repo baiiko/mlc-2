@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Http\Controller\Admin;
 
-use App\Application\Championship\Service\GbxParserService;
+use App\Application\Championship\Service\RoundMapService;
 use App\Domain\Championship\Entity\RoundMap;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
@@ -14,9 +14,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\Field;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ImageField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -25,10 +23,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class RoundMapCrudController extends AbstractCrudController
 {
     public function __construct(
-        private readonly GbxParserService $gbxParser,
-        #[Autowire('%kernel.project_dir%/public')] private readonly string $publicDir
-    ) {
-    }
+        private readonly RoundMapService $roundMapService,
+    ) {}
 
     public static function getEntityFqcn(): string
     {
@@ -52,7 +48,6 @@ class RoundMapCrudController extends AbstractCrudController
         yield AssociationField::new('round', 'Manche')
             ->autocomplete();
 
-        // File upload field only on form
         yield Field::new('gbxFile', 'Fichier GBX')
             ->setFormType(FileType::class)
             ->setFormTypeOptions([
@@ -103,89 +98,28 @@ class RoundMapCrudController extends AbstractCrudController
 
     public function persistEntity(\Doctrine\ORM\EntityManagerInterface $entityManager, $entityInstance): void
     {
-        $this->parseGbxFile($entityInstance);
+        $this->handleGbxImport($entityInstance);
         parent::persistEntity($entityManager, $entityInstance);
     }
 
     public function updateEntity(\Doctrine\ORM\EntityManagerInterface $entityManager, $entityInstance): void
     {
-        $this->parseGbxFile($entityInstance);
+        $this->handleGbxImport($entityInstance);
         parent::updateEntity($entityManager, $entityInstance);
     }
 
-    private function parseGbxFile(RoundMap $map): void
+    private function handleGbxImport(RoundMap $map): void
     {
         $file = $map->getGbxFile();
         if (!$file instanceof UploadedFile) {
             return;
         }
 
-        $data = $this->gbxParser->parseFile($file->getPathname());
-        if (!$data) {
-            $this->addFlash('warning', 'Impossible de parser le fichier GBX');
-            return;
+        $error = $this->roundMapService->importFromGbxFile($map, $file);
+        if ($error) {
+            $this->addFlash('warning', $error);
+        } else {
+            $this->addFlash('success', sprintf('Map "%s" importée avec succès', $map->getName() ?? 'inconnue'));
         }
-
-        if ($data->uid) {
-            $map->setUid($data->uid);
-        }
-        if ($data->name) {
-            $map->setName($data->name);
-        }
-        if ($data->author) {
-            $map->setAuthor($data->author);
-        }
-        if ($data->environment) {
-            $map->setEnvironment($data->environment);
-        }
-        if ($data->authorTime) {
-            $map->setAuthorTime($data->authorTime);
-        }
-        if ($data->goldTime) {
-            $map->setGoldTime($data->goldTime);
-        }
-        if ($data->silverTime) {
-            $map->setSilverTime($data->silverTime);
-        }
-        if ($data->bronzeTime) {
-            $map->setBronzeTime($data->bronzeTime);
-        }
-
-        // Save thumbnail if available
-        if ($data->thumbnail && $data->uid) {
-            $thumbnailPath = $this->saveThumbnail($data->thumbnail, $data->uid);
-            if ($thumbnailPath) {
-                $map->setThumbnailPath($thumbnailPath);
-            }
-        }
-
-        // Clear the file reference (not persisted)
-        $map->setGbxFile(null);
-
-        $this->addFlash('success', sprintf('Map "%s" importée avec succès', $data->name ?? 'inconnue'));
-    }
-
-    private function saveThumbnail(string $base64Data, string $uid): ?string
-    {
-        $thumbnailDir = $this->publicDir . '/uploads/maps/thumbnails';
-
-        // Create directory if it doesn't exist
-        if (!is_dir($thumbnailDir)) {
-            mkdir($thumbnailDir, 0755, true);
-        }
-
-        $filename = $uid . '.jpg';
-        $filepath = $thumbnailDir . '/' . $filename;
-
-        $imageData = base64_decode($base64Data);
-        if ($imageData === false) {
-            return null;
-        }
-
-        if (file_put_contents($filepath, $imageData) === false) {
-            return null;
-        }
-
-        return $filename;
     }
 }

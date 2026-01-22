@@ -42,6 +42,7 @@ status:
     active: "Active"
     inactive: "Inactive"
     coming: "COMING"
+    in_progress: "IN PROGRESS"
     finished: "FINISHED"
 
 dates:
@@ -57,3 +58,54 @@ misc:
     loading: "Loading..."
     error: "Error"
     success: "Success"
+
+home:
+    hero:
+        title_1: "The reference"
+        title_2: "TrackMania"
+        title_3: "competition"
+        description: "Join the MLC community and compete in the most intense TrackMania races. Real-time rankings, regular events and a passionate community."
+        register: "Register"
+        view_ranking: "View ranking"
+    round:
+        title: "Round %number% - %name%"
+        see_details: "See details →"
+    ranking:
+        title: "Season %number% Ranking"
+        see_all: "View full ranking →"
+        position: "Pos"
+        driver: "Driver"
+        points: "Points"
+        wins: "Wins"
+        podiums: "Podiums"
+        evolution: "Evolution"
+    servers:
+        title: "Our Servers"
+        server: "server"
+        servers: "servers"
+    news:
+        title: "News"
+        see_all: "All news →"
+
+phase:
+    round: "ROUND %number%"
+    from: "From"
+    to: "To"
+    end: "End"
+    now: "Now"
+
+server:
+    status:
+        online: "ONLINE"
+        offline: "OFFLINE"
+    no_players: "No players"
+    no_map: "None"
+    current_map: "Current map"
+    players: "Players"
+    join: "Join"
+
+rules:
+    title: "Rules"
+    subtitle: "Official rules of the ModLap Championship competition"
+    last_update: "Last update:"
+    no_rules: "No rules are currently available."

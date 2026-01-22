@@ -25,6 +25,8 @@ admin.menu.results: Results
 admin.menu.infrastructure: Infrastructure
 admin.menu.servers: Servers
 admin.menu.phase_servers: Phase servers
+admin.menu.content: Content
+admin.menu.rules: Rules
 admin.menu.back_to_site: Back to site
 
 # Fields
@@ -54,3 +56,33 @@ Super Administrateur: Super Administrator
 # Messages
 Impossible de supprimer un administrateur.: Cannot delete an administrator.
 Vous ne pouvez pas modifier cet utilisateur.: You cannot edit this user.
+
+# Rule admin
+admin.rule.singular: Rule
+admin.rule.plural: Rules
+admin.rule.version: Version
+admin.rule.date: Date
+admin.rule.content: Content
+
+# Server admin
+admin.server.singular: Server
+admin.server.plural: Servers
+admin.server.name: Name
+admin.server.login: Server login
+admin.server.login_help: TrackMania server login (to join)
+admin.server.admin_login: Admin login
+admin.server.admin_login_help: Admin account login for XML-RPC connection
+admin.server.password: Admin password
+admin.server.password_help: Admin account XML-RPC password. Leave empty to keep current password.
+admin.server.ip: IP Address
+admin.server.port: Port
+admin.server.max_players: Max players
+admin.server.max_players_help: "Maximum number of players on this server (default: 32)"
+admin.server.active: Active
+admin.server.connection: Connection
+admin.server.created_at: Created at
+
+# Server actions
+admin.server.action.warmup: WarmUp
+admin.server.action.restart: Restart
+admin.server.action.skip: Skip

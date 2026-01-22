@@ -64,4 +64,31 @@ final readonly class DoctrineRoundRepository implements RoundRepositoryInterface
             ->getQuery()
             ->getResult();
     }
+
+    public function findCurrentOrUpcoming(): ?Round
+    {
+        // First, try to find the active round
+        $activeRound = $this->entityManager
+            ->getRepository(Round::class)
+            ->findOneBy(['isActive' => true]);
+
+        if ($activeRound !== null) {
+            return $activeRound;
+        }
+
+        // Otherwise, find the next round with upcoming phases
+        $now = new \DateTimeImmutable();
+
+        return $this->entityManager
+            ->createQueryBuilder()
+            ->select('r')
+            ->from(Round::class, 'r')
+            ->join('r.phases', 'p')
+            ->where('p.startAt >= :now')
+            ->setParameter('now', $now)
+            ->orderBy('p.startAt', 'ASC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }

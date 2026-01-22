@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Http\Controller\Team;
 
+use App\Application\Team\Service\JoinTeamServiceInterface;
 use App\Domain\Player\Entity\Player;
-use App\Domain\Team\Entity\TeamJoinRequest;
-use App\Domain\Team\Repository\TeamJoinRequestRepositoryInterface;
 use App\Domain\Team\Repository\TeamRepositoryInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -25,7 +24,7 @@ final readonly class JoinController
     public function __construct(
         private Environment $twig,
         private TeamRepositoryInterface $teamRepository,
-        private TeamJoinRequestRepositoryInterface $joinRequestRepository,
+        private JoinTeamServiceInterface $joinTeamService,
         private UrlGeneratorInterface $urlGenerator,
     ) {
     }
@@ -38,7 +37,7 @@ final readonly class JoinController
         }
 
         $teams = $this->teamRepository->findAll();
-        $pendingRequest = $this->joinRequestRepository->findPendingByPlayer($player);
+        $pendingRequest = $this->joinTeamService->getPendingRequest($player);
 
         return new Response(
             $this->twig->render('team/join.html.twig', [
@@ -55,20 +54,11 @@ final readonly class JoinController
             return new RedirectResponse($this->urlGenerator->generate('app_profile'));
         }
 
-        $team = $this->teamRepository->findById($id);
-
-        if ($team === null) {
-            throw new BadRequestHttpException('Équipe introuvable.');
+        try {
+            $this->joinTeamService->requestJoin($player, $id);
+        } catch (\InvalidArgumentException $e) {
+            throw new BadRequestHttpException($e->getMessage());
         }
-
-        // Check if player already has a pending request (only one allowed at a time)
-        $existingRequest = $this->joinRequestRepository->findPendingByPlayer($player);
-        if ($existingRequest !== null) {
-            return new RedirectResponse($this->urlGenerator->generate('app_team_join'));
-        }
-
-        $request = new TeamJoinRequest($player, $team);
-        $this->joinRequestRepository->save($request);
 
         return new RedirectResponse($this->urlGenerator->generate('app_team_join'));
     }
@@ -76,11 +66,7 @@ final readonly class JoinController
     #[Route('/team/join/cancel', name: 'app_team_join_cancel', methods: ['POST'])]
     public function cancelRequest(#[CurrentUser] Player $player): Response
     {
-        $pendingRequest = $this->joinRequestRepository->findPendingByPlayer($player);
-
-        if ($pendingRequest !== null) {
-            $this->joinRequestRepository->delete($pendingRequest);
-        }
+        $this->joinTeamService->cancelRequest($player);
 
         return new RedirectResponse($this->urlGenerator->generate('app_team_join'));
     }

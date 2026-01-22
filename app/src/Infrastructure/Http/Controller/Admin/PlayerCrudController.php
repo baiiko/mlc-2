@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Http\Controller\Admin;
 
+use App\Application\Player\Service\RoleManagementServiceInterface;
 use App\Domain\Player\Entity\Player;
 use App\Infrastructure\Service\TmColorParser;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
@@ -22,24 +23,10 @@ use Symfony\Component\HttpFoundation\Response;
 
 class PlayerCrudController extends AbstractCrudController
 {
-    private const PROTECTED_ROLES = ['ROLE_ADMIN', 'ROLE_SUPER_ADMIN'];
-
-    // Hiérarchie des rôles (du plus haut au plus bas)
-    private const ROLES_HIERARCHY = [
-        'ROLE_SUPER_ADMIN' => 4,
-        'ROLE_ADMIN' => 3,
-        'ROLE_MODERATOR' => 2,
-        'ROLE_SERVEUR_ADMIN' => 2,
-        'ROLE_PLAYER' => 1,
-    ];
-
-    private const ALL_ROLES = [
-        'Joueur' => 'ROLE_PLAYER',
-        'Modérateur' => 'ROLE_MODERATOR',
-        'Admin Serveur' => 'ROLE_SERVEUR_ADMIN',
-        'Administrateur' => 'ROLE_ADMIN',
-        'Super Administrateur' => 'ROLE_SUPER_ADMIN',
-    ];
+    public function __construct(
+        private readonly RoleManagementServiceInterface $roleManagementService,
+    ) {
+    }
 
     public static function getEntityFqcn(): string
     {
@@ -58,10 +45,11 @@ class PlayerCrudController extends AbstractCrudController
     public function configureActions(Actions $actions): Actions
     {
         $canEdit = fn (Player $player): bool => $this->canEditPlayer($player);
-        $canDelete = fn (Player $player): bool => !$this->hasProtectedRole($player) && $this->canEditPlayer($player);
+        $canDelete = fn (Player $player): bool => !$this->roleManagementService->hasProtectedRole($player)
+            && $this->canEditPlayer($player);
 
         return $actions
-            ->disable(Action::NEW) // Les joueurs s'inscrivent eux-mêmes
+            ->disable(Action::NEW)
             ->update(Crud::PAGE_INDEX, Action::EDIT, function (Action $action) use ($canEdit) {
                 return $action->displayIf(fn (Player $player) => $canEdit($player));
             })
@@ -81,66 +69,13 @@ class PlayerCrudController extends AbstractCrudController
         /** @var Player $player */
         $player = $context->getEntity()->getInstance();
 
-        if ($this->hasProtectedRole($player)) {
+        if ($this->roleManagementService->hasProtectedRole($player)) {
             $this->addFlash('danger', 'Impossible de supprimer un administrateur.');
 
             return $this->redirect($context->getReferrer() ?? $this->generateUrl('admin'));
         }
 
         return parent::delete($context);
-    }
-
-    private function hasProtectedRole(Player $player): bool
-    {
-        return count(array_intersect($player->getRoles(), self::PROTECTED_ROLES)) > 0;
-    }
-
-    private function getCurrentUserLevel(): int
-    {
-        $user = $this->getUser();
-        if (!$user instanceof Player) {
-            return 0;
-        }
-
-        $maxLevel = 0;
-        foreach ($user->getRoles() as $role) {
-            $level = self::ROLES_HIERARCHY[$role] ?? 0;
-            $maxLevel = max($maxLevel, $level);
-        }
-
-        return $maxLevel;
-    }
-
-    private function getAssignableRoles(): array
-    {
-        $currentLevel = $this->getCurrentUserLevel();
-        $assignableRoles = [];
-
-        foreach (self::ALL_ROLES as $label => $role) {
-            $roleLevel = self::ROLES_HIERARCHY[$role] ?? 0;
-            // On ne peut assigner que les rôles strictement inférieurs
-            if ($roleLevel < $currentLevel) {
-                $assignableRoles[$label] = $role;
-            }
-        }
-
-        return $assignableRoles;
-    }
-
-    private function getPlayerLevel(Player $player): int
-    {
-        $maxLevel = 0;
-        foreach ($player->getRoles() as $role) {
-            $level = self::ROLES_HIERARCHY[$role] ?? 0;
-            $maxLevel = max($maxLevel, $level);
-        }
-
-        return $maxLevel;
-    }
-
-    private function canEditPlayer(Player $player): bool
-    {
-        return $this->getPlayerLevel($player) < $this->getCurrentUserLevel();
     }
 
     public function updateEntity(\Doctrine\ORM\EntityManagerInterface $entityManager, $entityInstance): void
@@ -164,7 +99,7 @@ class PlayerCrudController extends AbstractCrudController
             ->setHelp('Le login ne peut pas être modifié');
 
         yield TextField::new('pseudo')
-            ->formatValue(fn ($value) => TmColorParser::toHtml($value))
+            ->formatValue(fn ($value) => '<span class="tm-pseudo">' . TmColorParser::toHtml($value) . '</span>')
             ->renderAsHtml();
 
         yield EmailField::new('email');
@@ -193,5 +128,25 @@ class PlayerCrudController extends AbstractCrudController
 
         yield DateTimeField::new('updatedAt', 'Modifié le')
             ->hideOnForm();
+    }
+
+    private function canEditPlayer(Player $player): bool
+    {
+        $currentUser = $this->getUser();
+        if (!$currentUser instanceof Player) {
+            return false;
+        }
+
+        return $this->roleManagementService->canEditPlayer($currentUser, $player);
+    }
+
+    private function getAssignableRoles(): array
+    {
+        $currentUser = $this->getUser();
+        if (!$currentUser instanceof Player) {
+            return [];
+        }
+
+        return $this->roleManagementService->getAssignableRoles($currentUser);
     }
 }

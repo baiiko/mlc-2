@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Championship\Entity;
 
+use App\Domain\Championship\Validator\UniqueActiveRound;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -14,6 +15,7 @@ use Gedmo\Timestampable\Traits\TimestampableEntity;
 #[ORM\Entity]
 #[ORM\Table(name: 'round')]
 #[Gedmo\SoftDeleteable(fieldName: 'deletedAt', timeAware: false)]
+#[UniqueActiveRound]
 class Round
 {
     use TimestampableEntity;

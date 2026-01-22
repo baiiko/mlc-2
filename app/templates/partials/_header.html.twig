@@ -33,11 +33,10 @@
             {% set nav_items = [
                 { route: 'app_home', label: 'nav.home'|trans({}, 'common') },
                 { route: 'app_championship_seasons', label: 'nav.championship'|trans({}, 'common') },
-                { route: 'app_calendar', label: 'nav.calendar'|trans({}, 'common') },
                 { route: 'app_rules', label: 'nav.rules'|trans({}, 'common') }
             ] %}
 
-            {% set available_routes = ['app_home', 'app_register', 'app_login', 'app_championship_seasons'] %}
+            {% set available_routes = ['app_home', 'app_register', 'app_login', 'app_championship_seasons', 'app_rules'] %}
             {% for item in nav_items %}
                 <a href="{{ item.route in available_routes ? path(item.route) : '#' }}"
                    class="relative px-5 py-3 text-sm font-medium uppercase tracking-wider rounded
@@ -70,7 +69,7 @@
                                  : 'text-gray-light hover:text-white hover:bg-orange/10' }}">
                         {{ app.user.displayName|tm_color }}
                     </a>
-                    {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_MODERATOR') %}
+                    {% if is_granted('ROLE_MODERATOR') or is_granted('ROLE_SERVER_ADMIN') %}
                         <a href="{{ path('admin') }}"
                            class="px-4 py-2 text-sm font-medium uppercase tracking-wider rounded
                                   text-orange hover:text-white hover:bg-orange/20">
@@ -120,11 +119,10 @@
             {% set nav_items = [
                 { route: 'app_home', label: 'nav.home'|trans({}, 'common') },
                 { route: 'app_championship_seasons', label: 'nav.championship'|trans({}, 'common') },
-                { route: 'app_calendar', label: 'nav.calendar'|trans({}, 'common') },
                 { route: 'app_rules', label: 'nav.rules'|trans({}, 'common') }
             ] %}
 
-            {% set available_routes = ['app_home', 'app_register', 'app_login', 'app_championship_seasons'] %}
+            {% set available_routes = ['app_home', 'app_register', 'app_login', 'app_championship_seasons', 'app_rules'] %}
             {% for item in nav_items %}
                 <a href="{{ item.route in available_routes ? path(item.route) : '#' }}"
                    class="px-4 py-3 text-sm font-medium uppercase tracking-wider rounded

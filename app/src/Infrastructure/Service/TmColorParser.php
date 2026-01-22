@@ -42,8 +42,8 @@ final class TmColorParser
             $chunk = $chunks[$i];
             $match = '';
 
-            // Couleur 3 ou 6 caractères
-            if (preg_match('/^([0-9a-f]{3})/i', $chunk, $matches)) {
+            // Couleur 6 ou 3 caractères (priorité à 6)
+            if (preg_match('/^([0-9a-f]{6}|[0-9a-f]{3})/i', $chunk, $matches)) {
                 $match = $matches[1];
                 $color = self::normalizeColor($match);
             }
@@ -126,8 +126,8 @@ final class TmColorParser
     {
         $text = str_replace('$$', "\x00DOLLAR\x00", $text);
 
-        // Supprime les codes couleur et de style
-        $text = preg_replace('/\$[0-9a-f]{1,6}/i', '', $text);
+        // Supprime les codes couleur (exactement 3 ou 6 caractères hex)
+        $text = preg_replace('/\$([0-9a-f]{6}|[0-9a-f]{3})/i', '', $text);
         $text = preg_replace('/\$[iwonstmgzlhau]/i', '', $text);
 
         return str_replace("\x00DOLLAR\x00", '$', $text);

@@ -1,0 +1,158 @@
+{#
+    Round Timeline Component (Gantt style)
+    @param round Round entity
+#}
+{% set now = date() %}
+{% set phases = round.phases|filter(p => p.startAt is not null) %}
+
+{# Calculate timeline bounds #}
+{% set minDateRaw = null %}
+{% set maxDateRaw = null %}
+{% for phase in phases %}
+    {% if minDateRaw is null or phase.startAt < minDateRaw %}
+        {% set minDateRaw = phase.startAt %}
+    {% endif %}
+    {% set phaseEnd = phase.endAt ?? phase.startAt %}
+    {% if maxDateRaw is null or phaseEnd > maxDateRaw %}
+        {% set maxDateRaw = phaseEnd %}
+    {% endif %}
+{% endfor %}
+
+{% if minDateRaw and maxDateRaw %}
+    {# Normalize to midnight (00:00) #}
+    {% set minDate = date(minDateRaw|date('Y-m-d') ~ ' 00:00:00') %}
+    {% set maxDate = date(maxDateRaw|date('Y-m-d') ~ ' 00:00:00')|date_modify('+1 day') %}
+
+    {% set totalDuration = maxDate.timestamp - minDate.timestamp %}
+    {% if totalDuration == 0 %}{% set totalDuration = 1 %}{% endif %}
+
+    <div class="bg-bg-card rounded-lg border border-metal-dark p-6">
+        {# Date axis at top - simple start/end #}
+        <div class="flex items-center gap-4 mb-4">
+            <div class="w-28 flex-shrink-0"></div>
+            <div class="flex-1 flex justify-between text-xs text-gray-mid">
+                <span>{{ minDate|format_datetime('short', 'none', locale=app.request.locale) }}</span>
+                <span>{{ maxDate|format_datetime('short', 'none', locale=app.request.locale) }}</span>
+            </div>
+        </div>
+
+        <div class="space-y-3">
+            {% for phase in phases %}
+                {% set isLive = phase.startAt <= now and (phase.endAt is null or phase.endAt >= now) %}
+                {% set isPast = phase.endAt is not null and phase.endAt < now %}
+                {% set phaseEnd = phase.endAt ?? phase.startAt %}
+
+                {# Calculate position and width #}
+                {% set startOffset = ((phase.startAt.timestamp - minDate.timestamp) / totalDuration) * 100 %}
+                {% set phaseWidth = ((phaseEnd.timestamp - phase.startAt.timestamp) / totalDuration) * 100 %}
+                {% if phaseWidth < 2 %}{% set phaseWidth = 2 %}{% endif %}
+
+                {# Progress within phase #}
+                {% set phaseProgress = 0 %}
+                {% if isLive and phase.endAt %}
+                    {% set phaseDuration = phase.endAt.timestamp - phase.startAt.timestamp %}
+                    {% set elapsed = now.timestamp - phase.startAt.timestamp %}
+                    {% set phaseProgress = (elapsed / phaseDuration) * 100 %}
+                    {% if phaseProgress > 100 %}{% set phaseProgress = 100 %}{% endif %}
+                {% elseif isPast %}
+                    {% set phaseProgress = 100 %}
+                {% endif %}
+
+                <div class="flex items-center gap-4">
+                    {# Phase name #}
+                    <div class="w-28 flex-shrink-0 text-right">
+                        <span class="text-sm font-semibold {% if isLive %}text-orange{% elseif isPast %}text-gray-mid{% else %}text-white{% endif %}">
+                            {{ phase.type.translationKey|trans({}, 'championship') }}
+                        </span>
+                        {% if isLive %}
+                            <span class="ml-1.5 inline-block w-2 h-2 bg-red-400 rounded-full animate-pulse"></span>
+                        {% endif %}
+                    </div>
+
+                    {# Timeline bar #}
+                    <div class="flex-1 relative h-8">
+                        {# Background track #}
+                        <div class="absolute inset-y-2 left-0 right-0 bg-metal-dark/50 rounded"></div>
+
+                        {% if phase.endAt %}
+                            {# Phase avec durée = barre #}
+                            <div class="absolute inset-y-0 rounded overflow-hidden
+                                        {% if isLive %}
+                                            bg-orange/20 border border-orange
+                                        {% elseif isPast %}
+                                            bg-metal-mid/30 border border-metal-mid
+                                        {% else %}
+                                            bg-turquoise/10 border border-turquoise/50
+                                        {% endif %}"
+                                 style="left: {{ startOffset }}%; width: {{ phaseWidth }}%;">
+
+                                {# Progress fill #}
+                                {% if phaseProgress > 0 %}
+                                    <div class="absolute inset-y-0 left-0 rounded-l
+                                                {% if isLive %}bg-gradient-to-r from-orange/50 to-orange{% else %}bg-gray-mid/50{% endif %}"
+                                         style="width: {{ phaseProgress }}%;"></div>
+                                {% endif %}
+
+                                {# Dates inside bar #}
+                                <div class="absolute inset-0 flex items-center justify-between px-2 text-[10px]">
+                                    <span class="{% if isLive %}text-orange{% elseif isPast %}text-gray-mid{% else %}text-turquoise{% endif %} font-medium truncate">
+                                        {{ phase.startAt|format_datetime('short', 'short', locale=app.request.locale) }}
+                                    </span>
+                                    <span class="{% if isLive %}text-orange{% elseif isPast %}text-gray-mid{% else %}text-turquoise{% endif %} font-medium truncate">
+                                        {{ phase.endAt|format_datetime('short', 'short', locale=app.request.locale) }}
+                                    </span>
+                                </div>
+                            </div>
+                        {% else %}
+                            {# Phase ponctuelle = marqueur #}
+                            <div class="absolute top-1/2 -translate-y-1/2 flex flex-col items-center"
+                                 style="left: {{ startOffset }}%;">
+                                {# Marker #}
+                                <div class="w-4 h-4 rounded-full border-2 transform -translate-x-1/2
+                                            {% if isLive %}
+                                                bg-orange border-orange shadow-[0_0_10px_rgba(255,140,0,0.6)] animate-pulse
+                                            {% elseif isPast %}
+                                                bg-gray-mid border-gray-mid
+                                            {% else %}
+                                                bg-turquoise border-turquoise shadow-[0_0_8px_rgba(0,212,212,0.4)]
+                                            {% endif %}">
+                                </div>
+                                {# Date label #}
+                                <div class="absolute top-6 left-0 -translate-x-1/2 whitespace-nowrap text-[10px] font-medium
+                                            {% if isLive %}text-orange{% elseif isPast %}text-gray-mid{% else %}text-turquoise{% endif %}">
+                                    {{ phase.startAt|format_datetime('short', 'short', locale=app.request.locale) }}
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        {# Now indicator #}
+                        {% if now >= minDate and now <= maxDate %}
+                            {% set nowOffset = ((now.timestamp - minDate.timestamp) / totalDuration) * 100 %}
+                            <div class="absolute top-0 bottom-0 w-0.5 bg-red-500 z-10" style="left: {{ nowOffset }}%;"></div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        {# Legend #}
+        <div class="mt-4 pt-4 border-t border-metal-dark flex items-center gap-6 text-xs text-gray-mid">
+            <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded bg-turquoise/30 border border-turquoise/50"></span>
+                <span>{{ 'status.coming'|trans({}, 'common') }}</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded bg-orange/30 border border-orange"></span>
+                <span>{{ 'status.in_progress'|trans({}, 'common') }}</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded bg-metal-mid/30 border border-metal-mid"></span>
+                <span>{{ 'status.finished'|trans({}, 'common') }}</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="w-0.5 h-3 bg-red-500"></span>
+                <span>{{ 'phase.now'|trans({}, 'common') }}</span>
+            </div>
+        </div>
+    </div>
+{% endif %}

@@ -2,6 +2,10 @@
 
 namespace App\Controller;
 
+use App\Application\Championship\Service\ServerInfoService;
+use App\Domain\Championship\Repository\RoundRepositoryInterface;
+use App\Domain\Championship\Repository\SeasonRepositoryInterface;
+use App\Domain\Championship\Repository\ServerRepositoryInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\Routing\Attribute\Route;
@@ -12,6 +16,10 @@ final readonly class HomeController
 {
     public function __construct(
         private Environment $twig,
+        private ServerRepositoryInterface $serverRepository,
+        private ServerInfoService $serverInfoService,
+        private RoundRepositoryInterface $roundRepository,
+        private SeasonRepositoryInterface $seasonRepository,
     ) {}
 
     #[Route('/', name: 'app_home')]
@@ -26,26 +34,22 @@ final readonly class HomeController
             ['rank' => 5, 'name' => 'ZenFlow', 'team' => 'Chill Racing', 'initials' => 'ZF', 'points' => 2245, 'wins' => 3, 'podiums' => 8, 'trend' => 'same', 'trend_value' => 0],
         ];
 
-        // Données de test pour les évènements
-        $events = [
-            ['round' => 15, 'name' => 'Grand Prix de la Vitesse', 'date' => 'Samedi 11 Janvier 2025', 'time' => '21h00 (CET)', 'circuit' => 'Speed Valley', 'status' => 'live'],
-            ['round' => 16, 'name' => 'Night Race Challenge', 'date' => 'Samedi 18 Janvier 2025', 'time' => '21h00 (CET)', 'circuit' => 'Midnight Run', 'status' => 'upcoming'],
-            ['round' => 17, 'name' => 'Drift Masters Cup', 'date' => 'Samedi 25 Janvier 2025', 'time' => '21h00 (CET)', 'circuit' => 'Drift Paradise', 'status' => 'upcoming'],
-        ];
+        // Manche en cours ou à venir
+        $currentRound = $this->roundRepository->findCurrentOrUpcoming();
 
-        // Données de test pour les news
-        $news = [
-            ['tag' => 'Annonce', 'title' => 'La Saison 13 arrive en Février !', 'excerpt' => 'Préparez-vous pour une nouvelle saison pleine de surprises. Nouveau système de points, nouvelles maps et tournoi spécial pour le lancement.', 'date' => '5 Janvier 2025', 'author' => 'Admin', 'featured' => true],
-            ['tag' => 'Résultats', 'title' => 'Speedy_King remporte le Round 14', 'date' => '3 Janvier 2025', 'featured' => false],
-            ['tag' => 'Communauté', 'title' => 'Nouveau record sur Alpine Sprint', 'date' => '1er Janvier 2025', 'featured' => false],
-            ['tag' => 'Mise à jour', 'title' => 'Règlement mis à jour pour 2025', 'date' => '28 Décembre 2024', 'featured' => false],
-        ];
+        // Saison active
+        $activeSeason = $this->seasonRepository->findActive();
+
+        // Serveurs actifs avec infos en temps réel
+        $servers = $this->serverRepository->findActive();
+        $serversInfo = $this->serverInfoService->getMultipleServersInfo($servers);
 
         return new Response(
             $this->twig->render('home/index.html.twig', [
                 'players' => $players,
-                'events' => $events,
-                'news' => $news,
+                'currentRound' => $currentRound,
+                'activeSeason' => $activeSeason,
+                'serversInfo' => $serversInfo,
             ])
         );
     }

@@ -15,7 +15,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[IsGranted('ROLE_SERVEUR_ADMIN')]
+#[IsGranted('ROLE_SERVER_ADMIN')]
 class PhaseServerCrudController extends AbstractCrudController
 {
     public static function getEntityFqcn(): string

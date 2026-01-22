@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Infrastructure\Http\Controller\Admin;
 
 use App\Domain\Championship\Entity\Round;
-use App\Domain\Championship\Entity\Season;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;

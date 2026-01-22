@@ -1,0 +1,75 @@
+{#
+    Server Card Component
+    @param server Server entity
+    @param info array{online: bool, name: string|null, playerCount: int, maxPlayers: int, currentMap: string|null, players: array<string>, error: string|null}
+#}
+<div class="server-card bg-bg-card rounded-lg overflow-hidden border border-metal-dark
+            hover:-translate-y-1 hover:border-turquoise hover:shadow-[0_10px_30px_rgba(0,212,212,0.2)]
+            transition-all duration-300"
+     data-server-id="{{ server.id }}">
+    {# Header #}
+    <div class="bg-metal-dark px-5 py-3 flex justify-between items-center">
+        <span class="server-name font-russo text-sm truncate" title="{{ (info.name ?? server.name)|tm_strip }}">
+            {{ (info.name ?? server.name)|tm_color }}
+        </span>
+        <span class="server-status text-[11px] font-semibold px-2.5 py-1 rounded-full uppercase tracking-wider flex-shrink-0
+                     {% if info.online %}bg-green-500/20 text-green-400{% else %}bg-red-500/20 text-red-400{% endif %}">
+            {% if info.online %}{{ 'server.status.online'|trans({}, 'common') }}{% else %}{{ 'server.status.offline'|trans({}, 'common') }}{% endif %}
+        </span>
+    </div>
+
+    {# Body #}
+    <div class="p-5">
+        {# Current map #}
+        <div class="server-map-container mb-4 flex items-center gap-2 text-sm">
+            <span class="text-gray-mid">{{ 'server.current_map'|trans({}, 'common') }} :</span>
+            {% if info.online and info.currentMap %}
+                <span class="server-map truncate" title="{{ info.currentMap|tm_strip }}">{{ info.currentMap|tm_color }}</span>
+            {% else %}
+                <span class="server-map text-gray-mid italic">{{ 'server.no_map'|trans({}, 'common') }}</span>
+            {% endif %}
+        </div>
+
+        {# Player list #}
+        <div class="mb-4 p-3 bg-metal-dark/50 rounded">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs text-gray-mid uppercase tracking-wider">{{ 'server.players'|trans({}, 'common') }}</span>
+                <span class="text-xs">
+                    <span class="server-player-count font-semibold text-turquoise">{{ info.playerCount }}</span>
+                    <span class="text-gray-mid">/ <span class="server-max-players">{{ info.maxPlayers }}</span></span>
+                </span>
+            </div>
+            <div class="server-players-list">
+                {% if info.online and info.players|length > 0 %}
+                    <div class="flex flex-wrap gap-1">
+                        {% for player in info.players|slice(0, 8) %}
+                            <span class="text-xs px-2 py-0.5 bg-metal-mid rounded text-gray-light">{{ player|tm_color }}</span>
+                        {% endfor %}
+                        {% if info.players|length > 8 %}
+                            <span class="text-xs px-2 py-0.5 text-gray-mid">+{{ info.players|length - 8 }}</span>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <div class="text-xs text-gray-mid italic">{{ 'server.no_players'|trans({}, 'common') }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        {# Actions #}
+        <div class="flex gap-2">
+            {% if server.login %}
+                <a href="tmtp://#join={{ server.login }}"
+                   class="server-join-btn flex-1 text-center px-4 py-2 text-sm font-semibold rounded
+                          transition-all duration-300 no-underline
+                          {% if info.online %}
+                              bg-gradient-to-br from-turquoise to-turquoise-dark text-bg-dark
+                              hover:shadow-[0_4px_15px_rgba(0,212,212,0.4)]
+                          {% else %}
+                              bg-metal-mid text-gray-mid cursor-not-allowed
+                          {% endif %}">
+                    {{ 'server.join'|trans({}, 'common') }}
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>

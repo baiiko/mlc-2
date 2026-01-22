@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Http\Controller\Team;
 
+use App\Application\Team\Service\HandleJoinRequestServiceInterface;
 use App\Domain\Player\Entity\Player;
-use App\Domain\Team\Entity\TeamMembership;
 use App\Domain\Team\Repository\TeamJoinRequestRepositoryInterface;
-use App\Domain\Team\Repository\TeamMembershipRepositoryInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\AsController;
@@ -25,8 +24,8 @@ final readonly class RequestsController
 {
     public function __construct(
         private Environment $twig,
+        private HandleJoinRequestServiceInterface $handleJoinRequestService,
         private TeamJoinRequestRepositoryInterface $joinRequestRepository,
-        private TeamMembershipRepositoryInterface $membershipRepository,
         private UrlGeneratorInterface $urlGenerator,
     ) {
     }
@@ -39,7 +38,6 @@ final readonly class RequestsController
         }
 
         $team = $player->getTeam();
-
         $requests = $this->joinRequestRepository->findPendingByTeam($team);
 
         return new Response(
@@ -53,31 +51,14 @@ final readonly class RequestsController
     #[Route('/team/requests/{id}/accept', name: 'app_team_request_accept', methods: ['POST'])]
     public function accept(int $id, #[CurrentUser] Player $player): Response
     {
-        $request = $this->joinRequestRepository->findById($id);
-
-        if ($request === null) {
-            throw new NotFoundHttpException('Demande introuvable.');
+        try {
+            $this->handleJoinRequestService->acceptRequest($id, $player);
+        } catch (\RuntimeException $e) {
+            if ($e->getMessage() === 'Demande introuvable.') {
+                throw new NotFoundHttpException($e->getMessage());
+            }
+            throw new AccessDeniedHttpException($e->getMessage());
         }
-
-        $team = $player->getTeam();
-
-        if (!$player->isTeamCreator() || $request->getTeam()->getId() !== $player->getTeam()->getId()) {
-            throw new AccessDeniedHttpException('Accès refusé.');
-        }
-
-        $requestPlayer = $request->getPlayer();
-
-        // Check if player doesn't already have a team
-        if ($requestPlayer->hasTeam()) {
-            $this->joinRequestRepository->delete($request);
-            return new RedirectResponse($this->urlGenerator->generate('app_team_requests'));
-        }
-
-        $membership = new TeamMembership($requestPlayer, $team);
-        $this->membershipRepository->save($membership);
-
-        $request->accept();
-        $this->joinRequestRepository->save($request);
 
         return new RedirectResponse($this->urlGenerator->generate('app_team_requests'));
     }
@@ -85,18 +66,14 @@ final readonly class RequestsController
     #[Route('/team/requests/{id}/reject', name: 'app_team_request_reject', methods: ['POST'])]
     public function reject(int $id, #[CurrentUser] Player $player): Response
     {
-        $request = $this->joinRequestRepository->findById($id);
-
-        if ($request === null) {
-            throw new NotFoundHttpException('Demande introuvable.');
+        try {
+            $this->handleJoinRequestService->rejectRequest($id, $player);
+        } catch (\RuntimeException $e) {
+            if ($e->getMessage() === 'Demande introuvable.') {
+                throw new NotFoundHttpException($e->getMessage());
+            }
+            throw new AccessDeniedHttpException($e->getMessage());
         }
-
-        if (!$player->isTeamCreator() || $request->getTeam()->getId() !== $player->getTeam()->getId()) {
-            throw new AccessDeniedHttpException('Accès refusé.');
-        }
-
-        $request->reject();
-        $this->joinRequestRepository->save($request);
 
         return new RedirectResponse($this->urlGenerator->generate('app_team_requests'));
     }

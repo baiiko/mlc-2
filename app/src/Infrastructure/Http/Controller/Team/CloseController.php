@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Http\Controller\Team;
 
+use App\Application\Team\Service\CloseTeamServiceInterface;
 use App\Domain\Player\Entity\Player;
-use App\Domain\Team\Repository\TeamMembershipRepositoryInterface;
-use App\Domain\Team\Repository\TeamRepositoryInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\AsController;
@@ -21,8 +20,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final readonly class CloseController
 {
     public function __construct(
-        private TeamRepositoryInterface $teamRepository,
-        private TeamMembershipRepositoryInterface $membershipRepository,
+        private CloseTeamServiceInterface $closeTeamService,
         private UrlGeneratorInterface $urlGenerator,
     ) {
     }
@@ -36,18 +34,11 @@ final readonly class CloseController
             return new RedirectResponse($this->urlGenerator->generate('app_profile'));
         }
 
-        if (!$player->isTeamCreator()) {
-            throw new AccessDeniedHttpException('Seul le créateur peut clôturer l\'équipe.');
+        try {
+            $this->closeTeamService->closeTeam($team, $player);
+        } catch (\RuntimeException $e) {
+            throw new AccessDeniedHttpException($e->getMessage());
         }
-
-        // Faire quitter tous les membres
-        foreach ($team->getActiveMemberships() as $membership) {
-            $membership->leave();
-            $this->membershipRepository->save($membership);
-        }
-
-        // Soft delete l'équipe
-        $this->teamRepository->delete($team);
 
         return new RedirectResponse($this->urlGenerator->generate('app_profile'));
     }

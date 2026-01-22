@@ -39,12 +39,42 @@ services:
     App\Application\Player\Service\ActivateAccountServiceInterface:
         class: App\Application\Player\Service\ActivateAccountService
 
+    App\Application\Player\Service\CloseAccountServiceInterface:
+        class: App\Application\Player\Service\CloseAccountService
+
+    App\Application\Player\Service\UpdateProfileServiceInterface:
+        class: App\Application\Player\Service\UpdateProfileService
+
+    App\Application\Player\Service\ChangePasswordServiceInterface:
+        class: App\Application\Player\Service\ChangePasswordService
+
+    App\Application\Player\Service\PasswordResetServiceInterface:
+        class: App\Application\Player\Service\PasswordResetService
+
+    App\Application\Player\Service\RoleManagementServiceInterface:
+        class: App\Application\Player\Service\RoleManagementService
+
     # Interface bindings - Team
     App\Domain\Team\Repository\TeamRepositoryInterface:
         class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrineTeamRepository
 
     App\Application\Team\Service\CreateTeamServiceInterface:
         class: App\Application\Team\Service\CreateTeamService
+
+    App\Application\Team\Service\CloseTeamServiceInterface:
+        class: App\Application\Team\Service\CloseTeamService
+
+    App\Application\Team\Service\TransferOwnershipServiceInterface:
+        class: App\Application\Team\Service\TransferOwnershipService
+
+    App\Application\Team\Service\UpdateTeamServiceInterface:
+        class: App\Application\Team\Service\UpdateTeamService
+
+    App\Application\Team\Service\HandleJoinRequestServiceInterface:
+        class: App\Application\Team\Service\HandleJoinRequestService
+
+    App\Application\Team\Service\JoinTeamServiceInterface:
+        class: App\Application\Team\Service\JoinTeamService
 
     App\Domain\Team\Repository\TeamJoinRequestRepositoryInterface:
         class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrineTeamJoinRequestRepository
@@ -71,11 +101,31 @@ services:
     App\Domain\Championship\Repository\MapRecordRepositoryInterface:
         class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrineMapRecordRepository
 
+    App\Domain\Championship\Repository\ServerRepositoryInterface:
+        class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrineServerRepository
+
+    # Interface bindings - Content
+    App\Domain\Content\Repository\RuleRepositoryInterface:
+        class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrineRuleRepository
+
     App\Application\Championship\Service\RegisterToRoundServiceInterface:
         class: App\Application\Championship\Service\RegisterToRoundService
 
     App\Application\Championship\Service\CalculateRankingServiceInterface:
         class: App\Application\Championship\Service\CalculateRankingService
+
+    App\Application\Championship\Service\UpdateAvailabilityServiceInterface:
+        class: App\Application\Championship\Service\UpdateAvailabilityService
+
+    App\Application\Championship\Service\RoundDataServiceInterface:
+        class: App\Application\Championship\Service\RoundDataService
+
+    App\Application\Championship\Service\ServerApiDataServiceInterface:
+        class: App\Application\Championship\Service\ServerApiDataService
+
+    App\Application\Championship\Service\RoundMapService:
+        arguments:
+            $publicDir: '%kernel.project_dir%/public'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

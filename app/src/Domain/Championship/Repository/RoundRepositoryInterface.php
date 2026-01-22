@@ -29,4 +29,9 @@ interface RoundRepositoryInterface
      * @return Round[]
      */
     public function findWithOpenRegistration(): array;
+
+    /**
+     * Find the current active round, or the next upcoming one.
+     */
+    public function findCurrentOrUpcoming(): ?Round;
 }

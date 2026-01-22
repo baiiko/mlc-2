@@ -37,17 +37,17 @@ class TeamCrudController extends AbstractCrudController
 
         yield TextField::new('tag')
             ->setHelp('Abréviation de l\'équipe (max 10 caractères)')
-            ->formatValue(fn ($value) => TmColorParser::toHtml($value))
+            ->formatValue(fn ($value) => '<span class="tm-pseudo">' . TmColorParser::toHtml($value) . '</span>')
             ->renderAsHtml();
 
         yield TextField::new('fullName', 'Nom complet')
-            ->formatValue(fn ($value) => TmColorParser::toHtml($value))
+            ->formatValue(fn ($value) => '<span class="tm-pseudo">' . TmColorParser::toHtml($value) . '</span>')
             ->renderAsHtml();
 
         // Champ pour affichage (index/detail) avec couleurs TM
         yield TextField::new('creatorName', 'Créateur')
             ->hideOnForm()
-            ->formatValue(fn ($value, Team $entity) => TmColorParser::toHtml($entity->getCreator()->getPseudo()))
+            ->formatValue(fn ($value, Team $entity) => '<span class="tm-pseudo">' . TmColorParser::toHtml($entity->getCreator()->getPseudo()) . '</span>')
             ->renderAsHtml();
 
         // Champ pour édition (formulaire) - pseudo sans couleurs TM
@@ -66,7 +66,7 @@ class TeamCrudController extends AbstractCrudController
                 }
 
                 $names = array_map(
-                    fn (Player $player) => TmColorParser::toHtml($player->getPseudo()),
+                    fn (Player $player) => '<span class="tm-pseudo">' . TmColorParser::toHtml($player->getPseudo()) . '</span>',
                     $members
                 );
 

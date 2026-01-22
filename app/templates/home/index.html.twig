@@ -1,6 +1,107 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Accueil - MLC ModLap Championship{% endblock %}
+{% block title %}{{ 'nav.home'|trans({}, 'common') }} - MLC ModLap Championship{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        const serverTranslations = {
+            online: '{{ 'server.status.online'|trans({}, 'common') }}',
+            offline: '{{ 'server.status.offline'|trans({}, 'common') }}',
+            noPlayers: '{{ 'server.no_players'|trans({}, 'common') }}',
+            noMap: '{{ 'server.no_map'|trans({}, 'common') }}'
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            function updateServers() {
+                fetch('{{ path('api_servers') }}')
+                    .then(response => response.json())
+                    .then(servers => {
+                        servers.forEach(server => {
+                            const card = document.querySelector(`.server-card[data-server-id="${server.id}"]`);
+                            if (!card) return;
+
+                            // Update server name
+                            const nameEl = card.querySelector('.server-name');
+                            if (nameEl) {
+                                nameEl.innerHTML = server.nameHtml;
+                                nameEl.title = server.nameStrip;
+                            }
+
+                            // Update status
+                            const statusEl = card.querySelector('.server-status');
+                            if (statusEl) {
+                                statusEl.textContent = server.online ? serverTranslations.online : serverTranslations.offline;
+                                statusEl.className = statusEl.className
+                                    .replace(/bg-green-500\/20|bg-red-500\/20/g, '')
+                                    .replace(/text-green-400|text-red-400/g, '');
+                                statusEl.classList.add(
+                                    server.online ? 'bg-green-500/20' : 'bg-red-500/20',
+                                    server.online ? 'text-green-400' : 'text-red-400'
+                                );
+                            }
+
+                            // Update player count
+                            const countEl = card.querySelector('.server-player-count');
+                            if (countEl) countEl.textContent = server.playerCount;
+
+                            const maxEl = card.querySelector('.server-max-players');
+                            if (maxEl) maxEl.textContent = server.maxPlayers;
+
+                            // Update player list
+                            const playersListEl = card.querySelector('.server-players-list');
+                            if (playersListEl) {
+                                if (server.online && server.players.length > 0) {
+                                    let html = '<div class="flex flex-wrap gap-1">';
+                                    server.players.slice(0, 8).forEach(player => {
+                                        html += `<span class="text-xs px-2 py-0.5 bg-metal-mid rounded text-gray-light">${player.nameHtml}</span>`;
+                                    });
+                                    if (server.players.length > 8) {
+                                        html += `<span class="text-xs px-2 py-0.5 text-gray-mid">+${server.players.length - 8}</span>`;
+                                    }
+                                    html += '</div>';
+                                    playersListEl.innerHTML = html;
+                                } else {
+                                    playersListEl.innerHTML = `<div class="text-xs text-gray-mid italic">${serverTranslations.noPlayers}</div>`;
+                                }
+                            }
+
+                            // Update map
+                            const mapEl = card.querySelector('.server-map');
+                            if (mapEl) {
+                                if (server.online && server.currentMap) {
+                                    mapEl.innerHTML = server.currentMapHtml;
+                                    mapEl.title = server.currentMapStrip;
+                                    mapEl.classList.remove('text-gray-mid', 'italic');
+                                } else {
+                                    mapEl.innerHTML = serverTranslations.noMap;
+                                    mapEl.title = '';
+                                    mapEl.classList.add('text-gray-mid', 'italic');
+                                }
+                            }
+
+                            // Update join button
+                            const joinBtn = card.querySelector('.server-join-btn');
+                            if (joinBtn) {
+                                joinBtn.className = joinBtn.className
+                                    .replace(/bg-gradient-to-br from-turquoise to-turquoise-dark text-bg-dark|bg-metal-mid text-gray-mid cursor-not-allowed/g, '');
+                                if (server.online) {
+                                    joinBtn.classList.add('bg-gradient-to-br', 'from-turquoise', 'to-turquoise-dark', 'text-bg-dark');
+                                    joinBtn.classList.remove('cursor-not-allowed');
+                                } else {
+                                    joinBtn.classList.add('bg-metal-mid', 'text-gray-mid', 'cursor-not-allowed');
+                                }
+                            }
+                        });
+                    })
+                    .catch(err => console.error('Error fetching servers:', err));
+            }
+
+            // Poll every 5 seconds
+            setInterval(updateServers, 5000);
+        });
+    </script>
+{% endblock %}
 
 {% block body %}
     {# ===== HERO ===== #}
@@ -9,29 +110,31 @@
         <div class="relative max-w-[1400px] mx-auto px-10 py-16 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center h-full">
             <div>
                 <h1 class="font-russo text-6xl leading-tight mb-5">
-                    La compétition<br>
-                    <span class="text-orange">TrackMania</span><br>
-                    de référence
+                    {{ 'home.hero.title_1'|trans({}, 'common') }}<br>
+                    <span class="text-orange">{{ 'home.hero.title_2'|trans({}, 'common') }}</span><br>
+                    {{ 'home.hero.title_3'|trans({}, 'common') }}
                 </h1>
                 <p class="text-gray-light text-lg mb-8 max-w-lg">
-                    Rejoignez la communauté MLC et participez aux courses les plus
-                    intenses de TrackMania. Classements en temps réel, évènements
-                    réguliers et une communauté passionnée.
+                    {{ 'home.hero.description'|trans({}, 'common') }}
                 </p>
                 <div class="flex gap-4">
-                    <a href="{{ path('app_register') }}" class="inline-block px-8 py-4 font-semibold text-sm uppercase tracking-wider rounded
-                                       bg-gradient-to-br from-orange to-orange-dark text-white
-                                       shadow-[0_4px_15px_rgba(255,140,0,0.4)]
-                                       hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(255,140,0,0.5)]
-                                       transition-all duration-300 no-underline">
-                        S'inscrire
-                    </a>
-                    <a href="#" class="inline-block px-8 py-4 font-semibold text-sm uppercase tracking-wider rounded
-                                       bg-transparent text-white border-2 border-metal-light
-                                       hover:border-turquoise hover:text-turquoise
-                                       transition-all duration-300">
-                        Voir le classement
-                    </a>
+                    {% if not app.user %}
+                        <a href="{{ path('app_register') }}" class="inline-block px-8 py-4 font-semibold text-sm uppercase tracking-wider rounded
+                                           bg-gradient-to-br from-orange to-orange-dark text-white
+                                           shadow-[0_4px_15px_rgba(255,140,0,0.4)]
+                                           hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(255,140,0,0.5)]
+                                           transition-all duration-300 no-underline">
+                            {{ 'home.hero.register'|trans({}, 'common') }}
+                        </a>
+                    {% endif %}
+                    {% if activeSeason %}
+                        <a href="{{ path('app_championship_season_show', {slug: activeSeason.slug}) }}" class="inline-block px-8 py-4 font-semibold text-sm uppercase tracking-wider rounded
+                                           bg-transparent text-white border-2 border-metal-light
+                                           hover:border-turquoise hover:text-turquoise
+                                           transition-all duration-300">
+                            {{ 'home.hero.view_ranking'|trans({}, 'common') }}
+                        </a>
+                    {% endif %}
                 </div>
             </div>
             <div class="hidden lg:flex items-center justify-center">
@@ -40,24 +143,56 @@
         </div>
     </section>
 
+    {# ===== MANCHE EN COURS ===== #}
+    {% if currentRound %}
+        <section class="max-w-[1400px] mx-auto px-10 py-16">
+            {% include 'components/_section_header.html.twig' with {
+                title: 'home.round.title'|trans({'%number%': currentRound.number, '%name%': currentRound.name}, 'common'),
+                link: path('app_championship_round_show', {id: currentRound.id}),
+                link_text: 'home.round.see_details'|trans({}, 'common')
+            } %}
+
+            {% include 'components/_round_timeline.html.twig' with { round: currentRound } %}
+        </section>
+    {% endif %}
+
+    {# ===== SERVEURS ===== #}
+    {% if serversInfo|length > 0 %}
+        <section class="max-w-[1400px] mx-auto px-10 py-16">
+            {% include 'components/_section_header.html.twig' with {
+                title: 'home.servers.title'|trans({}, 'common'),
+                link: null
+            } %}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for serverData in serversInfo %}
+                    {% include 'components/_server_card.html.twig' with {
+                        server: serverData.server,
+                        info: serverData.info
+                    } %}
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+
     {# ===== CLASSEMENT ===== #}
     <section class="max-w-[1400px] mx-auto px-10 py-16">
         {% include 'components/_section_header.html.twig' with {
-            title: 'Classement Saison 12',
+            title: 'home.ranking.title'|trans({'%number%': 12}, 'common'),
             link: '#',
-            link_text: 'Voir le classement complet →'
+            link_text: 'home.ranking.see_all'|trans({}, 'common')
         } %}
 
         <div class="bg-bg-card rounded-lg overflow-x-auto border border-metal-dark">
             <table class="w-full min-w-[700px]">
                 <thead>
                     <tr class="bg-metal-dark border-b-2 border-b-orange">
-                        <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-mid">Pos</th>
-                        <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-mid">Pilote</th>
-                        <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-mid">Points</th>
-                        <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-mid">Victoires</th>
-                        <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-mid">Podiums</th>
-                        <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-mid">Évolution</th>
+                        <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-mid">{{ 'home.ranking.position'|trans({}, 'common') }}</th>
+                        <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-mid">{{ 'home.ranking.driver'|trans({}, 'common') }}</th>
+                        <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-mid">{{ 'home.ranking.points'|trans({}, 'common') }}</th>
+                        <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-mid">{{ 'home.ranking.wins'|trans({}, 'common') }}</th>
+                        <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-mid">{{ 'home.ranking.podiums'|trans({}, 'common') }}</th>
+                        <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-mid">{{ 'home.ranking.evolution'|trans({}, 'common') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -69,41 +204,4 @@
         </div>
     </section>
 
-    {# ===== CALENDRIER ===== #}
-    <section class="max-w-[1400px] mx-auto px-10 py-16">
-        {% include 'components/_section_header.html.twig' with {
-            title: 'Prochaines Courses',
-            link: '#',
-            link_text: 'Voir le calendrier complet →'
-        } %}
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {% for event in events %}
-                {% include 'components/_event_card.html.twig' with { event: event } %}
-            {% endfor %}
-        </div>
-    </section>
-
-    {# ===== ACTUALITES ===== #}
-    <section class="max-w-[1400px] mx-auto px-10 py-16">
-        {% include 'components/_section_header.html.twig' with {
-            title: 'Actualités',
-            link: '#',
-            link_text: 'Toutes les actualités →'
-        } %}
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {# Featured news #}
-            <div class="lg:col-span-2">
-                {% include 'components/_news_card.html.twig' with { news: news[0] } %}
-            </div>
-
-            {# Sidebar news #}
-            <div class="space-y-4">
-                {% for item in news[1:] %}
-                    {% include 'components/_news_card.html.twig' with { news: item } %}
-                {% endfor %}
-            </div>
-        </div>
-    </section>
 {% endblock %}

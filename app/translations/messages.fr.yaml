@@ -25,6 +25,8 @@ admin.menu.results: Résultats
 admin.menu.infrastructure: Infrastructure
 admin.menu.servers: Serveurs
 admin.menu.phase_servers: Serveurs de phases
+admin.menu.content: Contenu
+admin.menu.rules: Règlements
 admin.menu.back_to_site: Retour au site
 
 # Fields
@@ -54,3 +56,33 @@ Super Administrateur: Super Administrateur
 # Messages
 Impossible de supprimer un administrateur.: Impossible de supprimer un administrateur.
 Vous ne pouvez pas modifier cet utilisateur.: Vous ne pouvez pas modifier cet utilisateur.
+
+# Rule admin
+admin.rule.singular: Règlement
+admin.rule.plural: Règlements
+admin.rule.version: Version
+admin.rule.date: Date
+admin.rule.content: Contenu
+
+# Server admin
+admin.server.singular: Serveur
+admin.server.plural: Serveurs
+admin.server.name: Nom
+admin.server.login: Login serveur
+admin.server.login_help: Login TrackMania du serveur (pour rejoindre)
+admin.server.admin_login: Login admin
+admin.server.admin_login_help: Login du compte admin pour la connexion XML-RPC
+admin.server.password: Mot de passe admin
+admin.server.password_help: Mot de passe du compte admin XML-RPC. Laisser vide pour conserver le mot de passe actuel.
+admin.server.ip: Adresse IP
+admin.server.port: Port
+admin.server.max_players: Joueurs max
+admin.server.max_players_help: "Nombre maximum de joueurs sur ce serveur (défaut: 32)"
+admin.server.active: Actif
+admin.server.connection: Connexion
+admin.server.created_at: Créé le
+
+# Server actions
+admin.server.action.warmup: WarmUp
+admin.server.action.restart: Restart
+admin.server.action.skip: Skip

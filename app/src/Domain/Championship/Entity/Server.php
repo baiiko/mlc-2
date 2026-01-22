@@ -36,6 +36,12 @@ class Server
     #[ORM\Column(nullable: true)]
     private ?int $port = null;
 
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $adminLogin = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $password = null;
+
     #[ORM\Column(options: ['default' => 32])]
     private int $maxPlayers = 32;
 
@@ -45,6 +51,9 @@ class Server
     /** @var Collection<int, PhaseServer> */
     #[ORM\OneToMany(targetEntity: PhaseServer::class, mappedBy: 'server')]
     private Collection $phaseServers;
+
+    /** Virtual property for password update (not persisted) */
+    private ?string $plainPassword = null;
 
     public function __construct(?string $name = null, ?string $login = null)
     {
@@ -106,6 +115,42 @@ class Server
         return $this;
     }
 
+    public function getAdminLogin(): ?string
+    {
+        return $this->adminLogin;
+    }
+
+    public function setAdminLogin(?string $adminLogin): self
+    {
+        $this->adminLogin = $adminLogin;
+
+        return $this;
+    }
+
+    public function getPassword(): ?string
+    {
+        return $this->password;
+    }
+
+    public function setPassword(?string $password): self
+    {
+        $this->password = $password;
+
+        return $this;
+    }
+
+    public function getPlainPassword(): ?string
+    {
+        return $this->plainPassword;
+    }
+
+    public function setPlainPassword(?string $plainPassword): self
+    {
+        $this->plainPassword = $plainPassword;
+
+        return $this;
+    }
+
     public function getMaxPlayers(): int
     {
         return $this->maxPlayers;
@@ -137,6 +182,11 @@ class Server
         }
 
         return null;
+    }
+
+    public function getActiveLabel(): string
+    {
+        return $this->isActive ? 'Oui' : 'Non';
     }
 
     /**

@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Http\Controller\Player;
 
+use App\Application\Player\Service\ChangePasswordServiceInterface;
 use App\Domain\Player\Entity\Player;
-use App\Domain\Player\Repository\PlayerRepositoryInterface;
 use App\Infrastructure\Http\Form\ChangePasswordType;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\AsController;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -25,8 +24,7 @@ final readonly class ChangePasswordController
     public function __construct(
         private Environment $twig,
         private FormFactoryInterface $formFactory,
-        private PlayerRepositoryInterface $playerRepository,
-        private UserPasswordHasherInterface $passwordHasher,
+        private ChangePasswordServiceInterface $changePasswordService,
     ) {
     }
 
@@ -39,23 +37,29 @@ final readonly class ChangePasswordController
         if ($form->isSubmitted() && $form->isValid()) {
             $dto = $form->getData();
 
-            // Verify current password
-            if (!$this->passwordHasher->isPasswordValid($player, $dto->currentPassword)) {
-                $form->get('currentPassword')->addError(new FormError('Le mot de passe actuel est incorrect.'));
-            }
+            $result = $this->changePasswordService->changePassword(
+                $player,
+                $dto->currentPassword,
+                $dto->newPassword
+            );
 
-            if ($form->isValid()) {
-                $hashedPassword = $this->passwordHasher->hashPassword($player, $dto->newPassword);
-                $player->setPassword($hashedPassword);
-                $this->playerRepository->save($player);
+            if (!$result['success']) {
+                $form->get('currentPassword')->addError(new FormError($result['error']));
 
                 return new Response(
                     $this->twig->render('profile/change_password.html.twig', [
                         'form' => $form->createView(),
-                        'success' => true,
+                        'success' => false,
                     ])
                 );
             }
+
+            return new Response(
+                $this->twig->render('profile/change_password.html.twig', [
+                    'form' => $form->createView(),
+                    'success' => true,
+                ])
+            );
         }
 
         return new Response(

@@ -40,6 +40,12 @@ doctrine:
                 dir: '%kernel.project_dir%/src/Domain/Championship/Entity'
                 prefix: 'App\Domain\Championship\Entity'
                 alias: Championship
+            Content:
+                type: attribute
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Domain/Content/Entity'
+                prefix: 'App\Domain\Content\Entity'
+                alias: Content
         controller_resolver:
             auto_mapping: false
 

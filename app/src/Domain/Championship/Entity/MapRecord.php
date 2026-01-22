@@ -10,7 +10,7 @@ use Gedmo\Timestampable\Traits\TimestampableEntity;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'map_record')]
-#[ORM\UniqueConstraint(name: 'unique_map_record', columns: ['map_uid', 'laps'])]
+#[ORM\UniqueConstraint(name: 'unique_map_record', columns: ['map_uid', 'player_login', 'laps'])]
 class MapRecord
 {
     use TimestampableEntity;

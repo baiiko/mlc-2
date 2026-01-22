@@ -15,6 +15,7 @@ RUN apk --no-cache add \
         git \
         curl \
         icu-dev \
+        icu-data-full \
         libxml2-dev \
         libpng-dev \
         libzip-dev \

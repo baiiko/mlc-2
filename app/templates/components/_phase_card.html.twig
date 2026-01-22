@@ -1,0 +1,83 @@
+{#
+    Phase Card Component
+    @param phase Phase entity
+#}
+{% set now = date() %}
+{% set isLive = phase.startAt <= now and (phase.endAt is null or phase.endAt >= now) %}
+{% set isPast = phase.endAt is not null and phase.endAt < now %}
+
+<div class="bg-bg-card rounded-lg overflow-hidden border border-metal-dark
+            hover:-translate-y-1 hover:border-orange hover:shadow-[0_10px_30px_rgba(255,140,0,0.2)]
+            transition-all duration-300">
+    {# Header #}
+    <div class="bg-metal-dark px-5 py-3 flex justify-between items-center">
+        <h3 class="font-russo text-lg text-orange">{{ phase.type.translationKey|trans({}, 'championship') }}</h3>
+        {% if isLive %}
+            <span class="text-[11px] font-semibold px-2.5 py-1 rounded-full uppercase tracking-wider
+                         bg-red-500/20 text-red-400 animate-pulse">
+                {{ 'status.in_progress'|trans({}, 'common') }}
+            </span>
+        {% elseif isPast %}
+            <span class="text-[11px] font-semibold px-2.5 py-1 rounded-full uppercase tracking-wider
+                         bg-metal-mid text-gray-mid">
+                {{ 'status.finished'|trans({}, 'common') }}
+            </span>
+        {% else %}
+            <span class="text-[11px] font-semibold px-2.5 py-1 rounded-full uppercase tracking-wider
+                         bg-turquoise/20 text-turquoise">
+                {{ 'status.coming'|trans({}, 'common') }}
+            </span>
+        {% endif %}
+    </div>
+
+    {# Body #}
+    <div class="p-5">
+        <div class="space-y-3">
+            {% if phase.endAt %}
+                {# Timeline pour phase avec période #}
+                {% set totalDuration = phase.endAt.timestamp - phase.startAt.timestamp %}
+                {% set elapsed = now.timestamp - phase.startAt.timestamp %}
+                {% set progressRaw = isLive ? ((elapsed / totalDuration) * 100) : (isPast ? 100 : 0) %}
+                {% set progress = progressRaw < 0 ? 0 : (progressRaw > 100 ? 100 : progressRaw) %}
+
+                <div class="space-y-2">
+                    {# Timeline bar #}
+                    <div class="relative h-2 bg-metal-dark rounded-full overflow-hidden">
+                        <div class="absolute inset-y-0 left-0 rounded-full transition-all duration-300
+                                    {% if isLive %}bg-gradient-to-r from-orange to-red-400{% elseif isPast %}bg-gray-mid{% else %}bg-turquoise/30{% endif %}"
+                             style="width: {{ progress }}%"></div>
+                    </div>
+
+                    {# Dates #}
+                    <div class="flex justify-between text-xs text-gray-light">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full {% if isLive or isPast %}bg-orange{% else %}bg-turquoise{% endif %}"></span>
+                            <span>{{ phase.startAt|format_datetime('short', 'short', locale=app.request.locale) }}</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span>{{ phase.endAt|format_datetime('short', 'short', locale=app.request.locale) }}</span>
+                            <span class="w-2 h-2 rounded-full {% if isPast %}bg-gray-mid{% else %}bg-metal-light{% endif %}"></span>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                {# Phase ponctuelle #}
+                <div class="flex items-center gap-2.5 text-gray-light text-sm">
+                    <span>📅</span>
+                    <span>{{ phase.startAt|format_datetime('full', 'none', locale=app.request.locale) }}</span>
+                </div>
+                <div class="flex items-center gap-2.5 text-gray-light text-sm">
+                    <span>🕐</span>
+                    <span>{{ phase.startAt|format_datetime('none', 'short', locale=app.request.locale) }}</span>
+                </div>
+            {% endif %}
+
+            {% if phase.phaseServers|length > 0 %}
+                <div class="flex items-center gap-2.5 text-gray-light text-sm">
+                    <span>🖥️</span>
+                    <span>{{ phase.phaseServers|length }} {{ phase.phaseServers|length > 1 ? 'home.servers.servers'|trans({}, 'common') : 'home.servers.server'|trans({}, 'common') }}</span>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>

@@ -15,10 +15,10 @@
             {{ vite_entry_link_tags('app') }}
         {% endblock %}
     </head>
-    <body class="font-exo bg-bg-dark text-white min-h-screen overflow-x-hidden">
+    <body class="font-exo bg-bg-dark text-white min-h-screen overflow-x-hidden flex flex-col">
         {% include 'partials/_header.html.twig' %}
 
-        <main>
+        <main class="flex-1">
             {% block body %}{% endblock %}
         </main>
 

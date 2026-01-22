@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Infrastructure\Http\Controller\Player;
 
 use App\Application\Player\DTO\UpdateProfileDTO;
+use App\Application\Player\Service\UpdateProfileServiceInterface;
 use App\Domain\Player\Entity\Player;
-use App\Domain\Player\Repository\PlayerRepositoryInterface;
 use App\Domain\Team\Repository\TeamJoinRequestRepositoryInterface;
 use App\Infrastructure\Http\Form\UpdateProfileType;
 use Symfony\Component\Form\FormError;
@@ -26,7 +26,7 @@ final readonly class ProfileController
     public function __construct(
         private Environment $twig,
         private FormFactoryInterface $formFactory,
-        private PlayerRepositoryInterface $playerRepository,
+        private UpdateProfileServiceInterface $updateProfileService,
         private TeamJoinRequestRepositoryInterface $joinRequestRepository,
     ) {
     }
@@ -46,30 +46,20 @@ final readonly class ProfileController
         $pendingRequest = $this->joinRequestRepository->findPendingByPlayer($player);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // Check email uniqueness (excluding current player)
-            if ($dto->email !== $player->getEmail()) {
-                $existingPlayer = $this->playerRepository->findByEmail($dto->email);
-                if ($existingPlayer !== null) {
-                    $form->get('email')->addError(new FormError('Cette adresse email est déjà utilisée.'));
-                }
+            $result = $this->updateProfileService->updateProfile($player, $dto);
+
+            if (!$result['success']) {
+                $form->get('email')->addError(new FormError($result['error']));
             }
 
-            if ($form->isValid()) {
-                $player->setPseudo($dto->pseudo);
-                $player->setEmail($dto->email);
-                $player->setDiscord($dto->discord);
-                $player->setNewsletter($dto->newsletter);
-                $this->playerRepository->save($player);
-
-                return new Response(
-                    $this->twig->render('profile/index.html.twig', [
-                        'form' => $form->createView(),
-                        'player' => $player,
-                        'pendingRequest' => $pendingRequest,
-                        'success' => true,
-                    ])
-                );
-            }
+            return new Response(
+                $this->twig->render('profile/index.html.twig', [
+                    'form' => $form->createView(),
+                    'player' => $player,
+                    'pendingRequest' => $pendingRequest,
+                    'success' => $result['success'],
+                ])
+            );
         }
 
         return new Response(

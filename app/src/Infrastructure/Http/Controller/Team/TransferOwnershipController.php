@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Http\Controller\Team;
 
+use App\Application\Team\Service\TransferOwnershipServiceInterface;
 use App\Domain\Player\Entity\Player;
-use App\Domain\Player\Repository\PlayerRepositoryInterface;
-use App\Domain\Team\Repository\TeamRepositoryInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -23,8 +22,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final readonly class TransferOwnershipController
 {
     public function __construct(
-        private TeamRepositoryInterface $teamRepository,
-        private PlayerRepositoryInterface $playerRepository,
+        private TransferOwnershipServiceInterface $transferOwnershipService,
         private UrlGeneratorInterface $urlGenerator,
     ) {
     }
@@ -38,28 +36,19 @@ final readonly class TransferOwnershipController
             return new RedirectResponse($this->urlGenerator->generate('app_profile'));
         }
 
-        if (!$player->isTeamCreator()) {
-            throw new AccessDeniedHttpException('Vous n\'êtes pas le créateur de cette équipe.');
-        }
-
         $newCreatorId = $request->request->get('new_creator_id');
 
         if ($newCreatorId === null) {
             throw new BadRequestHttpException('Aucun joueur sélectionné.');
         }
 
-        $newCreator = $this->playerRepository->findById((int) $newCreatorId);
-
-        if ($newCreator === null || $newCreator->getTeam()?->getId() !== $team->getId()) {
-            throw new BadRequestHttpException('Le joueur sélectionné n\'est pas membre de cette équipe.');
+        try {
+            $this->transferOwnershipService->transferOwnership($team, $player, (int) $newCreatorId);
+        } catch (\RuntimeException $e) {
+            throw new AccessDeniedHttpException($e->getMessage());
+        } catch (\InvalidArgumentException $e) {
+            throw new BadRequestHttpException($e->getMessage());
         }
-
-        if ($newCreator->getId() === $player->getId()) {
-            return new RedirectResponse($this->urlGenerator->generate('app_team_edit'));
-        }
-
-        $team->setCreator($newCreator);
-        $this->teamRepository->save($team);
 
         return new RedirectResponse($this->urlGenerator->generate('app_profile'));
     }

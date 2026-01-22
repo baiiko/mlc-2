@@ -22,4 +22,9 @@ interface PhaseRepositoryInterface
     public function findByRound(Round $round): array;
 
     public function findByRoundAndType(Round $round, PhaseType $type): ?Phase;
+
+    /**
+     * @return Phase[]
+     */
+    public function findUpcomingPlayable(int $limit = 6): array;
 }

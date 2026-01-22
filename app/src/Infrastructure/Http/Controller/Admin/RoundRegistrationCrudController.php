@@ -50,7 +50,7 @@ class RoundRegistrationCrudController extends AbstractCrudController
 
         yield TextField::new('playerPseudo', 'Joueur')
             ->hideOnForm()
-            ->formatValue(fn($value, RoundRegistration $entity) => TmColorParser::toHtml($entity->getPlayer()->getPseudo()))
+            ->formatValue(fn($value, RoundRegistration $entity) => '<span class="tm-pseudo">' . TmColorParser::toHtml($entity->getPlayer()->getPseudo()) . '</span>')
             ->renderAsHtml();
 
         yield AssociationField::new('player', 'Joueur')
@@ -59,7 +59,7 @@ class RoundRegistrationCrudController extends AbstractCrudController
 
         yield TextField::new('teamTag', 'Équipe')
             ->hideOnForm()
-            ->formatValue(fn($value, RoundRegistration $entity) => $entity->getTeam() ? TmColorParser::toHtml($entity->getTeam()->getTag()) : '-')
+            ->formatValue(fn($value, RoundRegistration $entity) => $entity->getTeam() ? '<span class="tm-pseudo">' . TmColorParser::toHtml($entity->getTeam()->getTag()) . '</span>' : '-')
             ->renderAsHtml();
 
         yield AssociationField::new('team', 'Équipe')

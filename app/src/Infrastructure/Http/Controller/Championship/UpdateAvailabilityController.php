@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Http\Controller\Championship;
 
-use App\Domain\Championship\Repository\RoundRegistrationRepositoryInterface;
-use App\Domain\Championship\Repository\RoundRepositoryInterface;
+use App\Application\Championship\Service\UpdateAvailabilityServiceInterface;
 use App\Domain\Player\Entity\Player;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -24,8 +23,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final readonly class UpdateAvailabilityController
 {
     public function __construct(
-        private RoundRepositoryInterface $roundRepository,
-        private RoundRegistrationRepositoryInterface $registrationRepository,
+        private UpdateAvailabilityServiceInterface $updateAvailabilityService,
         private UrlGeneratorInterface $urlGenerator,
     ) {
     }
@@ -33,24 +31,20 @@ final readonly class UpdateAvailabilityController
     #[Route('/championship/round/{id}/availability', name: 'app_championship_update_availability', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function __invoke(int $id, Request $request, #[CurrentUser] Player $player): Response
     {
-        $round = $this->roundRepository->findById($id);
-
-        if ($round === null) {
-            throw new NotFoundHttpException('Manche non trouvée');
+        try {
+            $this->updateAvailabilityService->updateAvailability(
+                $id,
+                $player,
+                $request->request->getBoolean('availableSemiFinal1', false),
+                $request->request->getBoolean('availableSemiFinal2', false),
+                $request->request->getBoolean('availableFinal', false)
+            );
+        } catch (\RuntimeException $e) {
+            if ($e->getMessage() === 'Manche non trouvée') {
+                throw new NotFoundHttpException($e->getMessage());
+            }
+            throw new AccessDeniedHttpException($e->getMessage());
         }
-
-        $registration = $this->registrationRepository->findByRoundAndPlayer($round, $player);
-
-        if ($registration === null) {
-            throw new AccessDeniedHttpException('Vous n\'êtes pas inscrit à cette manche');
-        }
-
-        // Update availability
-        $registration->setAvailableSemiFinal1($request->request->getBoolean('availableSemiFinal1', false));
-        $registration->setAvailableSemiFinal2($request->request->getBoolean('availableSemiFinal2', false));
-        $registration->setAvailableFinal($request->request->getBoolean('availableFinal', false));
-
-        $this->registrationRepository->save($registration);
 
         /** @var Session $session */
         $session = $request->getSession();

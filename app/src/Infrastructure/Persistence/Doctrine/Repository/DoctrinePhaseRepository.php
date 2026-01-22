@@ -49,4 +49,25 @@ final readonly class DoctrinePhaseRepository implements PhaseRepositoryInterface
             ->getRepository(Phase::class)
             ->findOneBy(['round' => $round, 'type' => $type]);
     }
+
+    public function findUpcomingPlayable(int $limit = 6): array
+    {
+        $now = new \DateTimeImmutable();
+
+        return $this->entityManager
+            ->createQueryBuilder()
+            ->select('p')
+            ->from(Phase::class, 'p')
+            ->join('p.round', 'r')
+            ->where('p.type != :registration')
+            ->andWhere('p.startAt >= :now OR (p.startAt <= :now AND (p.endAt IS NULL OR p.endAt >= :now))')
+            ->andWhere('r.deletedAt IS NULL')
+            ->andWhere('p.deletedAt IS NULL')
+            ->setParameter('registration', PhaseType::Registration)
+            ->setParameter('now', $now)
+            ->orderBy('p.startAt', 'ASC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
 }

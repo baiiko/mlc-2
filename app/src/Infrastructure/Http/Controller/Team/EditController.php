@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Infrastructure\Http\Controller\Team;
 
 use App\Application\Team\DTO\UpdateTeamDTO;
+use App\Application\Team\Service\UpdateTeamServiceInterface;
 use App\Domain\Player\Entity\Player;
 use App\Domain\Team\Repository\TeamJoinRequestRepositoryInterface;
-use App\Domain\Team\Repository\TeamRepositoryInterface;
 use App\Infrastructure\Http\Form\UpdateTeamType;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -28,7 +28,7 @@ final readonly class EditController
     public function __construct(
         private Environment $twig,
         private FormFactoryInterface $formFactory,
-        private TeamRepositoryInterface $teamRepository,
+        private UpdateTeamServiceInterface $updateTeamService,
         private TeamJoinRequestRepositoryInterface $joinRequestRepository,
         private UrlGeneratorInterface $urlGenerator,
     ) {
@@ -57,30 +57,21 @@ final readonly class EditController
         $pendingRequests = $this->joinRequestRepository->findPendingByTeam($team);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $existingTeam = $this->teamRepository->findByTag($dto->tag);
-            if ($existingTeam !== null && $existingTeam->getId() !== $team->getId()) {
+            try {
+                $result = $this->updateTeamService->updateTeam($team, $player, $dto);
+
                 return new Response(
                     $this->twig->render('team/edit.html.twig', [
                         'form' => $form->createView(),
                         'team' => $team,
                         'pendingRequests' => $pendingRequests,
-                        'error' => 'Une équipe avec ce tag existe déjà.',
+                        'success' => $result['success'],
+                        'error' => $result['error'],
                     ])
                 );
+            } catch (\RuntimeException $e) {
+                throw new AccessDeniedHttpException($e->getMessage());
             }
-
-            $team->setTag($dto->tag);
-            $team->setFullName($dto->fullName);
-            $this->teamRepository->save($team);
-
-            return new Response(
-                $this->twig->render('team/edit.html.twig', [
-                    'form' => $form->createView(),
-                    'team' => $team,
-                    'pendingRequests' => $pendingRequests,
-                    'success' => true,
-                ])
-            );
         }
 
         return new Response(
