@@ -1,6 +1,7 @@
 .env.local
 vendor/
 var/**/
+public/uploads/**/
 
 ###> symfony/asset-mapper ###
 /public/assets/

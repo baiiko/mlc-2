@@ -1,0 +1,75 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ map.name|striptags }} - {{ map.round.name }}{% endblock %}
+
+{% block body %}
+    <section class="max-w-[1400px] mx-auto px-10 py-16">
+        {# Header #}
+        <div class="mb-8">
+            <a href="{{ path('app_championship_round_show', {id: map.round.id}) }}" class="text-gray-mid hover:text-turquoise transition-colors mb-4 inline-block">
+                &larr; {{ map.round.name }}
+            </a>
+
+            <div class="flex items-start gap-6">
+                {# Thumbnail #}
+                {% if map.thumbnailPath %}
+                    <div class="flex-shrink-0">
+                        <img src="{{ asset('uploads/maps/thumbnails/' ~ map.thumbnailPath) }}" alt="{{ map.name }}" class="w-48 h-32 object-cover rounded-lg border border-metal-dark">
+                    </div>
+                {% endif %}
+
+                <div class="flex-1">
+                    <h1 class="font-russo text-4xl tm-colors mb-2">{{ map.name|tm_color|raw }}</h1>
+                    {% if map.author %}
+                        <p class="text-gray-light mb-2">
+                            {{ 'championship.map_author'|trans({}, 'championship') }} <span class="tm-colors">{{ map.author|tm_color|raw }}</span>
+                        </p>
+                    {% endif %}
+                    {% if map.environment %}
+                        <span class="px-3 py-1 bg-metal-dark text-gray-light text-sm rounded">{{ map.environment }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {# Rankings by laps #}
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {% for laps in [1, 5, 10] %}
+                <div class="bg-bg-card rounded-lg border border-metal-dark overflow-hidden">
+                    <div class="bg-metal-dark px-4 py-3">
+                        <h2 class="font-russo text-lg text-orange">
+                            {{ ('championship.record.' ~ laps ~ '_laps')|trans({}, 'championship') }}
+                        </h2>
+                    </div>
+
+                    <div class="p-4">
+                        {% if rankings[laps] is defined and rankings[laps] is not empty %}
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="text-xs text-gray-mid uppercase border-b border-metal-dark">
+                                        <th class="text-left pb-2 w-10">#</th>
+                                        <th class="text-left pb-2">{{ 'championship.player'|trans({}, 'championship') }}</th>
+                                        <th class="text-right pb-2">{{ 'championship.time'|trans({}, 'championship') }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for i, data in rankings[laps] %}
+                                        <tr class="border-b border-metal-dark/50 last:border-0">
+                                            <td class="py-2 {{ i < 3 ? 'text-orange font-bold' : 'text-gray-mid' }}">{{ i + 1 }}</td>
+                                            <td class="py-2 tm-colors">
+                                                {{ (data.record.player ?? data.playerPseudo ?? data.record.playerLogin)|tm_color|raw }}
+                                            </td>
+                                            <td class="py-2 text-right font-mono text-turquoise">{{ data.record.formatTime }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <p class="text-gray-mid text-center py-4">{{ 'championship.no_records'|trans({}, 'championship') }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+{% endblock %}

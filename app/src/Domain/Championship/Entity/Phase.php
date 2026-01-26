@@ -37,6 +37,18 @@ class Phase
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $endAt = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?int $laps = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $timeLimit = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $finishTimeout = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $warmupDuration = null;
+
     /** @var Collection<int, PhaseResult> */
     #[ORM\OneToMany(targetEntity: PhaseResult::class, mappedBy: 'phase', cascade: ['persist', 'remove'])]
     #[ORM\OrderBy(['position' => 'ASC'])]
@@ -169,6 +181,108 @@ class Phase
         }
 
         return $this;
+    }
+
+    public function getLaps(): ?int
+    {
+        return $this->laps;
+    }
+
+    public function setLaps(?int $laps): self
+    {
+        $this->laps = $laps;
+
+        return $this;
+    }
+
+    public function getTimeLimit(): ?int
+    {
+        return $this->timeLimit;
+    }
+
+    public function setTimeLimit(?int $timeLimit): self
+    {
+        $this->timeLimit = $timeLimit;
+
+        return $this;
+    }
+
+    public function getFinishTimeout(): ?int
+    {
+        return $this->finishTimeout;
+    }
+
+    public function setFinishTimeout(?int $finishTimeout): self
+    {
+        $this->finishTimeout = $finishTimeout;
+
+        return $this;
+    }
+
+    public function getWarmupDuration(): ?int
+    {
+        return $this->warmupDuration;
+    }
+
+    public function setWarmupDuration(?int $warmupDuration): self
+    {
+        $this->warmupDuration = $warmupDuration;
+
+        return $this;
+    }
+
+    public function getEffectiveLaps(): int
+    {
+        if ($this->laps !== null) {
+            return $this->laps;
+        }
+
+        return match ($this->type) {
+            PhaseType::Qualification => 5,
+            PhaseType::SemiFinal => 3,
+            PhaseType::Final => 10,
+            default => 5,
+        };
+    }
+
+    public function getEffectiveTimeLimit(): int
+    {
+        if ($this->timeLimit !== null) {
+            return $this->timeLimit;
+        }
+
+        return match ($this->type) {
+            PhaseType::Qualification => 210000,
+            PhaseType::SemiFinal => 150000,
+            PhaseType::Final => 360000,
+            default => 210000,
+        };
+    }
+
+    public function getEffectiveFinishTimeout(): int
+    {
+        if ($this->finishTimeout !== null) {
+            return $this->finishTimeout;
+        }
+
+        return match ($this->type) {
+            PhaseType::Qualification => 30000,
+            PhaseType::SemiFinal => 30000,
+            PhaseType::Final => 40000,
+            default => 30000,
+        };
+    }
+
+    public function getEffectiveWarmupDuration(): int
+    {
+        if ($this->warmupDuration !== null) {
+            return $this->warmupDuration;
+        }
+
+        return match ($this->type) {
+            PhaseType::Registration => 0,
+            default => 1,
+        };
     }
 
     public function __toString(): string

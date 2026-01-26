@@ -78,15 +78,15 @@
                                                         <div class="space-y-2">
                                                             <label class="flex items-center gap-2 cursor-pointer">
                                                                 <input type="checkbox" name="availableSemiFinal1" value="1" {{ playerRegistration.availableSemiFinal1 ? 'checked' : '' }} class="w-4 h-4 accent-orange">
-                                                                <span class="text-sm">{{ 'championship.phase.semi_final_1'|trans({}, 'championship') }}</span>
+                                                                <span class="text-sm">{{ 'championship.available_semi_final_1'|trans({}, 'championship') }}</span>
                                                             </label>
                                                             <label class="flex items-center gap-2 cursor-pointer">
                                                                 <input type="checkbox" name="availableSemiFinal2" value="1" {{ playerRegistration.availableSemiFinal2 ? 'checked' : '' }} class="w-4 h-4 accent-orange">
-                                                                <span class="text-sm">{{ 'championship.phase.semi_final_2'|trans({}, 'championship') }}</span>
+                                                                <span class="text-sm">{{ 'championship.available_semi_final_2'|trans({}, 'championship') }}</span>
                                                             </label>
                                                             <label class="flex items-center gap-2 cursor-pointer">
                                                                 <input type="checkbox" name="availableFinal" value="1" {{ playerRegistration.availableFinal ? 'checked' : '' }} class="w-4 h-4 accent-orange">
-                                                                <span class="text-sm">{{ 'championship.phase.final'|trans({}, 'championship') }}</span>
+                                                                <span class="text-sm">{{ 'championship.available_final'|trans({}, 'championship') }}</span>
                                                             </label>
                                                         </div>
                                                     </div>
@@ -101,15 +101,15 @@
                                                         <div class="space-y-2">
                                                             <label class="flex items-center gap-2 cursor-pointer">
                                                                 <input type="checkbox" name="availableSemiFinal1" value="1" checked class="w-4 h-4 accent-orange">
-                                                                <span class="text-sm">{{ 'championship.phase.semi_final_1'|trans({}, 'championship') }}</span>
+                                                                <span class="text-sm">{{ 'championship.available_semi_final_1'|trans({}, 'championship') }}</span>
                                                             </label>
                                                             <label class="flex items-center gap-2 cursor-pointer">
                                                                 <input type="checkbox" name="availableSemiFinal2" value="1" checked class="w-4 h-4 accent-orange">
-                                                                <span class="text-sm">{{ 'championship.phase.semi_final_2'|trans({}, 'championship') }}</span>
+                                                                <span class="text-sm">{{ 'championship.available_semi_final_2'|trans({}, 'championship') }}</span>
                                                             </label>
                                                             <label class="flex items-center gap-2 cursor-pointer">
                                                                 <input type="checkbox" name="availableFinal" value="1" checked class="w-4 h-4 accent-orange">
-                                                                <span class="text-sm">{{ 'championship.phase.final'|trans({}, 'championship') }}</span>
+                                                                <span class="text-sm">{{ 'championship.available_final'|trans({}, 'championship') }}</span>
                                                             </label>
                                                         </div>
                                                     </div>
@@ -226,7 +226,7 @@
                 {% else %}
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {% for map in round.maps %}
-                            <div class="bg-bg-card rounded-lg border border-metal-dark overflow-hidden hover:border-turquoise/50 transition-colors">
+                            <a href="{{ map.uid ? path('app_championship_map_show', {uid: map.uid}) : '#' }}" class="block bg-bg-card rounded-lg border border-metal-dark overflow-hidden hover:border-turquoise/50 transition-colors {{ map.uid ? 'cursor-pointer' : 'cursor-default' }}">
                                 <div class="p-4">
                                     {# Header with environment #}
                                     <div class="flex items-center justify-between gap-2 mb-3">
@@ -296,7 +296,7 @@
                                         </div>
                                     {% endif %}
                                 </div>
-                            </div>
+                            </a>
                         {% endfor %}
                     </div>
                 {% endif %}

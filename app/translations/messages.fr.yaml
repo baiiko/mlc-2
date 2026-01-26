@@ -86,3 +86,31 @@ admin.server.created_at: Créé le
 admin.server.action.warmup: WarmUp
 admin.server.action.restart: Restart
 admin.server.action.skip: Skip
+
+# Phase admin
+Phase: Phase
+Phases: Phases
+Manche: Manche
+Type: Type
+Début: Début
+Fin: Fin
+Serveurs: Serveurs
+Inscriptions: Inscriptions
+Qualifications: Qualifications
+Demi-finale: Demi-finale
+Finale: Finale
+Tours: Tours
+"Time Limit (ms)": "Time Limit (ms)"
+"Finish Timeout (ms)": "Finish Timeout (ms)"
+"Warmup (s)": "Warmup (s)"
+
+# Phase actions
+Générer MatchSettings: Générer MatchSettings
+admin.phase.matchsettings_generated: "MatchSettings généré : %filename%"
+admin.phase.matchsettings_error: "Erreur : %error%"
+admin.round.matchsettings_all_generated: "MatchSettings générés : %files%"
+admin.round.no_active_round: "Aucune manche active trouvée."
+
+# Phase field help
+"Laisser vide pour utiliser la valeur par défaut selon le type de phase": "Laisser vide pour utiliser la valeur par défaut selon le type de phase"
+"Laisser vide pour utiliser la valeur par défaut": "Laisser vide pour utiliser la valeur par défaut"

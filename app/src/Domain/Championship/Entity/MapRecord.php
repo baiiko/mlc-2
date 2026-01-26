@@ -32,6 +32,9 @@ class MapRecord
     #[ORM\Column]
     private int $time;
 
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $player = null;
+
     /** @var array<int, int> */
     #[ORM\Column(type: 'json', nullable: true)]
     private ?array $checkpoints = null;
@@ -111,6 +114,18 @@ class MapRecord
     public function setCheckpoints(?array $checkpoints): self
     {
         $this->checkpoints = $checkpoints;
+
+        return $this;
+    }
+
+    public function getPlayer(): ?string
+    {
+        return $this->player;
+    }
+
+    public function setPlayer(?string $player): self
+    {
+        $this->player = $player;
 
         return $this;
     }

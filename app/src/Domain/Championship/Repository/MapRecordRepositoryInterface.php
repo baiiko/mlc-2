@@ -26,4 +26,10 @@ interface MapRecordRepositoryInterface
     public function save(MapRecord $record): void;
 
     public function remove(MapRecord $record): void;
+
+    /**
+     * Returns all records for a map grouped by laps, sorted by time.
+     * @return array<int, array<array{record: MapRecord, playerPseudo: ?string}>>
+     */
+    public function findRankingsByMapUid(string $mapUid): array;
 }

@@ -127,5 +127,9 @@ services:
         arguments:
             $publicDir: '%kernel.project_dir%/public'
 
+    App\Application\Championship\Service\MatchSettingsGeneratorService:
+        arguments:
+            $matchSettingsPath: '%env(resolve:MATCHSETTINGS_PATH)%'
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

@@ -17,6 +17,8 @@ services:
       database:
         condition: service_healthy
     restart: unless-stopped
+    volumes:
+      - mlc_config:/var/matchsettings
 
   nginx:
     build:
@@ -46,6 +48,7 @@ services:
     volumes:
       - db_data:/var/lib/mysql
     networks:
+      - mlc_database
       - mlc_network
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
@@ -76,6 +79,9 @@ services:
 networks:
   mlc_network:
     driver: bridge
+  mlc_database:
+    external: true
 
 volumes:
   db_data:
+  mlc_config:

@@ -73,8 +73,7 @@ class PhaseResultCrudController extends AbstractCrudController
         yield ChoiceField::new('qualifiedTo', 'Qualifié vers')
             ->setChoices([
                 'Aucun' => null,
-                'Demi-finale 1' => PhaseType::SemiFinal1,
-                'Demi-finale 2' => PhaseType::SemiFinal2,
+                'Demi-finale' => PhaseType::SemiFinal,
                 'Finale' => PhaseType::Final,
             ])
             ->allowMultipleChoices(false)

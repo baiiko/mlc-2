@@ -40,11 +40,11 @@ class RoundPhaseGeneratorService
 
         // Semi-final 1: Saturday 21:00 (+10 days)
         $semiFinal1Start = $this->createDateTimeOffset($wednesday, 10, 21, 0);
-        $phases[] = $this->createPhase($round, PhaseType::SemiFinal1, $semiFinal1Start);
+        $phases[] = $this->createPhase($round, PhaseType::SemiFinal, $semiFinal1Start);
 
         // Semi-final 2: Sunday 16:00 (+11 days)
         $semiFinal2Start = $this->createDateTimeOffset($wednesday, 11, 16, 0);
-        $phases[] = $this->createPhase($round, PhaseType::SemiFinal2, $semiFinal2Start);
+        $phases[] = $this->createPhase($round, PhaseType::SemiFinal, $semiFinal2Start);
 
         // Final: Sunday 21:00 (+11 days)
         $finalStart = $this->createDateTimeOffset($wednesday, 11, 21, 0);

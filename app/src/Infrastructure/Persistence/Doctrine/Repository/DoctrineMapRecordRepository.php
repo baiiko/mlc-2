@@ -67,4 +67,34 @@ final readonly class DoctrineMapRecordRepository implements MapRecordRepositoryI
         $this->entityManager->remove($record);
         $this->entityManager->flush();
     }
+
+    public function findRankingsByMapUid(string $mapUid): array
+    {
+        $qb = $this->entityManager->createQueryBuilder();
+
+        $results = $qb->select('r', 'p.pseudo as playerPseudo')
+            ->from(MapRecord::class, 'r')
+            ->leftJoin(Player::class, 'p', 'WITH', 'p.login = r.playerLogin')
+            ->where('r.mapUid = :mapUid')
+            ->setParameter('mapUid', $mapUid)
+            ->orderBy('r.laps', 'ASC')
+            ->addOrderBy('r.time', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        $rankings = [];
+        foreach ($results as $row) {
+            $record = $row[0];
+            $laps = $record->getLaps();
+            if (!isset($rankings[$laps])) {
+                $rankings[$laps] = [];
+            }
+            $rankings[$laps][] = [
+                'record' => $record,
+                'playerPseudo' => $row['playerPseudo'],
+            ];
+        }
+
+        return $rankings;
+    }
 }

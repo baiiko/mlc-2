@@ -36,8 +36,7 @@ championship:
     phase:
         registration: "Registration"
         qualification: "Qualification"
-        semi_final_1: "Semi-final 1"
-        semi_final_2: "Semi-final 2"
+        semi_final: "Semi-final"
         final: "Final"
     maps: "Maps"
     no_maps: "No maps defined."
@@ -53,6 +52,7 @@ championship:
         by: "by"
     individual_ranking: "Individual Ranking"
     team_ranking: "Team Ranking"
+    no_records: "No records yet."
     no_results: "No results for this phase."
     no_results_yet: "Results will be available after the playing phases."
     no_ranking: "No ranking available."
