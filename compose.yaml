@@ -19,6 +19,7 @@ services:
     restart: unless-stopped
     volumes:
       - mlc_config:/var/matchsettings
+      - mlc_thumbs:/var/www/app/public/uploads
 
   nginx:
     build:
@@ -36,6 +37,8 @@ services:
     depends_on:
       - php
     restart: unless-stopped
+    volumes:
+      - mlc_thumbs:/var/www/app/public/uploads/
 
   database:
     image: mysql:8
