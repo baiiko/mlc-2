@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Domain\Championship\Entity;
 
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Mapping\Annotation as Gedmo;
 use Gedmo\SoftDeleteable\Traits\SoftDeleteableEntity;
@@ -48,10 +46,6 @@ class Server
     #[ORM\Column(options: ['default' => true])]
     private bool $isActive = true;
 
-    /** @var Collection<int, PhaseServer> */
-    #[ORM\OneToMany(targetEntity: PhaseServer::class, mappedBy: 'server')]
-    private Collection $phaseServers;
-
     /** Virtual property for password update (not persisted) */
     private ?string $plainPassword = null;
 
@@ -59,7 +53,6 @@ class Server
     {
         $this->name = $name;
         $this->login = $login;
-        $this->phaseServers = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -187,14 +180,6 @@ class Server
     public function getActiveLabel(): string
     {
         return $this->isActive ? 'Oui' : 'Non';
-    }
-
-    /**
-     * @return Collection<int, PhaseServer>
-     */
-    public function getPhaseServers(): Collection
-    {
-        return $this->phaseServers;
     }
 
     public function __toString(): string

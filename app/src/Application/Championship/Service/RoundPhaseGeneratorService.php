@@ -40,15 +40,18 @@ class RoundPhaseGeneratorService
 
         // Semi-final 1: Saturday 21:00 (+10 days)
         $semiFinal1Start = $this->createDateTimeOffset($wednesday, 10, 21, 0);
-        $phases[] = $this->createPhase($round, PhaseType::SemiFinal, $semiFinal1Start);
+        $phases[] = $this->createPhase($round, PhaseType::SemiFinal, $semiFinal1Start, null, 1);
 
         // Semi-final 2: Sunday 16:00 (+11 days)
         $semiFinal2Start = $this->createDateTimeOffset($wednesday, 11, 16, 0);
-        $phases[] = $this->createPhase($round, PhaseType::SemiFinal, $semiFinal2Start);
+        $phases[] = $this->createPhase($round, PhaseType::SemiFinal, $semiFinal2Start, null, 2);
 
-        // Final: Sunday 21:00 (+11 days)
+        // Final 1: Sunday 21:00 (+11 days)
         $finalStart = $this->createDateTimeOffset($wednesday, 11, 21, 0);
-        $phases[] = $this->createPhase($round, PhaseType::Final, $finalStart);
+        $phases[] = $this->createPhase($round, PhaseType::Final, $finalStart, null, 1);
+
+        // Final 2: Sunday 21:00 (+11 days)
+        $phases[] = $this->createPhase($round, PhaseType::Final, $finalStart, null, 2);
 
         return $phases;
     }
@@ -89,11 +92,15 @@ class RoundPhaseGeneratorService
         Round $round,
         PhaseType $type,
         \DateTimeImmutable $startAt,
-        ?\DateTimeImmutable $endAt = null
+        ?\DateTimeImmutable $endAt = null,
+        ?int $groupNumber = null
     ): Phase {
         $phase = new Phase($round, $type, $startAt);
         if ($endAt !== null) {
             $phase->setEndAt($endAt);
+        }
+        if ($groupNumber !== null) {
+            $phase->setGroupNumber($groupNumber);
         }
 
         return $phase;

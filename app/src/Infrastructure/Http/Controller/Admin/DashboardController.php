@@ -6,7 +6,6 @@ namespace App\Infrastructure\Http\Controller\Admin;
 
 use App\Domain\Championship\Entity\Phase;
 use App\Domain\Championship\Entity\PhaseResult;
-use App\Domain\Championship\Entity\PhaseServer;
 use App\Domain\Championship\Entity\Round;
 use App\Domain\Championship\Entity\RoundMap;
 use App\Domain\Championship\Entity\RoundRegistration;
@@ -77,7 +76,6 @@ class DashboardController extends AbstractDashboardController
 
         yield MenuItem::section('admin.menu.infrastructure')->setPermission('ROLE_SERVER_ADMIN');
         yield MenuItem::linkToCrud('admin.menu.servers', 'fa fa-server', Server::class)->setPermission('ROLE_SERVER_ADMIN');
-        yield MenuItem::linkToCrud('admin.menu.phase_servers', 'fa fa-network-wired', PhaseServer::class)->setPermission('ROLE_SERVER_ADMIN');
 
         yield MenuItem::section('admin.menu.content')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkToCrud('admin.menu.rules', 'fa fa-book', Rule::class)->setPermission('ROLE_ADMIN');

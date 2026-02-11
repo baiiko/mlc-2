@@ -1,0 +1,63 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ round.name }} - {{ season.name }}{% endblock %}
+
+{% block body %}
+    <section class="max-w-[1400px] mx-auto px-10 py-16">
+        {# Header #}
+        <div class="mb-8">
+            <a href="{{ path('app_championship_season_show', {slug: season.slug}) }}" class="text-gray-mid hover:text-turquoise transition-colors mb-4 inline-block">
+                &larr; {{ season.name }}
+            </a>
+            <div class="flex items-center gap-4 flex-wrap">
+                <h1 class="font-russo text-4xl">{{ round.name }}</h1>
+                {% if round.isActive %}
+                    <span class="px-3 py-1 bg-green-500/20 text-green-400 text-sm rounded uppercase">{{ 'championship.active'|trans({}, 'championship') }}</span>
+                {% endif %}
+            </div>
+        </div>
+
+        {# Tabs #}
+        {% if round.phases is not empty or round.maps is not empty %}
+            <div class="mb-6">
+                <div class="flex flex-wrap gap-2 border-b border-metal-dark pb-4">
+                    {# Phase tabs #}
+                    {% for p in round.phases %}
+                        {% set phaseLabel = p.type.translationKey|trans({}, 'championship') %}
+                        {% if p.groupNumber %}
+                            {% set phaseLabel = phaseLabel ~ ' ' ~ p.groupNumber %}
+                        {% endif %}
+                        <a
+                            href="{{ path('app_championship_round_phase', {id: round.id, phaseId: p.id}) }}"
+                            class="px-5 py-3 rounded-t font-semibold text-sm uppercase tracking-wider transition-all {{ activeTab == 'phase-' ~ p.id ? 'bg-orange text-white shadow-[0_2px_10px_rgba(255,140,0,0.4)]' : 'bg-bg-card text-gray-light hover:text-white hover:bg-metal-dark' }}"
+                        >
+                            {{ phaseLabel }}
+                            {% if not p.isPlayable and registrations is defined %}
+                                <span class="ml-1 text-xs">({{ registrations|length }})</span>
+                            {% endif %}
+                        </a>
+                    {% endfor %}
+
+                    {# Separator #}
+                    <div class="flex-1"></div>
+
+                    {# Maps tab #}
+                    <a
+                        href="{{ path('app_championship_round_maps', {id: round.id}) }}"
+                        class="px-5 py-3 rounded-t font-semibold text-sm uppercase tracking-wider transition-all {{ activeTab == 'maps' ? 'bg-orange text-white shadow-[0_2px_10px_rgba(255,140,0,0.4)]' : 'bg-bg-card text-gray-light hover:text-white hover:bg-metal-dark' }}"
+                    >
+                        {{ 'championship.maps'|trans({}, 'championship') }}
+                        <span class="ml-1 text-xs">({{ round.maps|length }})</span>
+                    </a>
+                </div>
+            </div>
+
+            {# Content #}
+            {% block tab_content %}{% endblock %}
+        {% else %}
+            <div class="bg-bg-card rounded-lg p-8 border border-metal-dark text-center">
+                <p class="text-gray-mid">{{ 'championship.no_phases'|trans({}, 'championship') }}</p>
+            </div>
+        {% endif %}
+    </section>
+{% endblock %}

@@ -25,4 +25,10 @@ interface PlayerRepositoryInterface
     public function existsByEmail(string $email): bool;
 
     public function delete(Player $player): void;
+
+    /**
+     * @param array<string> $logins
+     * @return Player[]
+     */
+    public function findByLogins(array $logins): array;
 }

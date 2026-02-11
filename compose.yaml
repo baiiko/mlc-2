@@ -88,3 +88,4 @@ networks:
 volumes:
   db_data:
   mlc_config:
+  mlc_thumbs:

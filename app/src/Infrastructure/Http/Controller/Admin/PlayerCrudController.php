@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Http\Controller\Admin;
 
 use App\Application\Player\Service\RoleManagementServiceInterface;
+use App\Domain\Championship\Repository\MapRecordRepositoryInterface;
 use App\Domain\Player\Entity\Player;
 use App\Infrastructure\Service\TmColorParser;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
@@ -19,12 +20,14 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\EmailField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
+use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\HttpFoundation\Response;
 
 class PlayerCrudController extends AbstractCrudController
 {
     public function __construct(
         private readonly RoleManagementServiceInterface $roleManagementService,
+        private readonly MapRecordRepositoryInterface $mapRecordRepository,
     ) {
     }
 
@@ -48,8 +51,14 @@ class PlayerCrudController extends AbstractCrudController
         $canDelete = fn (Player $player): bool => !$this->roleManagementService->hasProtectedRole($player)
             && $this->canEditPlayer($player);
 
+        $deleteRecords = Action::new('deleteRecords', 'Supprimer les records', 'fa fa-trash')
+            ->linkToCrudAction('deleteRecords')
+            ->setCssClass('btn btn-warning');
+
         return $actions
             ->disable(Action::NEW)
+            ->add(Crud::PAGE_DETAIL, $deleteRecords)
+            ->add(Crud::PAGE_INDEX, $deleteRecords)
             ->update(Crud::PAGE_INDEX, Action::EDIT, function (Action $action) use ($canEdit) {
                 return $action->displayIf(fn (Player $player) => $canEdit($player));
             })
@@ -76,6 +85,24 @@ class PlayerCrudController extends AbstractCrudController
         }
 
         return parent::delete($context);
+    }
+
+    public function deleteRecords(AdminContext $context): Response
+    {
+        /** @var Player $player */
+        $player = $context->getEntity()->getInstance();
+
+        $deletedCount = $this->mapRecordRepository->deleteByPlayerLogin($player->getLogin());
+
+        $this->addFlash('success', sprintf('%d record(s) supprimé(s) pour %s.', $deletedCount, $player->getLogin()));
+
+        $adminUrlGenerator = $this->container->get(AdminUrlGenerator::class);
+        $url = $adminUrlGenerator
+            ->setController(self::class)
+            ->setAction(Crud::PAGE_INDEX)
+            ->generateUrl();
+
+        return $this->redirect($url);
     }
 
     public function updateEntity(\Doctrine\ORM\EntityManagerInterface $entityManager, $entityInstance): void

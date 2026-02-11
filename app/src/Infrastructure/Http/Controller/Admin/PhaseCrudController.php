@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace App\Infrastructure\Http\Controller\Admin;
 
 use App\Application\Championship\Service\MatchSettingsGeneratorService;
+use App\Application\Championship\Service\QualificationClosingService;
+use App\Application\Championship\Service\RoundRankingServiceInterface;
 use App\Domain\Championship\Entity\Phase;
 use App\Domain\Championship\Entity\PhaseType;
+use App\Domain\Championship\Repository\PhaseRepositoryInterface;
 use App\Domain\Championship\Repository\RoundRepositoryInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
@@ -31,6 +34,9 @@ class PhaseCrudController extends AbstractCrudController
         private readonly AdminUrlGenerator $adminUrlGenerator,
         private readonly TranslatorInterface $translator,
         private readonly RoundRepositoryInterface $roundRepository,
+        private readonly RoundRankingServiceInterface $roundRankingService,
+        private readonly PhaseRepositoryInterface $phaseRepository,
+        private readonly QualificationClosingService $qualificationClosingService,
     ) {
     }
 
@@ -57,11 +63,23 @@ class PhaseCrudController extends AbstractCrudController
             ->linkToCrudAction('generateAllMatchSettings')
             ->createAsGlobalAction();
 
+        $refreshRanking = Action::new('refreshRanking', 'Rafraîchir classement', 'fa fa-refresh')
+            ->linkToCrudAction('refreshRanking')
+            ->displayIf(fn (Phase $phase) => $phase->getType() === PhaseType::Qualification);
+
+        $closeQualification = Action::new('closeQualification', 'Clôturer', 'fa fa-lock')
+            ->linkToCrudAction('closeQualification')
+            ->displayIf(fn (Phase $phase) => $phase->getType() === PhaseType::Qualification);
+
         return $actions
             ->add(Crud::PAGE_INDEX, Action::DETAIL)
             ->add(Crud::PAGE_INDEX, $generateMatchSettings)
             ->add(Crud::PAGE_INDEX, $generateAllMatchSettings)
-            ->add(Crud::PAGE_DETAIL, $generateMatchSettings);
+            ->add(Crud::PAGE_INDEX, $refreshRanking)
+            ->add(Crud::PAGE_INDEX, $closeQualification)
+            ->add(Crud::PAGE_DETAIL, $generateMatchSettings)
+            ->add(Crud::PAGE_DETAIL, $refreshRanking)
+            ->add(Crud::PAGE_DETAIL, $closeQualification);
     }
 
     public function generateMatchSettings(AdminContext $context): Response
@@ -78,6 +96,59 @@ class PhaseCrudController extends AbstractCrudController
             $this->addFlash('danger', $this->translator->trans('admin.phase.matchsettings_error', [
                 '%error%' => $e->getMessage(),
             ]));
+        }
+
+        $url = $this->adminUrlGenerator
+            ->setController(self::class)
+            ->setAction(Action::INDEX)
+            ->generateUrl();
+
+        return $this->redirect($url);
+    }
+
+    public function refreshRanking(AdminContext $context): Response
+    {
+        /** @var Phase $phase */
+        $phase = $context->getEntity()->getInstance();
+        $round = $phase->getRound();
+
+        if ($round === null || $phase->getType() !== PhaseType::Qualification) {
+            $this->addFlash('warning', 'Cette phase n\'est pas une phase de qualification.');
+        } else {
+            $ranking = $this->roundRankingService->calculateQualificationRanking($round, $phase);
+            $phase->setRanking($ranking);
+            $phase->setRankingUpdatedAt(new \DateTimeImmutable());
+            $this->phaseRepository->save($phase);
+
+            $this->addFlash('success', 'Classement mis à jour avec ' . count($ranking) . ' joueurs.');
+        }
+
+        $url = $this->adminUrlGenerator
+            ->setController(self::class)
+            ->setAction(Action::INDEX)
+            ->generateUrl();
+
+        return $this->redirect($url);
+    }
+
+    public function closeQualification(AdminContext $context): Response
+    {
+        /** @var Phase $phase */
+        $phase = $context->getEntity()->getInstance();
+
+        if ($phase->getType() !== PhaseType::Qualification) {
+            $this->addFlash('warning', 'Cette action n\'est disponible que pour les phases de qualification.');
+        } else {
+            try {
+                $result = $this->qualificationClosingService->closeQualification($phase);
+                $details = [];
+                foreach ($result as $groupNumber => $players) {
+                    $details[] = sprintf('Demi %d : %d joueurs', $groupNumber, count($players));
+                }
+                $this->addFlash('success', 'Qualification clôturée. ' . implode(', ', $details) . '.');
+            } catch (\RuntimeException $e) {
+                $this->addFlash('danger', $e->getMessage());
+            }
         }
 
         $url = $this->adminUrlGenerator
@@ -139,6 +210,9 @@ class PhaseCrudController extends AbstractCrudController
             ])
             ->formatValue(fn ($value) => $value?->getLabel());
 
+        yield IntegerField::new('groupNumber', 'Groupe')
+            ->setHelp('Numéro du groupe (1, 2, etc.) pour les demi-finales et finales parallèles');
+
         yield DateTimeField::new('startAt', 'Début');
 
         yield DateTimeField::new('endAt', 'Fin');
@@ -158,9 +232,6 @@ class PhaseCrudController extends AbstractCrudController
         yield IntegerField::new('warmupDuration', 'Warmup (s)')
             ->setHelp('Laisser vide pour utiliser la valeur par défaut')
             ->hideOnIndex();
-
-        yield IntegerField::new('serverCount', 'Serveurs')
-            ->hideOnForm();
 
         yield DateTimeField::new('createdAt', 'Créée le')
             ->hideOnForm();

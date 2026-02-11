@@ -70,4 +70,27 @@ final readonly class DoctrinePhaseRepository implements PhaseRepositoryInterface
             ->getQuery()
             ->getResult();
     }
+
+    public function findActiveQualificationPhase(): ?Phase
+    {
+        $now = new \DateTimeImmutable();
+
+        return $this->entityManager
+            ->createQueryBuilder()
+            ->select('p')
+            ->from(Phase::class, 'p')
+            ->join('p.round', 'r')
+            ->join('r.season', 's')
+            ->where('p.type = :qualification')
+            ->andWhere('p.startAt <= :now')
+            ->andWhere('p.endAt IS NULL OR p.endAt >= :now')
+            ->andWhere('r.deletedAt IS NULL')
+            ->andWhere('p.deletedAt IS NULL')
+            ->andWhere('s.isActive = true')
+            ->setParameter('qualification', PhaseType::Qualification)
+            ->setParameter('now', $now)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }

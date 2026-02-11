@@ -30,18 +30,24 @@ final readonly class DoctrineMapRecordRepository implements MapRecordRepositoryI
             ->findBy(['mapUid' => $mapUid], ['laps' => 'ASC']);
     }
 
-    public function findByMapUidWithPlayer(string $mapUid): array
+    public function findByMapUidWithPlayer(string $mapUid, ?int $roundId = null): array
     {
         $qb = $this->entityManager->createQueryBuilder();
 
-        $results = $qb->select('r', 'p.pseudo as playerPseudo')
+        $qb->select('r', 'p.pseudo as playerPseudo')
             ->from(MapRecord::class, 'r')
             ->leftJoin(Player::class, 'p', 'WITH', 'p.login = r.playerLogin')
             ->where('r.mapUid = :mapUid')
             ->setParameter('mapUid', $mapUid)
             ->orderBy('r.laps', 'ASC')
-            ->getQuery()
-            ->getResult();
+            ->addOrderBy('r.time', 'ASC');
+
+        if ($roundId !== null) {
+            $qb->andWhere('r.roundId = :roundId')
+                ->setParameter('roundId', $roundId);
+        }
+
+        $results = $qb->getQuery()->getResult();
 
         return array_map(fn($row) => [
             'record' => $row[0],
@@ -66,6 +72,16 @@ final readonly class DoctrineMapRecordRepository implements MapRecordRepositoryI
     {
         $this->entityManager->remove($record);
         $this->entityManager->flush();
+    }
+
+    public function deleteByPlayerLogin(string $playerLogin): int
+    {
+        return $this->entityManager->createQueryBuilder()
+            ->delete(MapRecord::class, 'r')
+            ->where('r.playerLogin = :playerLogin')
+            ->setParameter('playerLogin', $playerLogin)
+            ->getQuery()
+            ->execute();
     }
 
     public function findRankingsByMapUid(string $mapUid): array
@@ -96,5 +112,117 @@ final readonly class DoctrineMapRecordRepository implements MapRecordRepositoryI
         }
 
         return $rankings;
+    }
+
+    public function findRankingsByMapUidGroupedByRound(string $mapUid): array
+    {
+        $qb = $this->entityManager->createQueryBuilder();
+
+        $results = $qb->select('r', 'p.pseudo as playerPseudo')
+            ->from(MapRecord::class, 'r')
+            ->leftJoin(Player::class, 'p', 'WITH', 'p.login = r.playerLogin')
+            ->where('r.mapUid = :mapUid')
+            ->andWhere('r.roundId IS NOT NULL')
+            ->setParameter('mapUid', $mapUid)
+            ->orderBy('r.roundId', 'ASC')
+            ->addOrderBy('r.laps', 'ASC')
+            ->addOrderBy('r.time', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        // Group by roundId -> laps
+        $rankings = [];
+        foreach ($results as $row) {
+            $record = $row[0];
+            $roundId = $record->getRoundId();
+            $laps = $record->getLaps();
+
+            if (!isset($rankings[$roundId])) {
+                $rankings[$roundId] = [];
+            }
+            if (!isset($rankings[$roundId][$laps])) {
+                $rankings[$roundId][$laps] = [];
+            }
+
+            $rankings[$roundId][$laps][] = [
+                'record' => $record,
+                'playerPseudo' => $row['playerPseudo'],
+            ];
+        }
+
+        return $rankings;
+    }
+
+    public function findBestRankingsByMapUidPerGameMode(string $mapUid): array
+    {
+        $qb = $this->entityManager->createQueryBuilder();
+
+        // Get all records for this map
+        $results = $qb->select('r', 'p.pseudo as playerPseudo')
+            ->from(MapRecord::class, 'r')
+            ->leftJoin(Player::class, 'p', 'WITH', 'p.login = r.playerLogin')
+            ->where('r.mapUid = :mapUid')
+            ->setParameter('mapUid', $mapUid)
+            ->orderBy('r.gameMode', 'ASC')
+            ->addOrderBy('r.laps', 'ASC')
+            ->addOrderBy('r.time', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        // Group by game mode -> laps, keeping only best time per player
+        $rankings = [];
+        $seenPlayers = [];
+
+        foreach ($results as $row) {
+            $record = $row[0];
+            $gameMode = $record->getGameMode()->value;
+            $laps = $record->getLaps();
+            $playerLogin = $record->getPlayerLogin();
+
+            if (!isset($rankings[$gameMode])) {
+                $rankings[$gameMode] = [];
+                $seenPlayers[$gameMode] = [];
+            }
+            if (!isset($rankings[$gameMode][$laps])) {
+                $rankings[$gameMode][$laps] = [];
+                $seenPlayers[$gameMode][$laps] = [];
+            }
+
+            // Only keep first (best) record per player per game mode per laps
+            if (!isset($seenPlayers[$gameMode][$laps][$playerLogin])) {
+                $seenPlayers[$gameMode][$laps][$playerLogin] = true;
+                $rankings[$gameMode][$laps][] = [
+                    'record' => $record,
+                    'playerPseudo' => $row['playerPseudo'],
+                ];
+            }
+        }
+
+        return $rankings;
+    }
+
+    public function findBestLapRecord(string $mapUid): ?array
+    {
+        $qb = $this->entityManager->createQueryBuilder();
+
+        $result = $qb->select('r', 'p.pseudo as playerPseudo')
+            ->from(MapRecord::class, 'r')
+            ->leftJoin(Player::class, 'p', 'WITH', 'p.login = r.playerLogin')
+            ->where('r.mapUid = :mapUid')
+            ->andWhere('r.laps = 1')
+            ->setParameter('mapUid', $mapUid)
+            ->orderBy('r.time', 'ASC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getResult();
+
+        if (empty($result)) {
+            return null;
+        }
+
+        return [
+            'record' => $result[0][0],
+            'playerPseudo' => $result[0]['playerPseudo'],
+        ];
     }
 }

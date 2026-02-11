@@ -71,4 +71,15 @@ final readonly class DoctrinePlayerRepository implements PlayerRepositoryInterfa
         $this->entityManager->remove($player);
         $this->entityManager->flush();
     }
+
+    public function findByLogins(array $logins): array
+    {
+        if (empty($logins)) {
+            return [];
+        }
+
+        return $this->entityManager
+            ->getRepository(Player::class)
+            ->findBy(['login' => $logins]);
+    }
 }

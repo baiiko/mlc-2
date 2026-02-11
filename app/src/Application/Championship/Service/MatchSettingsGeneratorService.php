@@ -69,9 +69,26 @@ class MatchSettingsGeneratorService
         // Filter maps: surprise maps are only included in Final phase
         $includeSurprise = $phase->getType() === PhaseType::Final;
         $maps = array_filter($maps, fn ($map) => $includeSurprise || !$map->isSurprise());
+        $maps = array_values($maps); // Reset keys
 
         if (empty($maps)) {
             throw new \InvalidArgumentException('Round has no maps');
+        }
+
+        // For semi-finals: generate map list based on number of qualified players
+        if ($phase->getType() === PhaseType::SemiFinal) {
+            // Count active semi-finals to divide qualifyFromSemiCount
+            $activeSemiCount = 0;
+            foreach ($round->getPhases() as $p) {
+                if ($p->getType() === PhaseType::SemiFinal) {
+                    $activeSemiCount++;
+                }
+            }
+            $coursesPerSemi = $activeSemiCount > 0
+                ? (int) ceil($round->getQualifyFromSemiCount() / $activeSemiCount)
+                : $round->getQualifyFromSemiCount();
+
+            $maps = $this->generateSemiFinalMapList($maps, $coursesPerSemi);
         }
 
         return $this->buildXml(
@@ -84,6 +101,39 @@ class MatchSettingsGeneratorService
     }
 
     /**
+     * Generate map list for semi-final based on number of qualified players
+     * First a complete round of all maps, then random maps to complete
+     *
+     * @param array<RoundMap> $availableMaps
+     * @return array<RoundMap>
+     */
+    private function generateSemiFinalMapList(array $availableMaps, int $qualifiedCount): array
+    {
+        if ($qualifiedCount <= 0 || empty($availableMaps)) {
+            return $availableMaps;
+        }
+
+        $mapCount = count($availableMaps);
+        $result = [];
+
+        // First: complete round of all maps
+        $result = $availableMaps;
+
+        // If we need more maps than available, add random maps
+        if ($qualifiedCount > $mapCount) {
+            $remaining = $qualifiedCount - $mapCount;
+            $randomMaps = $availableMaps;
+            shuffle($randomMaps);
+            $result = array_merge($result, array_slice($randomMaps, 0, $remaining));
+        } elseif ($qualifiedCount < $mapCount) {
+            // If we need fewer maps, just take the first N (or shuffle and take N)
+            $result = array_slice($availableMaps, 0, $qualifiedCount);
+        }
+
+        return $result;
+    }
+
+    /**
      * Save MatchSettings for a phase
      */
     public function saveForPhase(Phase $phase, ?string $filename = null): string
@@ -91,9 +141,10 @@ class MatchSettingsGeneratorService
         $xml = $this->generateForPhase($phase);
 
         if ($filename === null) {
+            $groupSuffix = $phase->getGroupNumber() !== null ? $phase->getGroupNumber() : '';
             $filename = match ($phase->getType()) {
-                PhaseType::SemiFinal => 'demi.xml',
-                PhaseType::Final => 'finale.xml',
+                PhaseType::SemiFinal => 'demi' . $groupSuffix . '.xml',
+                PhaseType::Final => 'finale' . $groupSuffix . '.xml',
                 default => 'default.xml',
             };
         }

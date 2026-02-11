@@ -32,44 +32,116 @@
             </div>
         </div>
 
-        {# Rankings by laps #}
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {% for laps in [1, 5, 10] %}
-                <div class="bg-bg-card rounded-lg border border-metal-dark overflow-hidden">
-                    <div class="bg-metal-dark px-4 py-3">
-                        <h2 class="font-russo text-lg text-orange">
-                            {{ ('championship.record.' ~ laps ~ '_laps')|trans({}, 'championship') }}
-                        </h2>
+        {# Best Lap Record #}
+        {% if bestLapRecord %}
+            <div class="mb-8 bg-gradient-to-r from-orange/20 to-turquoise/20 rounded-lg border border-orange/50 p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="font-russo text-lg text-orange mb-1">{{ 'championship.best_lap_record'|trans({}, 'championship') }}</h3>
+                        <p class="text-gray-light text-sm">{{ 'championship.best_lap_record_desc'|trans({}, 'championship') }}</p>
                     </div>
-
-                    <div class="p-4">
-                        {% if rankings[laps] is defined and rankings[laps] is not empty %}
-                            <table class="w-full">
-                                <thead>
-                                    <tr class="text-xs text-gray-mid uppercase border-b border-metal-dark">
-                                        <th class="text-left pb-2 w-10">#</th>
-                                        <th class="text-left pb-2">{{ 'championship.player'|trans({}, 'championship') }}</th>
-                                        <th class="text-right pb-2">{{ 'championship.time'|trans({}, 'championship') }}</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for i, data in rankings[laps] %}
-                                        <tr class="border-b border-metal-dark/50 last:border-0">
-                                            <td class="py-2 {{ i < 3 ? 'text-orange font-bold' : 'text-gray-mid' }}">{{ i + 1 }}</td>
-                                            <td class="py-2 tm-colors">
-                                                {{ (data.record.player ?? data.playerPseudo ?? data.record.playerLogin)|tm_color|raw }}
-                                            </td>
-                                            <td class="py-2 text-right font-mono text-turquoise">{{ data.record.formatTime }}</td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        {% else %}
-                            <p class="text-gray-mid text-center py-4">{{ 'championship.no_records'|trans({}, 'championship') }}</p>
-                        {% endif %}
+                    <div class="text-right">
+                        <p class="font-mono text-3xl text-turquoise font-bold">{{ bestLapRecord.record.formatTime }}</p>
+                        <p class="tm-colors text-lg">{{ (bestLapRecord.record.player ?? bestLapRecord.playerPseudo ?? bestLapRecord.record.playerLogin)|tm_color|raw }}</p>
                     </div>
                 </div>
-            {% endfor %}
-        </div>
+            </div>
+        {% endif %}
+
+        {# Rankings by Round #}
+        {% if rankingsByRound is not empty %}
+            <div class="mb-12">
+                <h2 class="font-russo text-2xl text-white mb-6">{{ 'championship.rankings_by_round'|trans({}, 'championship') }}</h2>
+                {% for roundId, rankingsByLaps in rankingsByRound %}
+                    <div class="mb-8">
+                        <h3 class="font-russo text-xl text-orange mb-4">
+                            {% if rounds[roundId] is defined %}
+                                <a href="{{ path('app_championship_round_show', {id: roundId}) }}" class="hover:text-turquoise transition-colors">
+                                    {{ rounds[roundId].name }}
+                                </a>
+                            {% else %}
+                                Manche #{{ roundId }}
+                            {% endif %}
+                        </h3>
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            {% for laps, rankings in rankingsByLaps %}
+                                <div class="bg-bg-card rounded-lg border border-metal-dark overflow-hidden">
+                                    <div class="bg-metal-dark px-4 py-3">
+                                        <h4 class="font-russo text-lg text-gray-light">
+                                            {{ 'championship.record.laps'|trans({'%count%': laps}, 'championship') }}
+                                        </h4>
+                                    </div>
+
+                                    <div class="p-4">
+                                        <div class="grid grid-cols-[auto_1fr_auto] gap-x-4 text-xs text-gray-mid uppercase border-b border-metal-dark pb-2 mb-2">
+                                            <span>#</span>
+                                            <span>{{ 'championship.player'|trans({}, 'championship') }}</span>
+                                            <span class="text-right">{{ 'championship.time'|trans({}, 'championship') }}</span>
+                                        </div>
+                                        {% for i, data in rankings %}
+                                            {% set isCurrentPlayer = player and data.record.playerLogin == player.login %}
+                                            <div class="grid grid-cols-[auto_1fr_auto] gap-x-4 py-2 border-b border-metal-dark/50 last:border-0 {{ isCurrentPlayer ? 'bg-turquoise/10 -mx-4 px-4' : '' }}">
+                                                <span class="{{ i < 3 ? 'text-orange font-bold' : 'text-gray-mid' }}">{{ i + 1 }}</span>
+                                                <span class="tm-colors truncate">{{ (data.record.player ?? data.playerPseudo ?? data.record.playerLogin)|tm_color|raw }}</span>
+                                                <span class="text-right font-mono text-turquoise">{{ data.record.formatTime }}</span>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {# Rankings by Game Mode (global best per player) #}
+        {% if rankingsByGameMode is not empty %}
+            <div>
+                <h2 class="font-russo text-2xl text-white mb-6">{{ 'championship.rankings_by_gamemode'|trans({}, 'championship') }}</h2>
+                {% for gameMode in gameModes %}
+                    {% set gameModeValue = gameMode.value %}
+                    {% if rankingsByGameMode[gameModeValue] is defined and rankingsByGameMode[gameModeValue] is not empty %}
+                        <div class="mb-8">
+                            <h3 class="font-russo text-xl text-turquoise mb-4">
+                                {{ gameMode.label }}
+                            </h3>
+                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                {% for laps, rankings in rankingsByGameMode[gameModeValue] %}
+                                    <div class="bg-bg-card rounded-lg border border-metal-dark overflow-hidden">
+                                        <div class="bg-metal-dark px-4 py-3">
+                                            <h4 class="font-russo text-lg text-gray-light">
+                                                {{ 'championship.record.laps'|trans({'%count%': laps}, 'championship') }}
+                                            </h4>
+                                        </div>
+
+                                        <div class="p-4">
+                                            <div class="grid grid-cols-[auto_1fr_auto] gap-x-4 text-xs text-gray-mid uppercase border-b border-metal-dark pb-2 mb-2">
+                                                <span>#</span>
+                                                <span>{{ 'championship.player'|trans({}, 'championship') }}</span>
+                                                <span class="text-right">{{ 'championship.time'|trans({}, 'championship') }}</span>
+                                            </div>
+                                            {% for i, data in rankings %}
+                                                {% set isCurrentPlayer = player and data.record.playerLogin == player.login %}
+                                                <div class="grid grid-cols-[auto_1fr_auto] gap-x-4 py-2 border-b border-metal-dark/50 last:border-0 {{ isCurrentPlayer ? 'bg-turquoise/10 -mx-4 px-4' : '' }}">
+                                                    <span class="{{ i < 3 ? 'text-orange font-bold' : 'text-gray-mid' }}">{{ i + 1 }}</span>
+                                                    <span class="tm-colors truncate">{{ (data.record.player ?? data.playerPseudo ?? data.record.playerLogin)|tm_color|raw }}</span>
+                                                    <span class="text-right font-mono text-turquoise">{{ data.record.formatTime }}</span>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {# No records at all #}
+        {% if rankingsByRound is empty and rankingsByGameMode is empty %}
+            <p class="text-gray-mid text-center py-8">{{ 'championship.no_records'|trans({}, 'championship') }}</p>
+        {% endif %}
     </section>
 {% endblock %}

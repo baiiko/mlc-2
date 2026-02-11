@@ -24,7 +24,7 @@ class RoundMapMatchSettingsListener
     public function onMapChange(RoundMap $map): void
     {
         $round = $map->getRound();
-        if ($round === null) {
+        if ($round === null || !$round->isActive()) {
             return;
         }
 

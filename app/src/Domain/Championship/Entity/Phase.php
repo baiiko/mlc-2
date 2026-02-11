@@ -49,15 +49,24 @@ class Phase
     #[ORM\Column(nullable: true)]
     private ?int $warmupDuration = null;
 
+    /** @var array<array{position: int, login: string, pseudo: string, points: int, bonus: int, total: int, nbMaps: int, availableSemiFinal: bool, availableFinal: bool}>|null */
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $ranking = null;
+
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $rankingUpdatedAt = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $groupNumber = null;
+
+    /** @var array<string>|null Liste des logins des joueurs de cette phase */
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $players = null;
+
     /** @var Collection<int, PhaseResult> */
     #[ORM\OneToMany(targetEntity: PhaseResult::class, mappedBy: 'phase', cascade: ['persist', 'remove'])]
     #[ORM\OrderBy(['position' => 'ASC'])]
     private Collection $results;
-
-    /** @var Collection<int, PhaseServer> */
-    #[ORM\OneToMany(targetEntity: PhaseServer::class, mappedBy: 'phase', cascade: ['persist', 'remove'])]
-    #[ORM\OrderBy(['serverNumber' => 'ASC'])]
-    private Collection $phaseServers;
 
     public function __construct(?Round $round = null, ?PhaseType $type = null, ?\DateTimeImmutable $startAt = null)
     {
@@ -65,7 +74,6 @@ class Phase
         $this->type = $type;
         $this->startAt = $startAt;
         $this->results = new ArrayCollection();
-        $this->phaseServers = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -121,26 +129,6 @@ class Phase
         return $this;
     }
 
-    public function getServerCount(): int
-    {
-        return $this->phaseServers->count();
-    }
-
-    public function getMaxPlayersPerServer(): int
-    {
-        return 32;
-    }
-
-    public function getTotalCapacity(): int
-    {
-        $total = 0;
-        foreach ($this->phaseServers as $phaseServer) {
-            $total += $phaseServer->getServer()?->getMaxPlayers() ?? $this->getMaxPlayersPerServer();
-        }
-
-        return $total;
-    }
-
     /**
      * @return Collection<int, PhaseResult>
      */
@@ -152,35 +140,6 @@ class Phase
     public function isPlayable(): bool
     {
         return $this->type?->isPlayable() ?? false;
-    }
-
-    /**
-     * @return Collection<int, PhaseServer>
-     */
-    public function getPhaseServers(): Collection
-    {
-        return $this->phaseServers;
-    }
-
-    public function addPhaseServer(PhaseServer $phaseServer): self
-    {
-        if (!$this->phaseServers->contains($phaseServer)) {
-            $this->phaseServers->add($phaseServer);
-            $phaseServer->setPhase($this);
-        }
-
-        return $this;
-    }
-
-    public function removePhaseServer(PhaseServer $phaseServer): self
-    {
-        if ($this->phaseServers->removeElement($phaseServer)) {
-            if ($phaseServer->getPhase() === $this) {
-                $phaseServer->setPhase(null);
-            }
-        }
-
-        return $this;
     }
 
     public function getLaps(): ?int
@@ -283,6 +242,86 @@ class Phase
             PhaseType::Registration => 0,
             default => 1,
         };
+    }
+
+    /**
+     * @return array<array{position: int, login: string, pseudo: string, points: int, bonus: int, total: int, nbMaps: int, availableSemiFinal: bool, availableFinal: bool}>|null
+     */
+    public function getRanking(): ?array
+    {
+        return $this->ranking;
+    }
+
+    /**
+     * @param array<array{position: int, login: string, pseudo: string, points: int, bonus: int, total: int, nbMaps: int, availableSemiFinal: bool, availableFinal: bool}>|null $ranking
+     */
+    public function setRanking(?array $ranking): self
+    {
+        $this->ranking = $ranking;
+
+        return $this;
+    }
+
+    public function getRankingUpdatedAt(): ?\DateTimeImmutable
+    {
+        return $this->rankingUpdatedAt;
+    }
+
+    public function setRankingUpdatedAt(?\DateTimeImmutable $rankingUpdatedAt): self
+    {
+        $this->rankingUpdatedAt = $rankingUpdatedAt;
+
+        return $this;
+    }
+
+    public function getGroupNumber(): ?int
+    {
+        return $this->groupNumber;
+    }
+
+    public function setGroupNumber(?int $groupNumber): self
+    {
+        $this->groupNumber = $groupNumber;
+
+        return $this;
+    }
+
+    /**
+     * @return array<string>|null
+     */
+    public function getPlayers(): ?array
+    {
+        return $this->players;
+    }
+
+    /**
+     * @param array<string>|null $players
+     */
+    public function setPlayers(?array $players): self
+    {
+        $this->players = $players;
+
+        return $this;
+    }
+
+    /**
+     * Get ranking data for a specific player.
+     *
+     * @return array{position: int, login: string, pseudo: string, points: int, bonus: int, total: int, nbMaps: int, availableSemiFinal: bool, availableFinal: bool}|null
+     */
+    public function getPlayerRanking(string $login): ?array
+    {
+        if ($this->ranking === null) {
+            return null;
+        }
+
+        foreach ($this->ranking as $entry) {
+            if ($entry['login'] === $login) {
+                return $entry;
+            }
+        }
+
+        return null;
     }
 
     public function __toString(): string

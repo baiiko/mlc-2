@@ -72,12 +72,6 @@
                 </div>
             {% endif %}
 
-            {% if phase.phaseServers|length > 0 %}
-                <div class="flex items-center gap-2.5 text-gray-light text-sm">
-                    <span>🖥️</span>
-                    <span>{{ phase.phaseServers|length }} {{ phase.phaseServers|length > 1 ? 'home.servers.servers'|trans({}, 'common') : 'home.servers.server'|trans({}, 'common') }}</span>
-                </div>
-            {% endif %}
         </div>
     </div>
 </div>

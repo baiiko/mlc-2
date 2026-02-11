@@ -46,21 +46,12 @@ class SoftDeleteCascadeListener
     {
         $uow = $em->getUnitOfWork();
 
-        // Soft delete all phases and their phase servers
+        // Soft delete all phases
         foreach ($round->getPhases() as $phase) {
             if ($phase->getDeletedAt() === null) {
                 $phase->setDeletedAt(\DateTimeImmutable::createFromInterface($deletedAt));
                 $em->persist($phase);
                 $uow->recomputeSingleEntityChangeSet($em->getClassMetadata($phase::class), $phase);
-
-                // Soft delete phase servers
-                foreach ($phase->getPhaseServers() as $phaseServer) {
-                    if ($phaseServer->getDeletedAt() === null) {
-                        $phaseServer->setDeletedAt(\DateTimeImmutable::createFromInterface($deletedAt));
-                        $em->persist($phaseServer);
-                        $uow->recomputeSingleEntityChangeSet($em->getClassMetadata($phaseServer::class), $phaseServer);
-                    }
-                }
             }
         }
 

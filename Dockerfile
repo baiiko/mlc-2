@@ -160,6 +160,12 @@ EOF
 COPY --chown=app:app ./app/ /var/www/app/
 COPY --from=node-builder --chown=app:app /app/public/build /var/www/app/public/build
 
+# Create directories with correct ownership (for Docker volume initialization)
+RUN mkdir -p /var/www/app/public/uploads/maps/thumbnails \
+    && mkdir -p /var/matchsettings \
+    && chown -R app:app /var/www/app/public/uploads \
+    && chown -R app:app /var/matchsettings
+
 USER app
 ENV APP_ENV=prod
 RUN composer install --no-dev --no-scripts --optimize-autoloader \
@@ -172,6 +178,13 @@ USER root
 RUN cat <<'EOF' > /entrypoint.sh
 #!/bin/sh
 set -e
+
+# Fix volume directories permissions (for existing volumes)
+mkdir -p /var/www/app/public/uploads/maps/thumbnails
+mkdir -p /var/matchsettings
+chown -R app:app /var/www/app/public/uploads
+chown -R app:app /var/matchsettings
+
 if [ -n "$DATABASE_URL" ]; then
     echo "Running database migrations..."
     php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration || true

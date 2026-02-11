@@ -1,0 +1,241 @@
+{% extends 'championship/round/_layout.html.twig' %}
+
+{% set activeTab = 'phase-' ~ phase.id %}
+
+{% block tab_content %}
+    {% if not phase.isPlayable %}
+        {# Registration phase #}
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-1">
+                <div class="bg-bg-card rounded-lg p-6 border border-metal-dark">
+                    <h2 class="font-russo text-xl text-orange mb-4">{{ 'championship.registration'|trans({}, 'championship') }}</h2>
+
+                    <div class="mb-4">
+                        <div class="text-sm text-gray-light mb-1">{{ 'championship.registration_period'|trans({}, 'championship') }}</div>
+                        <div class="text-white">
+                            {{ phase.startAt|date('d/m/Y H:i') }} - {{ phase.endAt|date('d/m/Y H:i') }}
+                        </div>
+                    </div>
+
+                    {% if round.isRegistrationOpen %}
+                        {% if player %}
+                            {% if playerRegistration %}
+                                <div class="p-4 bg-green-500/20 border border-green-500 rounded text-green-400 text-center mb-4">
+                                    {{ 'championship.already_registered'|trans({}, 'championship') }}
+                                </div>
+                                <form method="post" action="{{ path('app_championship_update_availability', {id: round.id}) }}">
+                                    <div class="mb-4">
+                                        <p class="text-sm text-gray-light mb-3">{{ 'championship.update_availability'|trans({}, 'championship') }}</p>
+                                        <div class="space-y-2">
+                                            <label class="flex items-center gap-2 cursor-pointer">
+                                                <input type="checkbox" name="availableSemiFinal1" value="1" {{ playerRegistration.availableSemiFinal1 ? 'checked' : '' }} class="w-4 h-4 accent-orange">
+                                                <span class="text-sm">{{ 'championship.available_semi_final_1'|trans({}, 'championship') }}</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 cursor-pointer">
+                                                <input type="checkbox" name="availableSemiFinal2" value="1" {{ playerRegistration.availableSemiFinal2 ? 'checked' : '' }} class="w-4 h-4 accent-orange">
+                                                <span class="text-sm">{{ 'championship.available_semi_final_2'|trans({}, 'championship') }}</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 cursor-pointer">
+                                                <input type="checkbox" name="availableFinal" value="1" {{ playerRegistration.availableFinal ? 'checked' : '' }} class="w-4 h-4 accent-orange">
+                                                <span class="text-sm">{{ 'championship.available_final'|trans({}, 'championship') }}</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="w-full inline-flex items-center justify-center px-6 py-3 font-semibold text-sm uppercase tracking-wider rounded transition-all duration-300 bg-transparent text-white border-2 border-metal-light hover:border-turquoise hover:text-turquoise">
+                                        {{ 'championship.save_availability'|trans({}, 'championship') }}
+                                    </button>
+                                </form>
+                            {% else %}
+                                <form method="post" action="{{ path('app_championship_register', {id: round.id}) }}">
+                                    <div class="mb-4">
+                                        <p class="text-sm text-gray-light mb-3">{{ 'championship.availability'|trans({}, 'championship') }}</p>
+                                        <div class="space-y-2">
+                                            <label class="flex items-center gap-2 cursor-pointer">
+                                                <input type="checkbox" name="availableSemiFinal1" value="1" checked class="w-4 h-4 accent-orange">
+                                                <span class="text-sm">{{ 'championship.available_semi_final_1'|trans({}, 'championship') }}</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 cursor-pointer">
+                                                <input type="checkbox" name="availableSemiFinal2" value="1" checked class="w-4 h-4 accent-orange">
+                                                <span class="text-sm">{{ 'championship.available_semi_final_2'|trans({}, 'championship') }}</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 cursor-pointer">
+                                                <input type="checkbox" name="availableFinal" value="1" checked class="w-4 h-4 accent-orange">
+                                                <span class="text-sm">{{ 'championship.available_final'|trans({}, 'championship') }}</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="w-full inline-flex items-center justify-center px-6 py-3 font-semibold text-sm uppercase tracking-wider rounded transition-all duration-300 bg-gradient-to-br from-orange to-orange-dark text-white shadow-[0_4px_15px_rgba(255,140,0,0.4)] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(255,140,0,0.5)]">
+                                        {{ 'championship.register_now'|trans({}, 'championship') }}
+                                    </button>
+                                </form>
+                            {% endif %}
+                        {% else %}
+                            <a href="{{ path('app_login') }}" class="w-full inline-flex items-center justify-center px-6 py-3 font-semibold text-sm uppercase tracking-wider rounded transition-all duration-300 bg-transparent text-white border-2 border-metal-light hover:border-turquoise hover:text-turquoise">
+                                {{ 'championship.login_to_register'|trans({}, 'championship') }}
+                            </a>
+                        {% endif %}
+                    {% else %}
+                        <div class="p-4 bg-metal-dark rounded text-gray-mid text-center">
+                            {{ 'championship.registration_closed'|trans({}, 'championship') }}
+                        </div>
+                    {% endif %}
+
+                    <div class="mt-4 text-center text-sm text-gray-light">
+                        {{ registrations|length }} {{ 'championship.registered_players'|trans({}, 'championship') }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-2">
+                <div class="bg-bg-card rounded-lg p-6 border border-metal-dark">
+                    <h2 class="font-russo text-xl text-orange mb-4">{{ 'championship.registered_list'|trans({}, 'championship') }}</h2>
+
+                    {% if registrations is empty %}
+                        <p class="text-gray-mid">{{ 'championship.no_registrations'|trans({}, 'championship') }}</p>
+                    {% else %}
+                        {# Legend #}
+                        <div class="flex flex-wrap gap-4 mb-4 text-xs text-gray-light">
+                            <span class="flex items-center gap-1"><span class="w-3 h-3 bg-green-500 rounded-sm"></span> {{ 'championship.availability_full'|trans({}, 'championship') }}</span>
+                            <span class="flex items-center gap-1"><span class="w-3 h-3 bg-orange rounded-sm"></span> {{ 'championship.availability_partial'|trans({}, 'championship') }}</span>
+                            <span class="flex items-center gap-1"><span class="w-3 h-3 bg-red-500 rounded-sm"></span> {{ 'championship.availability_none'|trans({}, 'championship') }}</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                            {% for registration in registrations %}
+                                {% set isFullyAvailable = registration.availableSemiFinal1 and registration.availableSemiFinal2 and registration.availableFinal %}
+                                {% set isForfait = not registration.availableSemiFinal1 and not registration.availableSemiFinal2 and not registration.availableFinal %}
+                                {% set borderColor = isForfait ? 'border-l-red-500' : (isFullyAvailable ? 'border-l-green-500' : 'border-l-orange') %}
+
+                                <div class="flex items-center justify-between p-3 bg-bg-dark rounded border-l-4 {{ borderColor }}">
+                                    <div class="flex items-center gap-2">
+                                        <span class="tm-colors">{{ registration.player.pseudo|tm_color|raw }}</span>
+                                        {% if not isForfait and not isFullyAvailable %}
+                                            <span class="text-[10px] text-gray-mid">
+                                                {% if registration.availableSemiFinal1 %}D1{% endif %}
+                                                {% if registration.availableSemiFinal2 %}D2{% endif %}
+                                                {% if registration.availableFinal %}F{% endif %}
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                    {% if registration.team %}
+                                        <span class="text-xs text-gray-light tm-colors">{{ registration.team.tag|tm_color|raw }}</span>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    {% else %}
+        {# Playable phase (Qualification, Semi, Final) #}
+        <div class="bg-bg-card rounded-lg p-6 border border-metal-dark">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="font-russo text-xl text-orange">{{ phase.type.label }}{% if phase.groupNumber %} {{ phase.groupNumber }}{% endif %}</h2>
+                <div class="text-sm text-gray-light">
+                    {{ phase.startAt|date('d/m/Y H:i') }}
+                    {% if phase.endAt %} - {{ phase.endAt|date('d/m/Y H:i') }}{% endif %}
+                </div>
+            </div>
+
+            {# Players list for semi-final and final #}
+            {% if phasePlayers is defined and phasePlayers is not empty %}
+                <div class="mb-8">
+                    <h3 class="text-lg font-semibold mb-4">{{ 'championship.participants'|trans({}, 'championship') }} ({{ phasePlayers|length }})</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                        {% for p in phasePlayers %}
+                            {% set isCurrentPlayer = player and p.login == player.login %}
+                            <div class="flex items-center gap-2 p-3 bg-bg-dark rounded border-l-4 border-l-turquoise {{ isCurrentPlayer ? 'ring-1 ring-inset ring-turquoise' : '' }}">
+                                <a href="{{ path('app_championship_round_player', {id: round.id, login: p.login}) }}" class="tm-colors truncate hover:underline">{{ p.pseudo|tm_color|raw }}</a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+            {# Qualification ranking #}
+            {% if qualificationRanking is not empty %}
+                {% set qualifyToFinal = round.qualifyToFinalCount %}
+                {% set qualifyToSemi = round.qualifyToSemiCount %}
+                <div class="mb-8">
+                    <h3 class="text-lg font-semibold mb-4">{{ 'championship.qualification_ranking'|trans({}, 'championship') }}</h3>
+
+                    {# Legend #}
+                    {% if qualifyToFinal > 0 or qualifyToSemi > 0 %}
+                        <div class="flex flex-wrap gap-4 mb-4 text-xs text-gray-light">
+                            {% if qualifyToFinal > 0 %}
+                                <span class="flex items-center gap-1"><span class="w-3 h-3 bg-orange/30 rounded-sm"></span> {{ 'championship.qualified_final'|trans({}, 'championship') }}</span>
+                            {% endif %}
+                            {% if qualifyToSemi > 0 %}
+                                <span class="flex items-center gap-1"><span class="w-3 h-3 bg-turquoise/30 rounded-sm"></span> {{ 'championship.qualified_semi'|trans({}, 'championship') }}</span>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+
+                    <div class="grid grid-cols-[3rem_1fr_3rem_3rem_3rem_3rem] gap-x-2 text-xs text-gray-mid uppercase border-b border-metal-dark pb-2 mb-2">
+                        <span>#</span>
+                        <span>{{ 'championship.player'|trans({}, 'championship') }}</span>
+                        <span class="text-center">{{ 'championship.maps'|trans({}, 'championship') }}</span>
+                        <span class="text-center">{{ 'championship.points'|trans({}, 'championship') }}</span>
+                        <span class="text-center">{{ 'championship.bonus'|trans({}, 'championship') }}</span>
+                        <span class="text-center">{{ 'championship.total'|trans({}, 'championship') }}</span>
+                    </div>
+                    {% set finalSlotsUsed = 0 %}
+                    {% set semiSlotsUsed = 0 %}
+                    {% for entry in qualificationRanking %}
+                        {% set isCurrentPlayer = player and entry.login == player.login %}
+
+                        {# Check qualification based on availability #}
+                        {% set isQualifiedFinal = false %}
+                        {% set isQualifiedSemi = false %}
+                        {% set isForfait = false %}
+
+                        {# Check if player can take a final slot #}
+                        {% if finalSlotsUsed < qualifyToFinal and entry.availableFinal %}
+                            {% set isQualifiedFinal = true %}
+                            {% set finalSlotsUsed = finalSlotsUsed + 1 %}
+                        {% elseif semiSlotsUsed < qualifyToSemi and entry.availableSemiFinal and entry.availableFinal %}
+                            {# Semi slot: must be available for both semi AND final #}
+                            {% set isQualifiedSemi = true %}
+                            {% set semiSlotsUsed = semiSlotsUsed + 1 %}
+                        {% else %}
+                            {# Forfait: not available for final, OR in semi position but can't play semi #}
+                            {% set isForfait = true %}
+                        {% endif %}
+                        {% set rowBg = isQualifiedFinal ? 'bg-orange/20' : (isQualifiedSemi ? 'bg-turquoise/20' : '') %}
+                        {% set rowBg = isCurrentPlayer ? rowBg ~ ' ring-1 ring-inset ring-turquoise' : rowBg %}
+                        <div class="grid grid-cols-[3rem_1fr_3rem_3rem_3rem_3rem] gap-x-2 py-2 border-b border-metal-dark/50 last:border-0 {{ rowBg }}">
+                            <span class="pl-2 {{ isForfait ? 'line-through text-gray-mid' : (entry.position <= 3 ? 'text-orange font-bold' : 'text-gray-mid') }}">{{ entry.position }}</span>
+                            <a href="{{ path('app_championship_round_player', {id: round.id, login: entry.login}) }}" class="tm-colors truncate hover:underline {{ isForfait ? 'line-through opacity-50' : '' }}">{{ entry.pseudo|tm_color|raw }}</a>
+                            <span class="text-center {{ isForfait ? 'line-through text-gray-mid' : 'text-gray-light' }}">{{ entry.nbMaps }}</span>
+                            <span class="text-center {{ isForfait ? 'line-through text-gray-mid' : 'text-gray-light' }}">{{ entry.points }}</span>
+                            <span class="text-center {{ isForfait ? 'line-through text-gray-mid' : 'text-turquoise' }}">{{ entry.bonus > 0 ? '+' ~ entry.bonus : '-' }}</span>
+                            <span class="text-center font-mono {{ isForfait ? 'line-through text-gray-mid' : 'text-white font-bold' }}">{{ entry.total }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% elseif phaseRanking %}
+                {% if phaseRanking.individual is not empty %}
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold mb-4">{{ 'championship.individual_ranking'|trans({}, 'championship') }}</h3>
+                        {% include 'championship/_ranking_individual.html.twig' with {ranking: phaseRanking.individual} %}
+                    </div>
+                {% endif %}
+
+                {% if phaseRanking.team is not empty %}
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4">{{ 'championship.team_ranking'|trans({}, 'championship') }}</h3>
+                        {% include 'championship/_ranking_team.html.twig' with {ranking: phaseRanking.team} %}
+                    </div>
+                {% endif %}
+
+                {% if phaseRanking.individual is empty and phaseRanking.team is empty %}
+                    <p class="text-gray-mid text-center py-8">{{ 'championship.no_results'|trans({}, 'championship') }}</p>
+                {% endif %}
+            {% else %}
+                <p class="text-gray-mid text-center py-8">{{ 'championship.no_results_yet'|trans({}, 'championship') }}</p>
+            {% endif %}
+        </div>
+    {% endif %}
+{% endblock %}

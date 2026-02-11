@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Domain\Championship\Entity;
 
+use App\Domain\Championship\Enum\GameMode;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Mapping\Annotation as Gedmo;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'map_record')]
-#[ORM\UniqueConstraint(name: 'unique_map_record', columns: ['map_uid', 'player_login', 'laps'])]
+#[ORM\UniqueConstraint(name: 'unique_map_record', columns: ['map_uid', 'player_login', 'laps', 'game_mode', 'round_id'])]
 class MapRecord
 {
     use TimestampableEntity;
@@ -39,12 +40,19 @@ class MapRecord
     #[ORM\Column(type: 'json', nullable: true)]
     private ?array $checkpoints = null;
 
-    public function __construct(string $mapUid = '', string $playerLogin = '', int $laps = 1, int $time = 0)
+    #[ORM\Column(enumType: GameMode::class)]
+    private GameMode $gameMode;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $roundId = null;
+
+    public function __construct(string $mapUid = '', string $playerLogin = '', int $laps = 1, int $time = 0, GameMode $gameMode = GameMode::Laps)
     {
         $this->mapUid = $mapUid;
         $this->playerLogin = $playerLogin;
         $this->laps = $laps;
         $this->time = $time;
+        $this->gameMode = $gameMode;
     }
 
     public function getId(): ?int
@@ -130,6 +138,30 @@ class MapRecord
         return $this;
     }
 
+    public function getGameMode(): GameMode
+    {
+        return $this->gameMode;
+    }
+
+    public function setGameMode(GameMode $gameMode): self
+    {
+        $this->gameMode = $gameMode;
+
+        return $this;
+    }
+
+    public function getRoundId(): ?int
+    {
+        return $this->roundId;
+    }
+
+    public function setRoundId(?int $roundId): self
+    {
+        $this->roundId = $roundId;
+
+        return $this;
+    }
+
     public function formatTime(): ?string
     {
         if ($this->time <= 0) {
@@ -138,13 +170,13 @@ class MapRecord
 
         $minutes = (int) floor($this->time / 60000);
         $seconds = (int) floor(($this->time % 60000) / 1000);
-        $ms = $this->time % 1000;
+        $centiseconds = (int) floor(($this->time % 1000) / 10);
 
         if ($minutes > 0) {
-            return sprintf('%d:%02d.%03d', $minutes, $seconds, $ms);
+            return sprintf('%d:%02d.%02d', $minutes, $seconds, $centiseconds);
         }
 
-        return sprintf('%d.%03d', $seconds, $ms);
+        return sprintf('%d.%02d', $seconds, $centiseconds);
     }
 
     public function getLapsLabel(): string

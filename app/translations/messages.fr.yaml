@@ -24,7 +24,6 @@ admin.menu.registrations: Inscriptions
 admin.menu.results: Résultats
 admin.menu.infrastructure: Infrastructure
 admin.menu.servers: Serveurs
-admin.menu.phase_servers: Serveurs de phases
 admin.menu.content: Contenu
 admin.menu.rules: Règlements
 admin.menu.back_to_site: Retour au site

@@ -27,4 +27,9 @@ interface PhaseRepositoryInterface
      * @return Phase[]
      */
     public function findUpcomingPlayable(int $limit = 6): array;
+
+    /**
+     * Find the active qualification phase (currently running).
+     */
+    public function findActiveQualificationPhase(): ?Phase;
 }
