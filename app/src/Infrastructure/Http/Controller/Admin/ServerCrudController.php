@@ -89,6 +89,11 @@ class ServerCrudController extends AbstractCrudController
             ->onlyOnForms()
             ->setHelp('admin.server.password_help');
 
+        yield TextField::new('relayLogin', 'admin.server.relay_login')
+            ->setHelp('admin.server.relay_login_help')
+            ->setRequired(false)
+            ->hideOnIndex();
+
         yield TextField::new('ip', 'admin.server.ip');
 
         yield IntegerField::new('port', 'admin.server.port');

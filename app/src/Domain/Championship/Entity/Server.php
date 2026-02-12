@@ -40,6 +40,9 @@ class Server
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $password = null;
 
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $relayLogin = null;
+
     #[ORM\Column(options: ['default' => 32])]
     private int $maxPlayers = 32;
 
@@ -140,6 +143,18 @@ class Server
     public function setPlainPassword(?string $plainPassword): self
     {
         $this->plainPassword = $plainPassword;
+
+        return $this;
+    }
+
+    public function getRelayLogin(): ?string
+    {
+        return $this->relayLogin;
+    }
+
+    public function setRelayLogin(?string $relayLogin): self
+    {
+        $this->relayLogin = $relayLogin;
 
         return $this;
     }

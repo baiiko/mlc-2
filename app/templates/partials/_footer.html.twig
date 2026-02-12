@@ -8,14 +8,13 @@
                 <span class="text-turquoise">C</span>
             </div>
             <p class="text-gray-light text-sm leading-relaxed">
-                ModLap Championship est une compétition TrackMania communautaire
-                créée par des passionnés, pour des passionnés. Rejoignez-nous !
+                {{ 'footer.description'|trans({}, 'common') }}
             </p>
         </div>
 
         {# Discord #}
         <div class="flex flex-col items-center md:items-end gap-4">
-            <h4 class="font-russo text-base text-orange">Rejoignez-nous</h4>
+            <h4 class="font-russo text-base text-orange">{{ 'footer.join_us'|trans({}, 'common') }}</h4>
             <a href="{{ discord_url }}"
                target="_blank"
                rel="noopener noreferrer"
@@ -30,7 +29,7 @@
 
     {# Copyright #}
     <div class="border-t border-metal-mid py-6 text-center text-gray-mid text-sm">
-        &copy; {{ "now"|date("Y") }} MLC - ModLap Championship. Tous droits réservés. |
-        TrackMania est une marque de Ubisoft Nadeo.
+        &copy; {{ "now"|date("Y") }} MLC - ModLap Championship. {{ 'footer.rights'|trans({}, 'common') }} |
+        {{ 'footer.trademark'|trans({}, 'common') }}
     </div>
 </footer>

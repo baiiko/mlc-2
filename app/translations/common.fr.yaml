@@ -15,6 +15,7 @@ footer:
     description: "ModLap Championship est une compétition TrackMania communautaire créée par des passionnés, pour des passionnés. Rejoignez-nous !"
     navigation: "Navigation"
     community: "Communauté"
+    join_us: "Rejoignez-nous"
     follow_us: "Nous suivre"
     rights: "Tous droits réservés."
     trademark: "TrackMania est une marque de Ubisoft Nadeo."
@@ -103,6 +104,8 @@ server:
     current_map: "Map en cours"
     players: "Joueurs"
     join: "Rejoindre"
+    favorite: "Ajouter aux favoris"
+    relay: "Rejoindre le relay"
 
 rules:
     title: "Règlement"

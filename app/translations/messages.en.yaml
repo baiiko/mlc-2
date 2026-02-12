@@ -62,6 +62,7 @@ admin.rule.plural: Rules
 admin.rule.version: Version
 admin.rule.date: Date
 admin.rule.content: Content
+admin.rule.content_help: "Paste HTML rules content. Tags h1, h2, h3, hr, blockquote, ul, ol are supported."
 
 # Server admin
 admin.server.singular: Server
@@ -73,6 +74,8 @@ admin.server.admin_login: Admin login
 admin.server.admin_login_help: Admin account login for XML-RPC connection
 admin.server.password: Admin password
 admin.server.password_help: Admin account XML-RPC password. Leave empty to keep current password.
+admin.server.relay_login: Relay login
+admin.server.relay_login_help: TrackMania relay server login (optional)
 admin.server.ip: IP Address
 admin.server.port: Port
 admin.server.max_players: Max players

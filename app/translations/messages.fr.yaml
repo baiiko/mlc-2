@@ -62,6 +62,7 @@ admin.rule.plural: Règlements
 admin.rule.version: Version
 admin.rule.date: Date
 admin.rule.content: Contenu
+admin.rule.content_help: "Coller le HTML du règlement. Les balises h1, h2, h3, hr, blockquote, ul, ol sont supportées."
 
 # Server admin
 admin.server.singular: Serveur
@@ -73,6 +74,8 @@ admin.server.admin_login: Login admin
 admin.server.admin_login_help: Login du compte admin pour la connexion XML-RPC
 admin.server.password: Mot de passe admin
 admin.server.password_help: Mot de passe du compte admin XML-RPC. Laisser vide pour conserver le mot de passe actuel.
+admin.server.relay_login: Login relay
+admin.server.relay_login_help: Login TrackMania du serveur relay (optionnel)
 admin.server.ip: Adresse IP
 admin.server.port: Port
 admin.server.max_players: Joueurs max
