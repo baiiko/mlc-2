@@ -49,7 +49,7 @@ services:
       - "traefik.http.routers.mlc-new-secure.entrypoints=https"
       - "traefik.http.routers.mlc-new-secure.rule=Host(`mlc-new.tmnf.fr`) || Host(`www.mlc-new.tmnf.fr`)"
       - "traefik.http.routers.mlc-new-secure.tls=true"
-      - "traefik.http.routers.mlc-secure.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mlc-new-secure.tls.certresolver=letsencrypt"
       # Middleware
       - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
       # Logging
