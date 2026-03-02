@@ -8,6 +8,7 @@ use App\Application\Player\Service\RoleManagementServiceInterface;
 use App\Domain\Championship\Repository\MapRecordRepositoryInterface;
 use App\Domain\Player\Entity\Player;
 use App\Infrastructure\Service\TmColorParser;
+use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
@@ -59,17 +60,17 @@ class PlayerCrudController extends AbstractCrudController
             ->disable(Action::NEW)
             ->add(Crud::PAGE_DETAIL, $deleteRecords)
             ->add(Crud::PAGE_INDEX, $deleteRecords)
-            ->update(Crud::PAGE_INDEX, Action::EDIT, function (Action $action) use ($canEdit) {
-                return $action->displayIf(fn (Player $player) => $canEdit($player));
+            ->update(Crud::PAGE_INDEX, Action::EDIT, function (Action $action) use ($canEdit): Action {
+                return $action->displayIf(fn (Player $player): bool => $canEdit($player));
             })
-            ->update(Crud::PAGE_INDEX, Action::DELETE, function (Action $action) use ($canDelete) {
-                return $action->displayIf(fn (Player $player) => $canDelete($player));
+            ->update(Crud::PAGE_INDEX, Action::DELETE, function (Action $action) use ($canDelete): Action {
+                return $action->displayIf(fn (Player $player): bool => $canDelete($player));
             })
-            ->update(Crud::PAGE_DETAIL, Action::EDIT, function (Action $action) use ($canEdit) {
-                return $action->displayIf(fn (Player $player) => $canEdit($player));
+            ->update(Crud::PAGE_DETAIL, Action::EDIT, function (Action $action) use ($canEdit): Action {
+                return $action->displayIf(fn (Player $player): bool => $canEdit($player));
             })
-            ->update(Crud::PAGE_DETAIL, Action::DELETE, function (Action $action) use ($canDelete) {
-                return $action->displayIf(fn (Player $player) => $canDelete($player));
+            ->update(Crud::PAGE_DETAIL, Action::DELETE, function (Action $action) use ($canDelete): Action {
+                return $action->displayIf(fn (Player $player): bool => $canDelete($player));
             });
     }
 
@@ -94,7 +95,7 @@ class PlayerCrudController extends AbstractCrudController
 
         $deletedCount = $this->mapRecordRepository->deleteByPlayerLogin($player->getLogin());
 
-        $this->addFlash('success', sprintf('%d record(s) supprimé(s) pour %s.', $deletedCount, $player->getLogin()));
+        $this->addFlash('success', \sprintf('%d record(s) supprimé(s) pour %s.', $deletedCount, $player->getLogin()));
 
         $adminUrlGenerator = $this->container->get(AdminUrlGenerator::class);
         $url = $adminUrlGenerator
@@ -105,7 +106,7 @@ class PlayerCrudController extends AbstractCrudController
         return $this->redirect($url);
     }
 
-    public function updateEntity(\Doctrine\ORM\EntityManagerInterface $entityManager, $entityInstance): void
+    public function updateEntity(EntityManagerInterface $entityManager, $entityInstance): void
     {
         if ($entityInstance instanceof Player && !$this->canEditPlayer($entityInstance)) {
             $this->addFlash('danger', 'Vous ne pouvez pas modifier cet utilisateur.');
@@ -126,7 +127,7 @@ class PlayerCrudController extends AbstractCrudController
             ->setHelp('Le login ne peut pas être modifié');
 
         yield TextField::new('pseudo')
-            ->formatValue(fn ($value) => '<span class="tm-pseudo">' . TmColorParser::toHtml($value) . '</span>')
+            ->formatValue(fn (string $value): string => '<span class="tm-pseudo">' . TmColorParser::toHtml($value) . '</span>')
             ->renderAsHtml();
 
         yield EmailField::new('email');
@@ -160,6 +161,7 @@ class PlayerCrudController extends AbstractCrudController
     private function canEditPlayer(Player $player): bool
     {
         $currentUser = $this->getUser();
+
         if (!$currentUser instanceof Player) {
             return false;
         }
@@ -170,6 +172,7 @@ class PlayerCrudController extends AbstractCrudController
     private function getAssignableRoles(): array
     {
         $currentUser = $this->getUser();
+
         if (!$currentUser instanceof Player) {
             return [];
         }

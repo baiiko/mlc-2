@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Http\Controller\Admin;
 
 use App\Domain\Championship\Entity\RoundRegistration;
+use App\Domain\Team\Entity\Team;
 use App\Infrastructure\Service\TmColorParser;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
@@ -50,7 +51,7 @@ class RoundRegistrationCrudController extends AbstractCrudController
 
         yield TextField::new('playerPseudo', 'Joueur')
             ->hideOnForm()
-            ->formatValue(fn($value, RoundRegistration $entity) => '<span class="tm-pseudo">' . TmColorParser::toHtml($entity->getPlayer()->getPseudo()) . '</span>')
+            ->formatValue(fn ($value, RoundRegistration $entity): string => '<span class="tm-pseudo">' . TmColorParser::toHtml($entity->getPlayer()->getPseudo()) . '</span>')
             ->renderAsHtml();
 
         yield AssociationField::new('player', 'Joueur')
@@ -59,7 +60,7 @@ class RoundRegistrationCrudController extends AbstractCrudController
 
         yield TextField::new('teamTag', 'Équipe')
             ->hideOnForm()
-            ->formatValue(fn($value, RoundRegistration $entity) => $entity->getTeam() ? '<span class="tm-pseudo">' . TmColorParser::toHtml($entity->getTeam()->getTag()) . '</span>' : '-')
+            ->formatValue(fn ($value, RoundRegistration $entity): string => $entity->getTeam() instanceof Team ? '<span class="tm-pseudo">' . TmColorParser::toHtml($entity->getTeam()->getTag()) . '</span>' : '-')
             ->renderAsHtml();
 
         yield AssociationField::new('team', 'Équipe')

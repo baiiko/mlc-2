@@ -108,6 +108,10 @@ services:
     App\Domain\Content\Repository\RuleRepositoryInterface:
         class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrineRuleRepository
 
+    # Interface bindings - Communication
+    App\Domain\Communication\Repository\NewsletterRepositoryInterface:
+        class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrineNewsletterRepository
+
     App\Application\Championship\Service\RegisterToRoundServiceInterface:
         class: App\Application\Championship\Service\RegisterToRoundService
 

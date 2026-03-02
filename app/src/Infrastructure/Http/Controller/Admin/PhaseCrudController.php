@@ -9,6 +9,7 @@ use App\Application\Championship\Service\QualificationClosingService;
 use App\Application\Championship\Service\RoundRankingServiceInterface;
 use App\Domain\Championship\Entity\Phase;
 use App\Domain\Championship\Entity\PhaseType;
+use App\Domain\Championship\Entity\Round;
 use App\Domain\Championship\Repository\PhaseRepositoryInterface;
 use App\Domain\Championship\Repository\RoundRepositoryInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
@@ -57,7 +58,7 @@ class PhaseCrudController extends AbstractCrudController
     {
         $generateMatchSettings = Action::new('generateMatchSettings', 'Générer MatchSettings', 'fa fa-file-code')
             ->linkToCrudAction('generateMatchSettings')
-            ->displayIf(fn (Phase $phase) => $phase->getType()?->isPlayable() ?? false);
+            ->displayIf(fn (Phase $phase): bool => $phase->getType()?->isPlayable() ?? false);
 
         $generateAllMatchSettings = Action::new('generateAllMatchSettings', 'Générer tous les MatchSettings', 'fa fa-files-o')
             ->linkToCrudAction('generateAllMatchSettings')
@@ -65,11 +66,11 @@ class PhaseCrudController extends AbstractCrudController
 
         $refreshRanking = Action::new('refreshRanking', 'Rafraîchir classement', 'fa fa-refresh')
             ->linkToCrudAction('refreshRanking')
-            ->displayIf(fn (Phase $phase) => $phase->getType() === PhaseType::Qualification);
+            ->displayIf(fn (Phase $phase): bool => $phase->getType() === PhaseType::Qualification);
 
         $closeQualification = Action::new('closeQualification', 'Clôturer', 'fa fa-lock')
             ->linkToCrudAction('closeQualification')
-            ->displayIf(fn (Phase $phase) => $phase->getType() === PhaseType::Qualification);
+            ->displayIf(fn (Phase $phase): bool => $phase->getType() === PhaseType::Qualification);
 
         return $actions
             ->add(Crud::PAGE_INDEX, Action::DETAIL)
@@ -113,14 +114,14 @@ class PhaseCrudController extends AbstractCrudController
         $round = $phase->getRound();
 
         if ($round === null || $phase->getType() !== PhaseType::Qualification) {
-            $this->addFlash('warning', 'Cette phase n\'est pas une phase de qualification.');
+            $this->addFlash('warning', "Cette phase n'est pas une phase de qualification.");
         } else {
             $ranking = $this->roundRankingService->calculateQualificationRanking($round, $phase);
             $phase->setRanking($ranking);
             $phase->setRankingUpdatedAt(new \DateTimeImmutable());
             $this->phaseRepository->save($phase);
 
-            $this->addFlash('success', 'Classement mis à jour avec ' . count($ranking) . ' joueurs.');
+            $this->addFlash('success', 'Classement mis à jour avec ' . \count($ranking) . ' joueurs.');
         }
 
         $url = $this->adminUrlGenerator
@@ -137,13 +138,14 @@ class PhaseCrudController extends AbstractCrudController
         $phase = $context->getEntity()->getInstance();
 
         if ($phase->getType() !== PhaseType::Qualification) {
-            $this->addFlash('warning', 'Cette action n\'est disponible que pour les phases de qualification.');
+            $this->addFlash('warning', "Cette action n'est disponible que pour les phases de qualification.");
         } else {
             try {
                 $result = $this->qualificationClosingService->closeQualification($phase);
                 $details = [];
+
                 foreach ($result as $groupNumber => $players) {
-                    $details[] = sprintf('Demi %d : %d joueurs', $groupNumber, count($players));
+                    $details[] = \sprintf('Demi %d : %d joueurs', $groupNumber, \count($players));
                 }
                 $this->addFlash('success', 'Qualification clôturée. ' . implode(', ', $details) . '.');
             } catch (\RuntimeException $e) {
@@ -163,7 +165,7 @@ class PhaseCrudController extends AbstractCrudController
     {
         $round = $this->roundRepository->findCurrentOrUpcoming();
 
-        if (!$round) {
+        if (!$round instanceof Round) {
             $this->addFlash('warning', $this->translator->trans('admin.round.no_active_round'));
 
             $url = $this->adminUrlGenerator

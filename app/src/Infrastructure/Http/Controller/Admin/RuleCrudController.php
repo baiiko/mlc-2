@@ -58,11 +58,13 @@ class RuleCrudController extends AbstractCrudController
         if ($pageName === Crud::PAGE_DETAIL) {
             yield TextareaField::new('content', 'admin.rule.content_fr')
                 ->renderAsHtml();
+
             yield TextareaField::new('contentEn', 'admin.rule.content_en')
                 ->renderAsHtml();
         } else {
             yield TextEditorField::new('content', 'admin.rule.content_fr')
                 ->hideOnIndex();
+
             yield TextEditorField::new('contentEn', 'admin.rule.content_en')
                 ->hideOnIndex();
         }

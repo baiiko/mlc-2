@@ -58,6 +58,11 @@ class Season
         $this->rounds = new ArrayCollection();
     }
 
+    public function __toString(): string
+    {
+        return $this->name ?? '';
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -172,10 +177,5 @@ class Season
     public function getNextRoundNumber(): int
     {
         return $this->rounds->count() + 1;
-    }
-
-    public function __toString(): string
-    {
-        return $this->name ?? '';
     }
 }

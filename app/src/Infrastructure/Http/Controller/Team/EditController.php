@@ -7,6 +7,7 @@ namespace App\Infrastructure\Http\Controller\Team;
 use App\Application\Team\DTO\UpdateTeamDTO;
 use App\Application\Team\Service\UpdateTeamServiceInterface;
 use App\Domain\Player\Entity\Player;
+use App\Domain\Team\Entity\Team;
 use App\Domain\Team\Repository\TeamJoinRequestRepositoryInterface;
 use App\Infrastructure\Http\Form\UpdateTeamType;
 use Symfony\Component\Form\FormFactoryInterface;
@@ -39,7 +40,7 @@ final readonly class EditController
     {
         $team = $player->getTeam();
 
-        if ($team === null) {
+        if (!$team instanceof Team) {
             return new RedirectResponse($this->urlGenerator->generate('app_profile'));
         }
 
@@ -70,7 +71,7 @@ final readonly class EditController
                     ])
                 );
             } catch (\RuntimeException $e) {
-                throw new AccessDeniedHttpException($e->getMessage());
+                throw new AccessDeniedHttpException($e->getMessage(), $e);
             }
         }
 

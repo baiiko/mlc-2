@@ -22,7 +22,7 @@ final readonly class PasswordResetService implements PasswordResetServiceInterfa
     {
         $player = $this->playerRepository->findByEmail($email);
 
-        if ($player === null) {
+        if (!$player instanceof Player) {
             return;
         }
 
@@ -43,7 +43,7 @@ final readonly class PasswordResetService implements PasswordResetServiceInterfa
     {
         $player = $this->playerRepository->findByResetPasswordToken($token);
 
-        if ($player === null || !$player->isResetPasswordTokenValid()) {
+        if (!$player instanceof Player || !$player->isResetPasswordTokenValid()) {
             return null;
         }
 
@@ -55,6 +55,7 @@ final readonly class PasswordResetService implements PasswordResetServiceInterfa
         $hashedPassword = $this->passwordHasher->hashPassword($player, $newPassword);
         $player->setPassword($hashedPassword);
         $player->clearResetPasswordToken();
+
         $this->playerRepository->save($player);
     }
 }

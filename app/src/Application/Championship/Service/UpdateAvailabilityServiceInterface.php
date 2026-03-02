@@ -18,6 +18,6 @@ interface UpdateAvailabilityServiceInterface
         Player $player,
         bool $availableSemiFinal1,
         bool $availableSemiFinal2,
-        bool $availableFinal
+        bool $availableFinal,
     ): void;
 }

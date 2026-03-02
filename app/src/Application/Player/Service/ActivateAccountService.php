@@ -20,7 +20,7 @@ final readonly class ActivateAccountService implements ActivateAccountServiceInt
     {
         $player = $this->playerRepository->findByActivationToken($token);
 
-        if ($player === null || !$player->isTokenValid()) {
+        if (!$player instanceof Player || !$player->isTokenValid()) {
             return null;
         }
 

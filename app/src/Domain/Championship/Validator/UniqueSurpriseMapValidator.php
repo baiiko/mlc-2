@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Championship\Validator;
 
+use App\Domain\Championship\Entity\Round;
 use App\Domain\Championship\Entity\RoundMap;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Validator\Constraint;
@@ -15,7 +16,8 @@ class UniqueSurpriseMapValidator extends ConstraintValidator
 {
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
-    ) {}
+    ) {
+    }
 
     public function validate(mixed $value, Constraint $constraint): void
     {
@@ -27,7 +29,7 @@ class UniqueSurpriseMapValidator extends ConstraintValidator
             throw new UnexpectedValueException($value, RoundMap::class);
         }
 
-        if (!$value->isSurprise() || $value->getRound() === null) {
+        if (!$value->isSurprise() || !$value->getRound() instanceof Round) {
             return;
         }
 

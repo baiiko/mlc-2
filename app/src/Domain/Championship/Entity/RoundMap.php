@@ -68,6 +68,13 @@ class RoundMap
         $this->uid = $uid;
     }
 
+    public function __toString(): string
+    {
+        $suffix = $this->isSurprise ? ' (Surprise)' : '';
+
+        return ($this->name ?? '') . $suffix;
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -186,23 +193,6 @@ class RoundMap
         return $this->formatTime($this->authorTime);
     }
 
-    private function formatTime(?int $milliseconds): ?string
-    {
-        if ($milliseconds === null || $milliseconds <= 0) {
-            return null;
-        }
-
-        $minutes = (int) floor($milliseconds / 60000);
-        $seconds = (int) floor(($milliseconds % 60000) / 1000);
-        $ms = $milliseconds % 1000;
-
-        if ($minutes > 0) {
-            return sprintf('%d:%02d.%03d', $minutes, $seconds, $ms);
-        }
-
-        return sprintf('%d.%03d', $seconds, $ms);
-    }
-
     public function isSurprise(): bool
     {
         return $this->isSurprise;
@@ -239,9 +229,20 @@ class RoundMap
         return $this;
     }
 
-    public function __toString(): string
+    private function formatTime(?int $milliseconds): ?string
     {
-        $suffix = $this->isSurprise ? ' (Surprise)' : '';
-        return ($this->name ?? '') . $suffix;
+        if ($milliseconds === null || $milliseconds <= 0) {
+            return null;
+        }
+
+        $minutes = (int) floor($milliseconds / 60000);
+        $seconds = (int) floor(($milliseconds % 60000) / 1000);
+        $ms = $milliseconds % 1000;
+
+        if ($minutes > 0) {
+            return \sprintf('%d:%02d.%03d', $minutes, $seconds, $ms);
+        }
+
+        return \sprintf('%d.%03d', $seconds, $ms);
     }
 }

@@ -6,7 +6,6 @@ namespace App\Domain\Championship\Entity;
 
 use App\Domain\Championship\Enum\GameMode;
 use Doctrine\ORM\Mapping as ORM;
-use Gedmo\Mapping\Annotation as Gedmo;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 
 #[ORM\Entity]
@@ -53,6 +52,11 @@ class MapRecord
         $this->laps = $laps;
         $this->time = $time;
         $this->gameMode = $gameMode;
+    }
+
+    public function __toString(): string
+    {
+        return \sprintf('%s - %s (%s)', $this->getLapsLabel(), $this->formatTime() ?? '-', $this->playerLogin);
     }
 
     public function getId(): ?int
@@ -173,10 +177,10 @@ class MapRecord
         $centiseconds = (int) floor(($this->time % 1000) / 10);
 
         if ($minutes > 0) {
-            return sprintf('%d:%02d.%02d', $minutes, $seconds, $centiseconds);
+            return \sprintf('%d:%02d.%02d', $minutes, $seconds, $centiseconds);
         }
 
-        return sprintf('%d.%02d', $seconds, $centiseconds);
+        return \sprintf('%d.%02d', $seconds, $centiseconds);
     }
 
     public function getLapsLabel(): string
@@ -187,10 +191,5 @@ class MapRecord
             10 => '10 tours',
             default => $this->laps . ' tours',
         };
-    }
-
-    public function __toString(): string
-    {
-        return sprintf('%s - %s (%s)', $this->getLapsLabel(), $this->formatTime() ?? '-', $this->playerLogin);
     }
 }

@@ -76,6 +76,11 @@ class Phase
         $this->results = new ArrayCollection();
     }
 
+    public function __toString(): string
+    {
+        return \sprintf('%s - %s', $this->round?->getName() ?? '', $this->type?->getLabel() ?? '');
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -322,10 +327,5 @@ class Phase
         }
 
         return null;
-    }
-
-    public function __toString(): string
-    {
-        return sprintf('%s - %s', $this->round?->getName() ?? '', $this->type?->getLabel() ?? '');
     }
 }

@@ -49,7 +49,7 @@ final readonly class DoctrineMapRecordRepository implements MapRecordRepositoryI
 
         $results = $qb->getQuery()->getResult();
 
-        return array_map(fn($row) => [
+        return array_map(fn (array $row): array => [
             'record' => $row[0],
             'playerPseudo' => $row['playerPseudo'],
         ], $results);
@@ -99,9 +99,11 @@ final readonly class DoctrineMapRecordRepository implements MapRecordRepositoryI
             ->getResult();
 
         $rankings = [];
+
         foreach ($results as $row) {
             $record = $row[0];
             $laps = $record->getLaps();
+
             if (!isset($rankings[$laps])) {
                 $rankings[$laps] = [];
             }
@@ -132,6 +134,7 @@ final readonly class DoctrineMapRecordRepository implements MapRecordRepositoryI
 
         // Group by roundId -> laps
         $rankings = [];
+
         foreach ($results as $row) {
             $record = $row[0];
             $roundId = $record->getRoundId();
@@ -140,6 +143,7 @@ final readonly class DoctrineMapRecordRepository implements MapRecordRepositoryI
             if (!isset($rankings[$roundId])) {
                 $rankings[$roundId] = [];
             }
+
             if (!isset($rankings[$roundId][$laps])) {
                 $rankings[$roundId][$laps] = [];
             }
@@ -183,6 +187,7 @@ final readonly class DoctrineMapRecordRepository implements MapRecordRepositoryI
                 $rankings[$gameMode] = [];
                 $seenPlayers[$gameMode] = [];
             }
+
             if (!isset($rankings[$gameMode][$laps])) {
                 $rankings[$gameMode][$laps] = [];
                 $seenPlayers[$gameMode][$laps] = [];

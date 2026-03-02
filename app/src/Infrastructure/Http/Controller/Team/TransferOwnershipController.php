@@ -6,9 +6,9 @@ namespace App\Infrastructure\Http\Controller\Team;
 
 use App\Application\Team\Service\TransferOwnershipServiceInterface;
 use App\Domain\Player\Entity\Player;
+use App\Domain\Team\Entity\Team;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -28,11 +28,11 @@ final readonly class TransferOwnershipController
     }
 
     #[Route('/team/transfer', name: 'app_team_transfer', methods: ['POST'])]
-    public function __invoke(Request $request, #[CurrentUser] Player $player): Response
+    public function __invoke(Request $request, #[CurrentUser] Player $player): RedirectResponse
     {
         $team = $player->getTeam();
 
-        if ($team === null) {
+        if (!$team instanceof Team) {
             return new RedirectResponse($this->urlGenerator->generate('app_profile'));
         }
 
@@ -45,9 +45,9 @@ final readonly class TransferOwnershipController
         try {
             $this->transferOwnershipService->transferOwnership($team, $player, (int) $newCreatorId);
         } catch (\RuntimeException $e) {
-            throw new AccessDeniedHttpException($e->getMessage());
+            throw new AccessDeniedHttpException($e->getMessage(), $e);
         } catch (\InvalidArgumentException $e) {
-            throw new BadRequestHttpException($e->getMessage());
+            throw new BadRequestHttpException($e->getMessage(), $e);
         }
 
         return new RedirectResponse($this->urlGenerator->generate('app_profile'));

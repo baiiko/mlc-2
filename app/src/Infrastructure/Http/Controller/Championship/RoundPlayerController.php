@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Http\Controller\Championship;
 
 use App\Domain\Championship\Entity\PhaseType;
+use App\Domain\Championship\Entity\Round;
 use App\Domain\Championship\Repository\MapRecordRepositoryInterface;
 use App\Domain\Championship\Repository\RoundRegistrationRepositoryInterface;
 use App\Domain\Championship\Repository\RoundRepositoryInterface;
@@ -34,12 +35,13 @@ final readonly class RoundPlayerController
     {
         $round = $this->roundRepository->findById($id);
 
-        if ($round === null || !$round->getSeason()?->isActive()) {
+        if (!$round instanceof Round || !$round->getSeason()?->isActive()) {
             throw new NotFoundHttpException('Manche non trouvée');
         }
 
         $targetPlayer = $this->playerRepository->findByLogin($login);
-        if ($targetPlayer === null) {
+
+        if (!$targetPlayer instanceof Player) {
             throw new NotFoundHttpException('Joueur non trouvé');
         }
 
@@ -48,9 +50,11 @@ final readonly class RoundPlayerController
 
         // Get player's ranking data from stored qualification phase ranking
         $playerRankingData = null;
+
         foreach ($round->getPhases() as $phase) {
             if ($phase->getType() === PhaseType::Qualification) {
                 $playerRankingData = $phase->getPlayerRanking($login);
+
                 break;
             }
         }
@@ -58,6 +62,7 @@ final readonly class RoundPlayerController
         // Get all records for all maps, grouped by map
         $mapRecords = [];
         $playerRecords = [];
+
         foreach ($round->getMaps() as $map) {
             if ($map->getUid()) {
                 $allRecords = $this->mapRecordRepository->findByMapUidWithPlayer($map->getUid(), $round->getId());
@@ -65,7 +70,8 @@ final readonly class RoundPlayerController
 
                 // Find player's records and their ranking
                 $playerMapRecords = [];
-                foreach ($allRecords as $index => $recordData) {
+
+                foreach ($allRecords as $recordData) {
                     if ($recordData['record']->getPlayerLogin() === $login) {
                         // Find first place time for this laps count
                         $laps = $recordData['record']->getLaps();
@@ -78,10 +84,11 @@ final readonly class RoundPlayerController
                                 if ($firstPlaceTime === null) {
                                     $firstPlaceTime = $r['record']->getTime();
                                 }
+
                                 if ($r['record']->getPlayerLogin() === $login) {
                                     break;
                                 }
-                                $positionForLaps++;
+                                ++$positionForLaps;
                             }
                         }
 

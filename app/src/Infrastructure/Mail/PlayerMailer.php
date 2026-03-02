@@ -23,7 +23,7 @@ final readonly class PlayerMailer implements PlayerNotificationInterface
     ) {
     }
 
-    public function sendWelcomeEmail(Player $player, string $locale = null): void
+    public function sendWelcomeEmail(Player $player, ?string $locale = null): void
     {
         $locale = $locale ?? $this->defaultLocale;
 
@@ -50,7 +50,7 @@ final readonly class PlayerMailer implements PlayerNotificationInterface
         $this->mailer->send($email);
     }
 
-    public function sendPasswordResetEmail(Player $player, string $locale = null): void
+    public function sendPasswordResetEmail(Player $player, ?string $locale = null): void
     {
         $locale = $locale ?? $this->defaultLocale;
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\EventListener;
 
 use App\Application\Championship\Service\MatchSettingsGeneratorService;
+use App\Domain\Championship\Entity\Round;
 use App\Domain\Championship\Entity\RoundMap;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsEntityListener;
 use Doctrine\ORM\Events;
@@ -24,7 +25,8 @@ class RoundMapMatchSettingsListener
     public function onMapChange(RoundMap $map): void
     {
         $round = $map->getRound();
-        if ($round === null || !$round->isActive()) {
+
+        if (!$round instanceof Round || !$round->isActive()) {
             return;
         }
 

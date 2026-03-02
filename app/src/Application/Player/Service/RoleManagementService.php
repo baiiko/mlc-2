@@ -29,6 +29,7 @@ final readonly class RoleManagementService implements RoleManagementServiceInter
     public function getPlayerLevel(Player $player): int
     {
         $maxLevel = 0;
+
         foreach ($player->getRoles() as $role) {
             $level = self::ROLES_HIERARCHY[$role] ?? 0;
             $maxLevel = max($maxLevel, $level);
@@ -44,7 +45,7 @@ final readonly class RoleManagementService implements RoleManagementServiceInter
 
     public function hasProtectedRole(Player $player): bool
     {
-        return count(array_intersect($player->getRoles(), self::PROTECTED_ROLES)) > 0;
+        return array_intersect($player->getRoles(), self::PROTECTED_ROLES) !== [];
     }
 
     public function getAssignableRoles(Player $admin): array
@@ -54,6 +55,7 @@ final readonly class RoleManagementService implements RoleManagementServiceInter
 
         foreach (self::ALL_ROLES as $label => $role) {
             $roleLevel = self::ROLES_HIERARCHY[$role] ?? 0;
+
             // Can only assign roles strictly lower
             if ($roleLevel < $currentLevel) {
                 $assignableRoles[$label] = $role;

@@ -6,13 +6,16 @@ namespace App\Infrastructure\TrackMania;
 
 /**
  * GbxRemote - XML-RPC client for TrackMania dedicated servers
- * Based on IXR - The Incutio XML-RPC Library
+ * Based on IXR - The Incutio XML-RPC Library.
  */
 class GbxRemote
 {
     private mixed $socket = false;
+
     private int $reqHandle = 0x80000000;
+
     private int $protocol = 0;
+
     private ?string $error = null;
 
     public function connect(string $ip, int $port, int $timeout = 5): bool
@@ -21,15 +24,18 @@ class GbxRemote
         $this->socket = @fsockopen($ip, $port, $errno, $errstr, $timeout);
 
         if (!$this->socket) {
-            $this->error = "Could not connect: {$errno} - {$errstr}";
+            $this->error = \sprintf('Could not connect: %d - %s', $errno, $errstr);
+
             return false;
         }
 
         // Handshake
         $data = fread($this->socket, 4);
-        if ($data === false || strlen($data) < 4) {
+
+        if ($data === false || \strlen($data) < 4) {
             $this->error = 'Handshake failed: could not read header size';
             $this->disconnect();
+
             return false;
         }
 
@@ -39,10 +45,12 @@ class GbxRemote
         if ($size > 64) {
             $this->error = 'Handshake failed: wrong protocol header';
             $this->disconnect();
+
             return false;
         }
 
         $handshake = fread($this->socket, $size);
+
         if ($handshake === 'GBXRemote 2') {
             $this->protocol = 2;
         } elseif ($handshake === 'GBXRemote 1') {
@@ -50,6 +58,7 @@ class GbxRemote
         } else {
             $this->error = 'Handshake failed: wrong protocol version';
             $this->disconnect();
+
             return false;
         }
 
@@ -69,13 +78,15 @@ class GbxRemote
     {
         if (!$this->socket || $this->protocol === 0) {
             $this->error = 'Not connected';
+
             return false;
         }
 
         $xml = $this->buildRequest($method, $args);
 
-        if (strlen($xml) > 512 * 1024 - 8) {
+        if (\strlen($xml) > 512 * 1024 - 8) {
             $this->error = 'Request too large';
+
             return false;
         }
 
@@ -91,6 +102,7 @@ class GbxRemote
     public function authenticate(string $username, string $password): bool
     {
         $result = $this->query('Authenticate', $username, $password);
+
         return $result === true;
     }
 
@@ -107,38 +119,42 @@ class GbxRemote
             $xml .= '<param><value>' . $this->encodeValue($arg) . '</value></param>';
         }
 
-        $xml .= '</params></methodCall>';
-        return $xml;
+        return $xml . '</params></methodCall>';
     }
 
     private function encodeValue(mixed $value): string
     {
-        if (is_bool($value)) {
+        if (\is_bool($value)) {
             return '<boolean>' . ($value ? '1' : '0') . '</boolean>';
         }
-        if (is_int($value)) {
+
+        if (\is_int($value)) {
             return '<int>' . $value . '</int>';
         }
-        if (is_float($value)) {
+
+        if (\is_float($value)) {
             return '<double>' . $value . '</double>';
         }
-        if (is_array($value)) {
+
+        if (\is_array($value)) {
             if ($this->isAssoc($value)) {
                 $xml = '<struct>';
+
                 foreach ($value as $k => $v) {
                     $xml .= '<member><name>' . $k . '</name><value>' . $this->encodeValue($v) . '</value></member>';
                 }
-                $xml .= '</struct>';
-                return $xml;
-            } else {
-                $xml = '<array><data>';
-                foreach ($value as $v) {
-                    $xml .= '<value>' . $this->encodeValue($v) . '</value>';
-                }
-                $xml .= '</data></array>';
-                return $xml;
+
+                return $xml . '</struct>';
             }
+            $xml = '<array><data>';
+
+            foreach ($value as $v) {
+                $xml .= '<value>' . $this->encodeValue($v) . '</value>';
+            }
+
+            return $xml . '</data></array>';
         }
+
         return '<string>' . htmlspecialchars((string) $value) . '</string>';
     }
 
@@ -147,24 +163,22 @@ class GbxRemote
         if ($arr === []) {
             return false;
         }
-        return array_keys($arr) !== range(0, count($arr) - 1);
+
+        return array_keys($arr) !== range(0, \count($arr) - 1);
     }
 
     private function sendRequest(string $xml): bool
     {
-        $this->reqHandle++;
+        ++$this->reqHandle;
 
-        if ($this->protocol === 1) {
-            $bytes = pack('Va*', strlen($xml), $xml);
-        } else {
-            $bytes = pack('VVa*', strlen($xml), $this->reqHandle, $xml);
-        }
+        $bytes = $this->protocol === 1 ? pack('Va*', \strlen($xml), $xml) : pack('VVa*', \strlen($xml), $this->reqHandle, $xml);
 
         stream_set_timeout($this->socket, 5);
         $written = @fwrite($this->socket, $bytes);
 
         if ($written === false || $written === 0) {
             $this->error = 'Failed to send request';
+
             return false;
         }
 
@@ -177,15 +191,19 @@ class GbxRemote
 
         if ($this->protocol === 1) {
             $header = fread($this->socket, 4);
-            if (strlen($header) < 4) {
+
+            if (\strlen($header) < 4) {
                 $this->error = 'Failed to read response header';
+
                 return false;
             }
             $result = unpack('Vsize', $header);
         } else {
             $header = fread($this->socket, 8);
-            if (strlen($header) < 8) {
+
+            if (\strlen($header) < 8) {
                 $this->error = 'Failed to read response header';
+
                 return false;
             }
             $result = unpack('Vsize/Vhandle', $header);
@@ -195,12 +213,14 @@ class GbxRemote
 
         if ($size > 4096 * 1024) {
             $this->error = 'Response too large';
+
             return false;
         }
 
         $contents = '';
-        while (strlen($contents) < $size) {
-            $chunk = fread($this->socket, $size - strlen($contents));
+        while (\strlen($contents) < $size) {
+            $chunk = fread($this->socket, $size - \strlen($contents));
+
             if ($chunk === false) {
                 break;
             }
@@ -213,20 +233,23 @@ class GbxRemote
     private function parseResponse(string $xml): mixed
     {
         $doc = @simplexml_load_string($xml);
+
         if ($doc === false) {
             $this->error = 'Failed to parse XML response';
+
             return false;
         }
 
         // Check for fault
-        if (isset($doc->fault)) {
+        if (property_exists($doc, 'fault') && $doc->fault !== null) {
             $fault = $this->parseValue($doc->fault->value);
             $this->error = $fault['faultString'] ?? 'Unknown fault';
+
             return false;
         }
 
         // Parse params
-        if (isset($doc->params->param->value)) {
+        if (property_exists($doc->params->param, 'value') && $doc->params->param->value !== null) {
             return $this->parseValue($doc->params->param->value);
         }
 
@@ -237,7 +260,7 @@ class GbxRemote
     {
         $children = $value->children();
 
-        if (count($children) === 0) {
+        if (\count($children) === 0) {
             return (string) $value;
         }
 
@@ -259,23 +282,27 @@ class GbxRemote
     private function parseArray(\SimpleXMLElement $array): array
     {
         $result = [];
-        if (isset($array->data->value)) {
+
+        if (property_exists($array->data, 'value') && $array->data->value !== null) {
             foreach ($array->data->value as $value) {
                 $result[] = $this->parseValue($value);
             }
         }
+
         return $result;
     }
 
     private function parseStruct(\SimpleXMLElement $struct): array
     {
         $result = [];
-        if (isset($struct->member)) {
+
+        if (property_exists($struct, 'member') && $struct->member !== null) {
             foreach ($struct->member as $member) {
                 $name = (string) $member->name;
                 $result[$name] = $this->parseValue($member->value);
             }
         }
+
         return $result;
     }
 }

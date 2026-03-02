@@ -78,6 +78,6 @@ class TeamMembership
 
     public function isActive(): bool
     {
-        return $this->leftAt === null;
+        return !$this->leftAt instanceof \DateTimeImmutable;
     }
 }

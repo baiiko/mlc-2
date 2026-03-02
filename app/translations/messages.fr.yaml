@@ -26,6 +26,8 @@ admin.menu.infrastructure: Infrastructure
 admin.menu.servers: Serveurs
 admin.menu.content: Contenu
 admin.menu.rules: Règlements
+admin.menu.communication: Communication
+admin.menu.newsletters: Newsletters
 admin.menu.back_to_site: Retour au site
 
 # Fields
@@ -116,3 +118,14 @@ admin.round.no_active_round: "Aucune manche active trouvée."
 # Phase field help
 "Laisser vide pour utiliser la valeur par défaut selon le type de phase": "Laisser vide pour utiliser la valeur par défaut selon le type de phase"
 "Laisser vide pour utiliser la valeur par défaut": "Laisser vide pour utiliser la valeur par défaut"
+
+# Newsletter admin
+admin.newsletter.singular: Newsletter
+admin.newsletter.plural: Newsletters
+admin.newsletter.subject: Sujet
+admin.newsletter.content: Contenu
+admin.newsletter.sent_by: Envoyée par
+admin.newsletter.sent_at: Envoyée le
+admin.newsletter.recipient_count: Destinataires
+admin.newsletter.created_at: Créée le
+admin.newsletter.action.send: Envoyer

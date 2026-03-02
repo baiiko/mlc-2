@@ -6,8 +6,8 @@ namespace App\Infrastructure\Http\Controller\Team;
 
 use App\Application\Team\Service\CloseTeamServiceInterface;
 use App\Domain\Player\Entity\Player;
+use App\Domain\Team\Entity\Team;
 use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\Routing\Attribute\Route;
@@ -26,18 +26,18 @@ final readonly class CloseController
     }
 
     #[Route('/team/close', name: 'app_team_close', methods: ['POST'])]
-    public function __invoke(#[CurrentUser] Player $player): Response
+    public function __invoke(#[CurrentUser] Player $player): RedirectResponse
     {
         $team = $player->getTeam();
 
-        if ($team === null) {
+        if (!$team instanceof Team) {
             return new RedirectResponse($this->urlGenerator->generate('app_profile'));
         }
 
         try {
             $this->closeTeamService->closeTeam($team, $player);
         } catch (\RuntimeException $e) {
-            throw new AccessDeniedHttpException($e->getMessage());
+            throw new AccessDeniedHttpException($e->getMessage(), $e);
         }
 
         return new RedirectResponse($this->urlGenerator->generate('app_profile'));

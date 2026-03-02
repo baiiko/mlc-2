@@ -6,13 +6,6 @@ namespace App\Domain\Championship\Enum;
 
 enum GameMode: int
 {
-    case Rounds = 0;
-    case TimeAttack = 1;
-    case Team = 2;
-    case Laps = 3;
-    case Stunts = 4;
-    case Cup = 5;
-
     public function label(): string
     {
         return match ($this) {
@@ -24,4 +17,11 @@ enum GameMode: int
             self::Cup => 'Cup',
         };
     }
+
+    case Rounds = 0;
+    case TimeAttack = 1;
+    case Team = 2;
+    case Laps = 3;
+    case Stunts = 4;
+    case Cup = 5;
 }

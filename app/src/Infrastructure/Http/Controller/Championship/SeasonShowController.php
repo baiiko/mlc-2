@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Http\Controller\Championship;
 
 use App\Application\Championship\Service\CalculateRankingServiceInterface;
+use App\Domain\Championship\Entity\Season;
 use App\Domain\Championship\Repository\SeasonRepositoryInterface;
 use App\Domain\Player\Entity\Player;
 use Symfony\Component\HttpFoundation\Response;
@@ -29,7 +30,7 @@ final readonly class SeasonShowController
     {
         $season = $this->seasonRepository->findBySlug($slug);
 
-        if ($season === null || !$season->isActive()) {
+        if (!$season instanceof Season || !$season->isActive()) {
             throw new NotFoundHttpException('Saison non trouvée');
         }
 

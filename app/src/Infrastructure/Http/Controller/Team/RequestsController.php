@@ -49,30 +49,32 @@ final readonly class RequestsController
     }
 
     #[Route('/team/requests/{id}/accept', name: 'app_team_request_accept', methods: ['POST'])]
-    public function accept(int $id, #[CurrentUser] Player $player): Response
+    public function accept(int $id, #[CurrentUser] Player $player): RedirectResponse
     {
         try {
             $this->handleJoinRequestService->acceptRequest($id, $player);
         } catch (\RuntimeException $e) {
             if ($e->getMessage() === 'Demande introuvable.') {
-                throw new NotFoundHttpException($e->getMessage());
+                throw new NotFoundHttpException($e->getMessage(), $e);
             }
-            throw new AccessDeniedHttpException($e->getMessage());
+
+            throw new AccessDeniedHttpException($e->getMessage(), $e);
         }
 
         return new RedirectResponse($this->urlGenerator->generate('app_team_requests'));
     }
 
     #[Route('/team/requests/{id}/reject', name: 'app_team_request_reject', methods: ['POST'])]
-    public function reject(int $id, #[CurrentUser] Player $player): Response
+    public function reject(int $id, #[CurrentUser] Player $player): RedirectResponse
     {
         try {
             $this->handleJoinRequestService->rejectRequest($id, $player);
         } catch (\RuntimeException $e) {
             if ($e->getMessage() === 'Demande introuvable.') {
-                throw new NotFoundHttpException($e->getMessage());
+                throw new NotFoundHttpException($e->getMessage(), $e);
             }
-            throw new AccessDeniedHttpException($e->getMessage());
+
+            throw new AccessDeniedHttpException($e->getMessage(), $e);
         }
 
         return new RedirectResponse($this->urlGenerator->generate('app_team_requests'));

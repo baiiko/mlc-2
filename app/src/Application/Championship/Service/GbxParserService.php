@@ -9,6 +9,7 @@ use App\Application\Championship\DTO\GbxMapDataDTO;
 class GbxParserService
 {
     private const GBX_MAGIC_HEADER = "GBX\x06\x00";
+
     private const CHALLENGE_TYPES = ['00300024', '00300403'];
 
     public function parseFile(string $filePath): ?GbxMapDataDTO
@@ -18,6 +19,7 @@ class GbxParserService
         }
 
         $handle = @fopen($filePath, 'rb');
+
         if (!$handle) {
             return null;
         }
@@ -32,12 +34,14 @@ class GbxParserService
     public function parseContent(string $content): ?GbxMapDataDTO
     {
         $tempFile = tempnam(sys_get_temp_dir(), 'gbx_');
+
         if (!$tempFile) {
             return null;
         }
 
         try {
             file_put_contents($tempFile, $content);
+
             return $this->parseFile($tempFile);
         } finally {
             @unlink($tempFile);
@@ -49,6 +53,7 @@ class GbxParserService
         // Check for magic GBX header
         fseek($handle, 0x00, SEEK_SET);
         $data = fread($handle, 5);
+
         if ($data !== self::GBX_MAGIC_HEADER) {
             return null;
         }
@@ -59,8 +64,9 @@ class GbxParserService
         // Get GBX type & check for Challenge
         $data = fread($handle, 4);
         $r = unpack('Ngbxtype', $data);
-        $type = sprintf('%08X', $r['gbxtype']);
-        if (!in_array($type, self::CHALLENGE_TYPES, true)) {
+        $type = \sprintf('%08X', $r['gbxtype']);
+
+        if (!\in_array($type, self::CHALLENGE_TYPES, true)) {
             return null;
         }
 
@@ -76,7 +82,7 @@ class GbxParserService
 
         // Get Index table
         $len = [];
-        for ($i = 1; $i <= $version; $i++) {
+        for ($i = 1; $i <= $version; ++$i) {
             $data = fread($handle, 8);
             $r = unpack('Nmark' . $i . '/Vlen' . $i, $data);
             $len[$i] = $r['len' . $i];
@@ -89,7 +95,7 @@ class GbxParserService
 
         // Get count of Times/info entries
         $data = fread($handle, 1);
-        $count = ord($data);
+        $count = \ord($data);
 
         // Read times
         fseek($handle, 0x04, SEEK_CUR);
@@ -113,14 +119,18 @@ class GbxParserService
         if ($version >= 3) {
             fseek($handle, 0x04, SEEK_CUR); // coppers
         }
+
         if ($count >= 6) {
             fseek($handle, 0x08, SEEK_CUR); // multi + type
+
             if ($count >= 9) {
                 fseek($handle, 0x04, SEEK_CUR);
             }
+
             if ($count >= 10) {
                 fseek($handle, 0x04, SEEK_CUR);
             }
+
             if ($count >= 11) {
                 fseek($handle, 0x04, SEEK_CUR);
             }
@@ -140,10 +150,12 @@ class GbxParserService
         fseek($handle, 0x01, SEEK_CUR);
 
         $mood = null;
+
         if ($version >= 3) {
             fseek($handle, 0x04, SEEK_CUR);
             $this->readGbxString($handle); // password
         }
+
         if ($version >= 4 && $count >= 8) {
             fseek($handle, 0x04, SEEK_CUR);
             $mood = $this->readGbxString($handle);
@@ -185,11 +197,13 @@ class GbxParserService
 
         // Look for JPEG markers (FFD8 start, FFD9 end)
         $jpegStart = strpos($content, "\xFF\xD8\xFF");
+
         if ($jpegStart === false) {
             return null;
         }
 
         $jpegEnd = strpos($content, "\xFF\xD9", $jpegStart);
+
         if ($jpegEnd === false) {
             return null;
         }
@@ -212,6 +226,7 @@ class GbxParserService
         }
 
         $data = fread($handle, $len);
+
         return $data ?: null;
     }
 

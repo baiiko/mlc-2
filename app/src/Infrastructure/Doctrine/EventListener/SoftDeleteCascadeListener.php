@@ -34,7 +34,11 @@ class SoftDeleteCascadeListener
             $newValue = $changeSet['deletedAt'][1];
 
             // Only cascade if deletedAt is being set (was null, now has value)
-            if ($oldValue !== null || $newValue === null) {
+            if ($oldValue !== null) {
+                continue;
+            }
+
+            if ($newValue === null) {
                 continue;
             }
 

@@ -78,6 +78,11 @@ class Player implements UserInterface, PasswordAuthenticatedUserInterface
         $this->generateActivationToken();
     }
 
+    public function __toString(): string
+    {
+        return TmColorParser::stripColors($this->pseudo);
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -136,7 +141,7 @@ class Player implements UserInterface, PasswordAuthenticatedUserInterface
     public function isTokenValid(): bool
     {
         return $this->activationToken !== null
-            && $this->tokenExpiresAt !== null
+            && $this->tokenExpiresAt instanceof \DateTimeImmutable
             && $this->tokenExpiresAt > new \DateTimeImmutable();
     }
 
@@ -219,7 +224,7 @@ class Player implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function addRole(string $role): self
     {
-        if (!in_array($role, $this->roles, true)) {
+        if (!\in_array($role, $this->roles, true)) {
             $this->roles[] = $role;
         }
 
@@ -228,7 +233,7 @@ class Player implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function removeRole(string $role): self
     {
-        $this->roles = array_filter($this->roles, fn($r) => $r !== $role);
+        $this->roles = array_filter($this->roles, fn ($r): bool => $r !== $role);
 
         return $this;
     }
@@ -267,7 +272,7 @@ class Player implements UserInterface, PasswordAuthenticatedUserInterface
     public function isResetPasswordTokenValid(): bool
     {
         return $this->resetPasswordToken !== null
-            && $this->resetPasswordTokenExpiresAt !== null
+            && $this->resetPasswordTokenExpiresAt instanceof \DateTimeImmutable
             && $this->resetPasswordTokenExpiresAt > new \DateTimeImmutable();
     }
 
@@ -299,18 +304,13 @@ class Player implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function hasTeam(): bool
     {
-        return $this->getActiveMembership() !== null;
+        return $this->getActiveMembership() instanceof TeamMembership;
     }
 
     public function isTeamCreator(): bool
     {
         $team = $this->getTeam();
 
-        return $team !== null && $team->isCreator($this);
-    }
-
-    public function __toString(): string
-    {
-        return TmColorParser::stripColors($this->pseudo);
+        return $team instanceof Team && $team->isCreator($this);
     }
 }

@@ -51,9 +51,9 @@ final readonly class GbxMapDataDTO
         $ms = $milliseconds % 1000;
 
         if ($minutes > 0) {
-            return sprintf('%d:%02d.%03d', $minutes, $seconds, $ms);
+            return \sprintf('%d:%02d.%03d', $minutes, $seconds, $ms);
         }
 
-        return sprintf('%d.%03d', $seconds, $ms);
+        return \sprintf('%d.%03d', $seconds, $ms);
     }
 }

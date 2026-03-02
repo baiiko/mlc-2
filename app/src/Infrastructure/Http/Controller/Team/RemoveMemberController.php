@@ -6,9 +6,9 @@ namespace App\Infrastructure\Http\Controller\Team;
 
 use App\Domain\Player\Entity\Player;
 use App\Domain\Player\Repository\PlayerRepositoryInterface;
+use App\Domain\Team\Entity\TeamMembership;
 use App\Domain\Team\Repository\TeamMembershipRepositoryInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -30,7 +30,7 @@ final readonly class RemoveMemberController
     }
 
     #[Route('/team/member/{playerId}/remove', name: 'app_team_remove_member', methods: ['POST'])]
-    public function __invoke(int $playerId, #[CurrentUser] Player $currentPlayer): Response
+    public function __invoke(int $playerId, #[CurrentUser] Player $currentPlayer): RedirectResponse
     {
         if (!$currentPlayer->isTeamCreator()) {
             throw new AccessDeniedHttpException('Vous n\'êtes pas le créateur de cette équipe.');
@@ -40,13 +40,13 @@ final readonly class RemoveMemberController
 
         $player = $this->playerRepository->findById($playerId);
 
-        if ($player === null) {
+        if (!$player instanceof Player) {
             throw new NotFoundHttpException('Joueur introuvable.');
         }
 
         $membership = $player->getActiveMembership();
 
-        if ($membership === null || $membership->getTeam()->getId() !== $team->getId()) {
+        if (!$membership instanceof TeamMembership || $membership->getTeam()->getId() !== $team->getId()) {
             throw new BadRequestHttpException('Ce joueur n\'est pas membre de votre équipe.');
         }
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Team\Service;
 
 use App\Domain\Player\Entity\Player;
+use App\Domain\Team\Entity\Team;
 use App\Domain\Team\Entity\TeamJoinRequest;
 use App\Domain\Team\Entity\TeamMembership;
 use App\Domain\Team\Repository\TeamJoinRequestRepositoryInterface;
@@ -22,7 +23,7 @@ final readonly class HandleJoinRequestService implements HandleJoinRequestServic
     {
         $request = $this->joinRequestRepository->findById($requestId);
 
-        if ($request === null) {
+        if (!$request instanceof TeamJoinRequest) {
             throw new \RuntimeException('Demande introuvable.');
         }
 
@@ -33,6 +34,7 @@ final readonly class HandleJoinRequestService implements HandleJoinRequestServic
         // Check if player doesn't already have a team
         if ($requestPlayer->hasTeam()) {
             $this->joinRequestRepository->delete($request);
+
             return;
         }
 
@@ -48,7 +50,7 @@ final readonly class HandleJoinRequestService implements HandleJoinRequestServic
     {
         $request = $this->joinRequestRepository->findById($requestId);
 
-        if ($request === null) {
+        if (!$request instanceof TeamJoinRequest) {
             throw new \RuntimeException('Demande introuvable.');
         }
 
@@ -70,7 +72,8 @@ final readonly class HandleJoinRequestService implements HandleJoinRequestServic
         }
 
         $creatorTeam = $teamCreator->getTeam();
-        if ($creatorTeam === null || $request->getTeam()->getId() !== $creatorTeam->getId()) {
+
+        if (!$creatorTeam instanceof Team || $request->getTeam()->getId() !== $creatorTeam->getId()) {
             throw new \RuntimeException('Accès refusé.');
         }
     }

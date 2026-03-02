@@ -53,7 +53,7 @@ class PhaseResultCrudController extends AbstractCrudController
 
         yield TextField::new('playerPseudo', 'Joueur')
             ->hideOnForm()
-            ->formatValue(fn($value, PhaseResult $entity) => '<span class="tm-pseudo">' . TmColorParser::toHtml($entity->getPlayer()->getPseudo()) . '</span>')
+            ->formatValue(fn ($value, PhaseResult $entity): string => '<span class="tm-pseudo">' . TmColorParser::toHtml($entity->getPlayer()->getPseudo()) . '</span>')
             ->renderAsHtml();
 
         yield AssociationField::new('player', 'Joueur')

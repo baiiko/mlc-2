@@ -43,6 +43,6 @@ final readonly class RegisterToRoundService implements RegisterToRoundServiceInt
 
     public function isAlreadyRegistered(RegisterToRoundDTO $dto): bool
     {
-        return $this->registrationRepository->findByRoundAndPlayer($dto->round, $dto->player) !== null;
+        return $this->registrationRepository->findByRoundAndPlayer($dto->round, $dto->player) instanceof RoundRegistration;
     }
 }

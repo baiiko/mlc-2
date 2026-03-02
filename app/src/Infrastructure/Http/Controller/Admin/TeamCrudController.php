@@ -37,17 +37,17 @@ class TeamCrudController extends AbstractCrudController
 
         yield TextField::new('tag')
             ->setHelp('Abréviation de l\'équipe (max 10 caractères)')
-            ->formatValue(fn ($value) => '<span class="tm-pseudo">' . TmColorParser::toHtml($value) . '</span>')
+            ->formatValue(fn (string $value): string => '<span class="tm-pseudo">' . TmColorParser::toHtml($value) . '</span>')
             ->renderAsHtml();
 
         yield TextField::new('fullName', 'Nom complet')
-            ->formatValue(fn ($value) => '<span class="tm-pseudo">' . TmColorParser::toHtml($value) . '</span>')
+            ->formatValue(fn (string $value): string => '<span class="tm-pseudo">' . TmColorParser::toHtml($value) . '</span>')
             ->renderAsHtml();
 
         // Champ pour affichage (index/detail) avec couleurs TM
         yield TextField::new('creatorName', 'Créateur')
             ->hideOnForm()
-            ->formatValue(fn ($value, Team $entity) => '<span class="tm-pseudo">' . TmColorParser::toHtml($entity->getCreator()->getPseudo()) . '</span>')
+            ->formatValue(fn ($value, Team $entity): string => '<span class="tm-pseudo">' . TmColorParser::toHtml($entity->getCreator()->getPseudo()) . '</span>')
             ->renderAsHtml();
 
         // Champ pour édition (formulaire) - pseudo sans couleurs TM
@@ -57,20 +57,20 @@ class TeamCrudController extends AbstractCrudController
 
         yield TextField::new('activeMembersCount', 'Membres actifs')
             ->hideOnForm()
-            ->formatValue(function ($value, Team $entity) {
+            ->formatValue(function ($value, Team $entity): string {
                 $members = $entity->getActiveMembers();
-                $count = count($members);
+                $count = \count($members);
 
                 if ($count === 0) {
                     return '0';
                 }
 
                 $names = array_map(
-                    fn (Player $player) => '<span class="tm-pseudo">' . TmColorParser::toHtml($player->getPseudo()) . '</span>',
+                    fn (Player $player): string => '<span class="tm-pseudo">' . TmColorParser::toHtml($player->getPseudo()) . '</span>',
                     $members
                 );
 
-                return sprintf('%d (%s)', $count, implode(', ', $names));
+                return \sprintf('%d (%s)', $count, implode(', ', $names));
             })
             ->renderAsHtml();
 

@@ -58,12 +58,12 @@ final readonly class DoctrinePlayerRepository implements PlayerRepositoryInterfa
 
     public function existsByLogin(string $login): bool
     {
-        return $this->findByLogin($login) !== null;
+        return $this->findByLogin($login) instanceof Player;
     }
 
     public function existsByEmail(string $email): bool
     {
-        return $this->findByEmail($email) !== null;
+        return $this->findByEmail($email) instanceof Player;
     }
 
     public function delete(Player $player): void
@@ -74,7 +74,7 @@ final readonly class DoctrinePlayerRepository implements PlayerRepositoryInterfa
 
     public function findByLogins(array $logins): array
     {
-        if (empty($logins)) {
+        if ($logins === []) {
             return [];
         }
 

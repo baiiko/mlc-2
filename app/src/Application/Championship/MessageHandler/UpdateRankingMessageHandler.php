@@ -6,6 +6,8 @@ namespace App\Application\Championship\MessageHandler;
 
 use App\Application\Championship\Message\UpdateRankingMessage;
 use App\Application\Championship\Service\RoundRankingServiceInterface;
+use App\Domain\Championship\Entity\Phase;
+use App\Domain\Championship\Entity\Round;
 use App\Domain\Championship\Repository\PhaseRepositoryInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
@@ -22,18 +24,20 @@ final readonly class UpdateRankingMessageHandler
     {
         $phase = $this->phaseRepository->findActiveQualificationPhase();
 
-        if ($phase === null) {
+        if (!$phase instanceof Phase) {
             return;
         }
 
         // Skip if ranking is already up-to-date (updated after this record was made)
         $rankingUpdatedAt = $phase->getRankingUpdatedAt();
-        if ($rankingUpdatedAt !== null && $rankingUpdatedAt >= $message->recordedAt) {
+
+        if ($rankingUpdatedAt instanceof \DateTimeImmutable && $rankingUpdatedAt >= $message->recordedAt) {
             return;
         }
 
         $round = $phase->getRound();
-        if ($round === null) {
+
+        if (!$round instanceof Round) {
             return;
         }
 
@@ -41,6 +45,7 @@ final readonly class UpdateRankingMessageHandler
         $ranking = $this->roundRankingService->calculateQualificationRanking($round, $phase);
         $phase->setRanking($ranking);
         $phase->setRankingUpdatedAt(new \DateTimeImmutable());
+
         $this->phaseRepository->save($phase);
     }
 }

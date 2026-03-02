@@ -94,7 +94,7 @@ class Team
      */
     public function getActiveMemberships(): Collection
     {
-        return $this->memberships->filter(fn(TeamMembership $m) => $m->isActive());
+        return $this->memberships->filter(fn (TeamMembership $m): bool => $m->isActive());
     }
 
     /**
@@ -103,7 +103,7 @@ class Team
     public function getActiveMembers(): array
     {
         return $this->getActiveMemberships()
-            ->map(fn(TeamMembership $m) => $m->getPlayer())
+            ->map(fn (TeamMembership $m): Player => $m->getPlayer())
             ->toArray();
     }
 
@@ -140,6 +140,6 @@ class Team
 
     public function getActiveMembersCount(): string
     {
-        return (string) count($this->getActiveMembers());
+        return (string) \count($this->getActiveMembers());
     }
 }

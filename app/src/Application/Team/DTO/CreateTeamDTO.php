@@ -8,7 +8,7 @@ use App\Domain\Team\Entity\Team;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 
-#[UniqueEntity(fields: ['tag'], entityClass: Team::class, message: 'validation.tag_exists')]
+#[UniqueEntity(fields: ['tag'], message: 'validation.tag_exists', entityClass: Team::class)]
 final class CreateTeamDTO
 {
     #[Assert\NotBlank(message: 'validation.tag_required')]

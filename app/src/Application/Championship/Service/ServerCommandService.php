@@ -60,6 +60,7 @@ class ServerCommandService
     {
         return $this->executeCommand($server, function (GbxRemote $client): array {
             $result = $client->query('RestartChallenge');
+
             if ($result === false) {
                 $result = $client->query('RestartMap');
             }
@@ -79,6 +80,7 @@ class ServerCommandService
     {
         return $this->executeCommand($server, function (GbxRemote $client): array {
             $result = $client->query('NextChallenge');
+
             if ($result === false) {
                 $result = $client->query('NextMap');
             }
@@ -93,6 +95,7 @@ class ServerCommandService
 
     /**
      * @param callable(GbxRemote): array{success: bool, message: string} $callback
+     *
      * @return array{success: bool, message: string}
      */
     private function executeCommand(Server $server, callable $callback): array
@@ -113,11 +116,13 @@ class ServerCommandService
 
             if (!$adminLogin || !$password) {
                 $client->disconnect();
+
                 return ['success' => false, 'message' => 'Identifiants admin non configurés'];
             }
 
             if (!$client->authenticate($adminLogin, $password)) {
                 $client->disconnect();
+
                 return ['success' => false, 'message' => 'Authentification échouée'];
             }
 
@@ -128,6 +133,7 @@ class ServerCommandService
             return $result;
         } catch (\Throwable $e) {
             $client->disconnect();
+
             return ['success' => false, 'message' => $e->getMessage()];
         }
     }

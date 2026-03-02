@@ -15,7 +15,8 @@ class UniqueActiveRoundValidator extends ConstraintValidator
 {
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
-    ) {}
+    ) {
+    }
 
     public function validate(mixed $value, Constraint $constraint): void
     {

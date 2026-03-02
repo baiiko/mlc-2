@@ -15,7 +15,8 @@ final readonly class ServerApiController
 {
     public function __construct(
         private ServerApiDataServiceInterface $serverApiDataService,
-    ) {}
+    ) {
+    }
 
     #[Route('/servers', name: 'api_servers', methods: ['GET'])]
     public function index(): JsonResponse

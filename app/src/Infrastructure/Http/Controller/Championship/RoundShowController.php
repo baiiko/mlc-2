@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Http\Controller\Championship;
 
+use App\Domain\Championship\Entity\Round;
 use App\Domain\Championship\Repository\RoundRepositoryInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpKernel\Attribute\AsController;
@@ -25,12 +26,13 @@ final readonly class RoundShowController
     {
         $round = $this->roundRepository->findById($id);
 
-        if ($round === null || !$round->getSeason()?->isActive()) {
+        if (!$round instanceof Round || !$round->getSeason()?->isActive()) {
             throw new NotFoundHttpException('Manche non trouvée');
         }
 
         // Redirect to first phase
         $firstPhase = $round->getPhases()->first();
+
         if ($firstPhase) {
             return new RedirectResponse(
                 $this->urlGenerator->generate('app_championship_round_phase', [

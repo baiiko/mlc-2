@@ -58,6 +58,11 @@ class Server
         $this->login = $login;
     }
 
+    public function __toString(): string
+    {
+        return $this->name ?? '';
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -186,7 +191,7 @@ class Server
     public function getConnectionString(): ?string
     {
         if ($this->ip && $this->port) {
-            return sprintf('%s:%d', $this->ip, $this->port);
+            return \sprintf('%s:%d', $this->ip, $this->port);
         }
 
         return null;
@@ -195,10 +200,5 @@ class Server
     public function getActiveLabel(): string
     {
         return $this->isActive ? 'Oui' : 'Non';
-    }
-
-    public function __toString(): string
-    {
-        return $this->name ?? '';
     }
 }

@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
 use App\Application\Championship\Service\CalculateRankingServiceInterface;
 use App\Application\Championship\Service\ServerInfoService;
+use App\Domain\Championship\Entity\Season;
 use App\Domain\Championship\Repository\RoundRepositoryInterface;
 use App\Domain\Championship\Repository\SeasonRepositoryInterface;
 use App\Domain\Championship\Repository\ServerRepositoryInterface;
@@ -22,7 +25,8 @@ final readonly class HomeController
         private RoundRepositoryInterface $roundRepository,
         private SeasonRepositoryInterface $seasonRepository,
         private CalculateRankingServiceInterface $calculateRankingService,
-    ) {}
+    ) {
+    }
 
     #[Route('/', name: 'app_home')]
     public function __invoke(): Response
@@ -35,8 +39,9 @@ final readonly class HomeController
 
         // Classement saison individuel (top 10)
         $seasonRanking = [];
-        if ($activeSeason) {
-            $seasonRanking = array_slice(
+
+        if ($activeSeason instanceof Season) {
+            $seasonRanking = \array_slice(
                 $this->calculateRankingService->calculateSeasonIndividualRanking($activeSeason),
                 0,
                 10

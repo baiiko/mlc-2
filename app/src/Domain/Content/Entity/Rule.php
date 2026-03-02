@@ -29,6 +29,11 @@ class Rule
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $contentEn = null;
 
+    public function __toString(): string
+    {
+        return $this->createdAt?->format('d/m/Y H:i') ?? 'Nouveau';
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -65,10 +70,5 @@ class Rule
         }
 
         return $this->content;
-    }
-
-    public function __toString(): string
-    {
-        return $this->createdAt?->format('d/m/Y H:i') ?? 'Nouveau';
     }
 }

@@ -6,11 +6,6 @@ namespace App\Domain\Championship\Entity;
 
 enum PhaseType: string
 {
-    case Registration = 'registration';
-    case Qualification = 'qualification';
-    case SemiFinal = 'semi_final';
-    case Final = 'final';
-
     public function getLabel(): string
     {
         return match ($this) {
@@ -35,4 +30,9 @@ enum PhaseType: string
     {
         return $this !== self::Registration;
     }
+
+    case Registration = 'registration';
+    case Qualification = 'qualification';
+    case SemiFinal = 'semi_final';
+    case Final = 'final';
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\EventSubscriber;
 
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -12,8 +14,9 @@ class ToolbarSubscriber implements EventSubscriberInterface
 {
     public function __construct(
         #[Autowire(service: 'profiler')]
-        private ?Profiler $profiler = null
-    ) {}
+        private ?Profiler $profiler = null,
+    ) {
+    }
 
     public static function getSubscribedEvents(): array
     {
@@ -24,7 +27,7 @@ class ToolbarSubscriber implements EventSubscriberInterface
 
     public function onKernelRequest(RequestEvent $event): void
     {
-        if (!$event->isMainRequest() || !$this->profiler) {
+        if (!$event->isMainRequest() || !$this->profiler instanceof Profiler) {
             return;
         }
 

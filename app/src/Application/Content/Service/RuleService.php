@@ -24,7 +24,8 @@ class RuleService
         $rule = new Rule();
 
         $latestRule = $this->ruleRepository->findLatest();
-        if ($latestRule !== null) {
+
+        if ($latestRule instanceof Rule) {
             $rule->setContent($latestRule->getContent());
             $rule->setContentEn($latestRule->getContentEn());
         }
@@ -42,7 +43,7 @@ class RuleService
         $this->entityManager->persist($newRule);
         $this->entityManager->flush();
 
-        if ($latestRule !== null && $latestRule->getId() !== $newRule->getId()) {
+        if ($latestRule instanceof Rule && $latestRule->getId() !== $newRule->getId()) {
             $this->entityManager->remove($latestRule);
             $this->entityManager->flush();
         }

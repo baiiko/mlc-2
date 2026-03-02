@@ -28,6 +28,7 @@ interface PlayerRepositoryInterface
 
     /**
      * @param array<string> $logins
+     *
      * @return Player[]
      */
     public function findByLogins(array $logins): array;

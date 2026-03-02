@@ -8,8 +8,8 @@ use App\Domain\Player\Entity\Player;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 
-#[UniqueEntity(fields: ['login'], entityClass: Player::class, message: 'validation.login_exists')]
-#[UniqueEntity(fields: ['email'], entityClass: Player::class, message: 'validation.email_exists')]
+#[UniqueEntity(fields: ['login'], message: 'validation.login_exists', entityClass: Player::class)]
+#[UniqueEntity(fields: ['email'], message: 'validation.email_exists', entityClass: Player::class)]
 final class RegisterPlayerDTO
 {
     #[Assert\NotBlank(message: 'validation.login_required')]

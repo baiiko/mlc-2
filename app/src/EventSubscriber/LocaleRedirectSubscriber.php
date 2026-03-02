@@ -13,6 +13,7 @@ use Symfony\Component\HttpKernel\KernelEvents;
 class LocaleRedirectSubscriber implements EventSubscriberInterface
 {
     private const SUPPORTED_LOCALES = ['fr', 'en'];
+
     private const DEFAULT_LOCALE = 'fr';
 
     public static function getSubscribedEvents(): array
@@ -45,6 +46,7 @@ class LocaleRedirectSubscriber implements EventSubscriberInterface
 
         // Preserve query string
         $queryString = $request->getQueryString();
+
         if ($queryString) {
             $newPath .= '?' . $queryString;
         }

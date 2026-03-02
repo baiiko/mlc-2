@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Http\Controller\Championship;
 
+use App\Domain\Championship\Entity\Round;
 use App\Domain\Championship\Repository\MapRecordRepositoryInterface;
 use App\Domain\Championship\Repository\RoundRegistrationRepositoryInterface;
 use App\Domain\Championship\Repository\RoundRepositoryInterface;
@@ -31,7 +32,7 @@ final readonly class RoundMapsController
     {
         $round = $this->roundRepository->findById($id);
 
-        if ($round === null || !$round->getSeason()?->isActive()) {
+        if (!$round instanceof Round || !$round->getSeason()?->isActive()) {
             throw new NotFoundHttpException('Manche non trouvée');
         }
 
@@ -39,6 +40,7 @@ final readonly class RoundMapsController
 
         // Get records for each map
         $mapRecords = [];
+
         foreach ($round->getMaps() as $map) {
             if ($map->getUid()) {
                 $mapRecords[$map->getUid()] = $this->mapRecordRepository->findByMapUidWithPlayer($map->getUid(), $round->getId());

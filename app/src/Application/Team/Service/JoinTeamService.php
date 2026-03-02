@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Team\Service;
 
 use App\Domain\Player\Entity\Player;
+use App\Domain\Team\Entity\Team;
 use App\Domain\Team\Entity\TeamJoinRequest;
 use App\Domain\Team\Repository\TeamJoinRequestRepositoryInterface;
 use App\Domain\Team\Repository\TeamRepositoryInterface;
@@ -21,13 +22,14 @@ final readonly class JoinTeamService implements JoinTeamServiceInterface
     {
         $team = $this->teamRepository->findById($teamId);
 
-        if ($team === null) {
+        if (!$team instanceof Team) {
             throw new \InvalidArgumentException('Équipe introuvable.');
         }
 
         // Check if player already has a pending request (only one allowed at a time)
         $existingRequest = $this->joinRequestRepository->findPendingByPlayer($player);
-        if ($existingRequest !== null) {
+
+        if ($existingRequest instanceof TeamJoinRequest) {
             return false;
         }
 
@@ -41,7 +43,7 @@ final readonly class JoinTeamService implements JoinTeamServiceInterface
     {
         $pendingRequest = $this->joinRequestRepository->findPendingByPlayer($player);
 
-        if ($pendingRequest !== null) {
+        if ($pendingRequest instanceof TeamJoinRequest) {
             $this->joinRequestRepository->delete($pendingRequest);
         }
     }

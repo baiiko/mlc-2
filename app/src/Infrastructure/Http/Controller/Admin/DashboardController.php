@@ -11,19 +11,18 @@ use App\Domain\Championship\Entity\RoundMap;
 use App\Domain\Championship\Entity\RoundRegistration;
 use App\Domain\Championship\Entity\Season;
 use App\Domain\Championship\Entity\Server;
+use App\Domain\Communication\Entity\Newsletter;
 use App\Domain\Content\Entity\Rule;
 use App\Domain\Player\Entity\Player;
 use App\Domain\Team\Entity\Team;
-use EasyCorp\Bundle\EasyAdminBundle\Config\Asset;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Assets;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Locale;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
-use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\ExpressionLanguage\Expression;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\ExpressionLanguage\Expression;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[IsGranted(new Expression('is_granted("ROLE_MODERATOR") or is_granted("ROLE_SERVER_ADMIN")'))]
@@ -63,24 +62,39 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkToDashboard('admin.menu.dashboard', 'fa fa-home');
 
         yield MenuItem::section('admin.menu.management')->setPermission('ROLE_MODERATOR');
+
         yield MenuItem::linkToCrud('admin.menu.players', 'fa fa-users', Player::class)->setPermission('ROLE_MODERATOR');
+
         yield MenuItem::linkToCrud('admin.menu.teams', 'fa fa-people-group', Team::class)->setPermission('ROLE_MODERATOR');
 
         yield MenuItem::section('admin.menu.championship')->setPermission('ROLE_ADMIN');
+
         yield MenuItem::linkToCrud('admin.menu.seasons', 'fa fa-calendar', Season::class)->setPermission('ROLE_ADMIN');
+
         yield MenuItem::linkToCrud('admin.menu.rounds', 'fa fa-flag-checkered', Round::class)->setPermission('ROLE_ADMIN');
+
         yield MenuItem::linkToCrud('admin.menu.phases', 'fa fa-layer-group', Phase::class)->setPermission('ROLE_ADMIN');
+
         yield MenuItem::linkToCrud('admin.menu.maps', 'fa fa-map', RoundMap::class)->setPermission('ROLE_ADMIN');
+
         yield MenuItem::linkToCrud('admin.menu.registrations', 'fa fa-clipboard-list', RoundRegistration::class)->setPermission('ROLE_ADMIN');
+
         yield MenuItem::linkToCrud('admin.menu.results', 'fa fa-trophy', PhaseResult::class)->setPermission('ROLE_ADMIN');
 
         yield MenuItem::section('admin.menu.infrastructure')->setPermission('ROLE_SERVER_ADMIN');
+
         yield MenuItem::linkToCrud('admin.menu.servers', 'fa fa-server', Server::class)->setPermission('ROLE_SERVER_ADMIN');
 
         yield MenuItem::section('admin.menu.content')->setPermission('ROLE_ADMIN');
+
         yield MenuItem::linkToCrud('admin.menu.rules', 'fa fa-book', Rule::class)->setPermission('ROLE_ADMIN');
 
+        yield MenuItem::section('admin.menu.communication')->setPermission('ROLE_ADMIN');
+
+        yield MenuItem::linkToCrud('admin.menu.newsletters', 'fa fa-envelope', Newsletter::class)->setPermission('ROLE_ADMIN');
+
         yield MenuItem::section('');
+
         yield MenuItem::linkToRoute('admin.menu.back_to_site', 'fa fa-arrow-left', 'app_home', ['_locale' => $locale]);
     }
 }

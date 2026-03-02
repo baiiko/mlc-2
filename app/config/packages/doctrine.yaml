@@ -46,6 +46,12 @@ doctrine:
                 dir: '%kernel.project_dir%/src/Domain/Content/Entity'
                 prefix: 'App\Domain\Content\Entity'
                 alias: Content
+            Communication:
+                type: attribute
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Domain/Communication/Entity'
+                prefix: 'App\Domain\Communication\Entity'
+                alias: Communication
         controller_resolver:
             auto_mapping: false
 

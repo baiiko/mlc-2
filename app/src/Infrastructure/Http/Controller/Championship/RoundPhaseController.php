@@ -6,11 +6,12 @@ namespace App\Infrastructure\Http\Controller\Championship;
 
 use App\Application\Championship\Service\CalculateRankingServiceInterface;
 use App\Application\Championship\Service\RoundRankingServiceInterface;
+use App\Domain\Championship\Entity\Phase;
 use App\Domain\Championship\Entity\PhaseType;
 use App\Domain\Championship\Repository\PhaseRepositoryInterface;
 use App\Domain\Championship\Repository\RoundRegistrationRepositoryInterface;
-use App\Domain\Player\Repository\PlayerRepositoryInterface;
 use App\Domain\Player\Entity\Player;
+use App\Domain\Player\Repository\PlayerRepositoryInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -36,18 +37,20 @@ final readonly class RoundPhaseController
     {
         $phase = $this->phaseRepository->findById($phaseId);
 
-        if ($phase === null || $phase->getRound()?->getId() !== $id) {
+        if (!$phase instanceof Phase || $phase->getRound()?->getId() !== $id) {
             throw new NotFoundHttpException('Phase non trouvée');
         }
 
         $round = $phase->getRound();
+
         if (!$round->getSeason()?->isActive()) {
             throw new NotFoundHttpException('Manche non trouvée');
         }
 
         $registrations = $this->registrationRepository->findByRound($round);
         $playerRegistration = null;
-        if ($player !== null) {
+
+        if ($player instanceof Player) {
             $playerRegistration = $this->registrationRepository->findByRoundAndPlayer($round, $player);
         }
 
@@ -57,7 +60,7 @@ final readonly class RoundPhaseController
         $phasePlayers = [];
 
         // Get players for this phase (semi-final, final)
-        if ($phase->getPlayers() !== null && count($phase->getPlayers()) > 0) {
+        if ($phase->getPlayers() !== null && $phase->getPlayers() !== []) {
             $phasePlayers = $this->playerRepository->findByLogins($phase->getPlayers());
         }
 
@@ -87,6 +90,7 @@ final readonly class RoundPhaseController
             // Use stored ranking for final phase on finished rounds
             if ($phase->getType() === PhaseType::Final && !$round->isActive() && $phase->getRanking() !== null) {
                 $storedData = $phase->getRanking();
+
                 if (isset($storedData['ranking'])) {
                     $finalRanking = $storedData;
                 } else {

@@ -13,6 +13,7 @@ interface JoinTeamServiceInterface
      * Request to join a team.
      *
      * @return bool true if request was created, false if player already has a pending request
+     *
      * @throws \InvalidArgumentException if team doesn't exist
      */
     public function requestJoin(Player $player, int $teamId): bool;

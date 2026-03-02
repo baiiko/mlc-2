@@ -27,6 +27,7 @@ final readonly class RoundRankingService implements RoundRankingServiceInterface
         // Build availability map from registrations
         $registrations = $this->registrationRepository->findByRound($round);
         $availabilityMap = [];
+
         foreach ($registrations as $registration) {
             $login = mb_strtolower($registration->getPlayer()->getLogin());
             $availabilityMap[$login] = [
@@ -43,17 +44,17 @@ final readonly class RoundRankingService implements RoundRankingServiceInterface
             // Get records for this map, filtered by round and laps
             $records = $this->getMapRecordsForRanking($map->getUid(), $round->getId(), $laps);
 
-            if (empty($records)) {
+            if ($records === []) {
                 continue;
             }
 
             // Sort by time ASC
-            usort($records, fn($a, $b) => $a['record']->getTime() <=> $b['record']->getTime());
+            usort($records, fn (array $a, array $b): int => $a['record']->getTime() <=> $b['record']->getTime());
 
             // Find best lap time holder for this map (bonus 10 pts)
             $bestLapHolder = $this->getBestLapHolder($map->getUid(), $round->getId());
 
-            $totalPlayers = count($records);
+            $totalPlayers = \count($records);
             $position = 1;
 
             foreach ($records as $data) {
@@ -64,6 +65,7 @@ final readonly class RoundRankingService implements RoundRankingServiceInterface
 
                 // Calculate bonus for top 5
                 $bonus = 0;
+
                 if ($position <= 5) {
                     $bonus = (5 - $position) * 2;
                 }
@@ -84,14 +86,14 @@ final readonly class RoundRankingService implements RoundRankingServiceInterface
 
                 $playerStats[$login]['points'] += $points;
                 $playerStats[$login]['bonus'] += $bonus;
-                $playerStats[$login]['nbMaps']++;
+                ++$playerStats[$login]['nbMaps'];
 
-                $position++;
+                ++$position;
             }
         }
 
         // Sort by nbMaps DESC, then total points DESC
-        uasort($playerStats, function ($a, $b) {
+        uasort($playerStats, function (array $a, array $b): int {
             $totalA = $a['points'] + $a['bonus'];
             $totalB = $b['points'] + $b['bonus'];
 
@@ -119,7 +121,7 @@ final readonly class RoundRankingService implements RoundRankingServiceInterface
                 'availableSemiFinal' => $availability['availableSemiFinal'],
                 'availableFinal' => $availability['availableFinal'],
             ];
-            $position++;
+            ++$position;
         }
 
         return $ranking;
@@ -130,8 +132,9 @@ final readonly class RoundRankingService implements RoundRankingServiceInterface
         $allRecords = $this->mapRecordRepository->findByMapUidWithPlayer($mapUid, $roundId);
 
         // Filter by laps and game mode (Laps = 3 for qualification)
-        return array_filter($allRecords, function ($data) use ($laps) {
+        return array_filter($allRecords, function (array $data) use ($laps): bool {
             $record = $data['record'];
+
             return $record->getLaps() === $laps && $record->getGameMode() === GameMode::Laps;
         });
     }
@@ -141,17 +144,18 @@ final readonly class RoundRankingService implements RoundRankingServiceInterface
         $allRecords = $this->mapRecordRepository->findByMapUidWithPlayer($mapUid, $roundId);
 
         // Filter by laps = 1 (single lap) and game mode Laps
-        $lapRecords = array_filter($allRecords, function ($data) {
+        $lapRecords = array_filter($allRecords, function (array $data): bool {
             $record = $data['record'];
+
             return $record->getLaps() === 1 && $record->getGameMode() === GameMode::Laps;
         });
 
-        if (empty($lapRecords)) {
+        if ($lapRecords === []) {
             return null;
         }
 
         // Sort by time ASC and return the best
-        usort($lapRecords, fn($a, $b) => $a['record']->getTime() <=> $b['record']->getTime());
+        usort($lapRecords, fn (array $a, array $b): int => $a['record']->getTime() <=> $b['record']->getTime());
 
         return $lapRecords[0]['record']->getPlayerLogin();
     }

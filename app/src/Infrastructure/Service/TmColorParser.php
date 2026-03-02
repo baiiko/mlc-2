@@ -37,8 +37,9 @@ final class TmColorParser
 
         $chunks = explode('$', $text);
         $result = [htmlspecialchars($chunks[0])];
+        $counter = \count($chunks);
 
-        for ($i = 1; $i < count($chunks); $i++) {
+        for ($i = 1; $i < $counter; ++$i) {
             $chunk = $chunks[$i];
             $match = '';
 
@@ -104,7 +105,8 @@ final class TmColorParser
                 continue;
             }
 
-            $content = substr($chunk, strlen($match));
+            $content = substr($chunk, \strlen($match));
+
             if ($caps) {
                 $content = strtoupper($content);
             }
@@ -116,6 +118,7 @@ final class TmColorParser
         }
 
         $html = implode('', $result);
+
         return str_replace("\x00DOLLAR\x00", '$', $html);
     }
 
@@ -140,11 +143,11 @@ final class TmColorParser
     {
         $color = strtolower($color);
 
-        if (strlen($color) === 3) {
+        if (\strlen($color) === 3) {
             return $color[0] . $color[0] . $color[1] . $color[1] . $color[2] . $color[2];
         }
 
-        if (strlen($color) < 6) {
+        if (\strlen($color) < 6) {
             $color = str_pad($color, 6, '8');
         }
 
@@ -160,28 +163,32 @@ final class TmColorParser
         bool $bold,
         bool $italic,
         bool $narrow,
-        bool $underline
+        bool $underline,
     ): string {
         $styles = [];
 
         if ($color !== null) {
             $styles[] = 'color:#' . $color;
         }
+
         if ($bold) {
             $styles[] = 'font-weight:bold';
         }
+
         if ($italic) {
             $styles[] = 'font-style:italic';
         }
+
         if ($narrow) {
             $styles[] = 'letter-spacing:-0.1em';
             $styles[] = 'font-size:smaller';
         }
+
         if ($underline) {
             $styles[] = 'text-decoration:underline';
         }
 
-        if (empty($styles)) {
+        if ($styles === []) {
             return $content;
         }
 

@@ -18,13 +18,14 @@ final readonly class UpdateTeamService implements UpdateTeamServiceInterface
 
     public function updateTeam(Team $team, Player $player, UpdateTeamDTO $dto): array
     {
-        if (!$player->isTeamCreator() || $team->getCreator()?->getId() !== $player->getId()) {
+        if (!$player->isTeamCreator() || $team->getCreator()->getId() !== $player->getId()) {
             throw new \RuntimeException('Vous n\'êtes pas le créateur de cette équipe.');
         }
 
         // Check tag uniqueness
         $existingTeam = $this->teamRepository->findByTag($dto->tag);
-        if ($existingTeam !== null && $existingTeam->getId() !== $team->getId()) {
+
+        if ($existingTeam instanceof Team && $existingTeam->getId() !== $team->getId()) {
             return [
                 'success' => false,
                 'error' => 'Une équipe avec ce tag existe déjà.',
@@ -33,6 +34,7 @@ final readonly class UpdateTeamService implements UpdateTeamServiceInterface
 
         $team->setTag($dto->tag);
         $team->setFullName($dto->fullName);
+
         $this->teamRepository->save($team);
 
         return [

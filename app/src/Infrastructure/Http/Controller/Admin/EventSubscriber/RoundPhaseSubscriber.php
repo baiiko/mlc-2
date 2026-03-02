@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace App\Infrastructure\Http\Controller\Admin\EventSubscriber;
 
 use App\Application\Championship\Service\RoundPhaseGeneratorService;
-use App\Domain\Championship\Entity\Round;
 use App\Domain\Championship\Entity\Phase;
+use App\Domain\Championship\Entity\Round;
+use App\Domain\Championship\Entity\Season;
 use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Event\BeforeEntityPersistedEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -35,12 +36,14 @@ class RoundPhaseSubscriber implements EventSubscriberInterface
         }
 
         $startDate = $entity->getStartDate();
-        if ($startDate === null) {
+
+        if (!$startDate instanceof \DateTimeInterface) {
             return;
         }
 
         $season = $entity->getSeason();
-        if ($season === null) {
+
+        if (!$season instanceof Season) {
             return;
         }
 
@@ -62,6 +65,7 @@ class RoundPhaseSubscriber implements EventSubscriberInterface
             }
 
             $existingPhases = $existingRound->getPhases();
+
             if ($existingPhases->isEmpty()) {
                 continue;
             }
@@ -69,18 +73,17 @@ class RoundPhaseSubscriber implements EventSubscriberInterface
             $existingStart = $this->getEarliestPhaseStartFromCollection($existingPhases);
             $existingEnd = $this->getLatestPhaseStartFromCollection($existingPhases);
 
-            if ($existingStart === null || $existingEnd === null) {
+            if (!$existingStart instanceof \DateTimeImmutable) {
+                continue;
+            }
+
+            if (!$existingEnd instanceof \DateTimeImmutable) {
                 continue;
             }
 
             // Check for overlap
             if ($this->datesOverlap($newRoundStart, $newRoundEnd, $existingStart, $existingEnd)) {
-                throw new \RuntimeException(sprintf(
-                    'Cette manche chevauche la manche "%s" (du %s au %s)',
-                    $existingRound->getName(),
-                    $existingStart->format('d/m/Y'),
-                    $existingEnd->format('d/m/Y')
-                ));
+                throw new \RuntimeException(\sprintf('Cette manche chevauche la manche "%s" (du %s au %s)', $existingRound->getName(), $existingStart->format('d/m/Y'), $existingEnd->format('d/m/Y')));
             }
         }
 
@@ -97,12 +100,15 @@ class RoundPhaseSubscriber implements EventSubscriberInterface
     private function getEarliestPhaseStart(array $phases): ?\DateTimeImmutable
     {
         $earliest = null;
+
         foreach ($phases as $phase) {
             $start = $phase->getStartAt();
+
             if ($start !== null && ($earliest === null || $start < $earliest)) {
                 $earliest = $start;
             }
         }
+
         return $earliest;
     }
 
@@ -112,12 +118,15 @@ class RoundPhaseSubscriber implements EventSubscriberInterface
     private function getLatestPhaseStart(array $phases): ?\DateTimeImmutable
     {
         $latest = null;
+
         foreach ($phases as $phase) {
             $start = $phase->getStartAt();
+
             if ($start !== null && ($latest === null || $start > $latest)) {
                 $latest = $start;
             }
         }
+
         return $latest;
     }
 
@@ -127,12 +136,15 @@ class RoundPhaseSubscriber implements EventSubscriberInterface
     private function getEarliestPhaseStartFromCollection(iterable $phases): ?\DateTimeImmutable
     {
         $earliest = null;
+
         foreach ($phases as $phase) {
             $start = $phase->getStartAt();
+
             if ($start !== null && ($earliest === null || $start < $earliest)) {
                 $earliest = $start;
             }
         }
+
         return $earliest;
     }
 
@@ -142,12 +154,15 @@ class RoundPhaseSubscriber implements EventSubscriberInterface
     private function getLatestPhaseStartFromCollection(iterable $phases): ?\DateTimeImmutable
     {
         $latest = null;
+
         foreach ($phases as $phase) {
             $start = $phase->getStartAt();
+
             if ($start !== null && ($latest === null || $start > $latest)) {
                 $latest = $start;
             }
         }
+
         return $latest;
     }
 
@@ -155,9 +170,9 @@ class RoundPhaseSubscriber implements EventSubscriberInterface
         ?\DateTimeImmutable $start1,
         ?\DateTimeImmutable $end1,
         \DateTimeImmutable $start2,
-        \DateTimeImmutable $end2
+        \DateTimeImmutable $end2,
     ): bool {
-        if ($start1 === null || $end1 === null) {
+        if (!$start1 instanceof \DateTimeImmutable || !$end1 instanceof \DateTimeImmutable) {
             return false;
         }
 

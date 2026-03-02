@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Championship\Service;
 
+use App\Domain\Championship\Entity\Round;
+use App\Domain\Championship\Entity\RoundRegistration;
 use App\Domain\Championship\Repository\RoundRegistrationRepositoryInterface;
 use App\Domain\Championship\Repository\RoundRepositoryInterface;
 use App\Domain\Player\Entity\Player;
@@ -21,17 +23,17 @@ final readonly class UpdateAvailabilityService implements UpdateAvailabilityServ
         Player $player,
         bool $availableSemiFinal1,
         bool $availableSemiFinal2,
-        bool $availableFinal
+        bool $availableFinal,
     ): void {
         $round = $this->roundRepository->findById($roundId);
 
-        if ($round === null) {
+        if (!$round instanceof Round) {
             throw new \RuntimeException('Manche non trouvée');
         }
 
         $registration = $this->registrationRepository->findByRoundAndPlayer($round, $player);
 
-        if ($registration === null) {
+        if (!$registration instanceof RoundRegistration) {
             throw new \RuntimeException('Vous n\'êtes pas inscrit à cette manche');
         }
 

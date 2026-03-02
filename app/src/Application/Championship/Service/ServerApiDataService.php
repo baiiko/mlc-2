@@ -21,6 +21,7 @@ final readonly class ServerApiDataService implements ServerApiDataServiceInterfa
         $serversInfo = $this->serverInfoService->getMultipleServersInfo($servers);
 
         $data = [];
+
         foreach ($serversInfo as $serverData) {
             $server = $serverData['server'];
             $info = $serverData['info'];
@@ -37,7 +38,7 @@ final readonly class ServerApiDataService implements ServerApiDataServiceInterfa
                 'currentMap' => $info['currentMap'],
                 'currentMapHtml' => $info['currentMap'] ? TmColorParser::toHtml($info['currentMap']) : null,
                 'currentMapStrip' => $info['currentMap'] ? TmColorParser::stripColors($info['currentMap']) : null,
-                'players' => array_map(fn($p) => [
+                'players' => array_map(fn (string $p): array => [
                     'name' => $p,
                     'nameHtml' => TmColorParser::toHtml($p),
                 ], $info['players']),

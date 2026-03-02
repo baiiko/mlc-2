@@ -19,13 +19,13 @@ final readonly class TransferOwnershipService implements TransferOwnershipServic
 
     public function transferOwnership(Team $team, Player $currentCreator, int $newCreatorId): void
     {
-        if (!$currentCreator->isTeamCreator() || $team->getCreator()?->getId() !== $currentCreator->getId()) {
+        if (!$currentCreator->isTeamCreator() || $team->getCreator()->getId() !== $currentCreator->getId()) {
             throw new \RuntimeException('Vous n\'êtes pas le créateur de cette équipe.');
         }
 
         $newCreator = $this->playerRepository->findById($newCreatorId);
 
-        if ($newCreator === null || $newCreator->getTeam()?->getId() !== $team->getId()) {
+        if (!$newCreator instanceof Player || $newCreator->getTeam()?->getId() !== $team->getId()) {
             throw new \InvalidArgumentException('Le joueur sélectionné n\'est pas membre de cette équipe.');
         }
 

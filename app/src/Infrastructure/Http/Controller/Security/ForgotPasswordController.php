@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Http\Controller\Security;
 
 use App\Application\Player\Service\PasswordResetServiceInterface;
+use App\Domain\Player\Entity\Player;
 use App\Infrastructure\Http\Form\ForgotPasswordType;
 use App\Infrastructure\Http\Form\ResetPasswordType;
 use Symfony\Component\Form\FormFactoryInterface;
@@ -54,7 +55,7 @@ final readonly class ForgotPasswordController
     {
         $player = $this->passwordResetService->findByResetToken($token);
 
-        if ($player === null) {
+        if (!$player instanceof Player) {
             return new Response(
                 $this->twig->render('security/reset_password_invalid.html.twig'),
                 Response::HTTP_NOT_FOUND

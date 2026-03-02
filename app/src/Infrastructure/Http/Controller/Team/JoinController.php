@@ -47,8 +47,8 @@ final readonly class JoinController
         );
     }
 
-    #[Route('/team/join/{id}', name: 'app_team_join_submit', methods: ['POST'], requirements: ['id' => '\d+'])]
-    public function requestJoin(int $id, #[CurrentUser] Player $player): Response
+    #[Route('/team/join/{id}', name: 'app_team_join_submit', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function requestJoin(int $id, #[CurrentUser] Player $player): RedirectResponse
     {
         if ($player->hasTeam()) {
             return new RedirectResponse($this->urlGenerator->generate('app_profile'));
@@ -57,14 +57,14 @@ final readonly class JoinController
         try {
             $this->joinTeamService->requestJoin($player, $id);
         } catch (\InvalidArgumentException $e) {
-            throw new BadRequestHttpException($e->getMessage());
+            throw new BadRequestHttpException($e->getMessage(), $e);
         }
 
         return new RedirectResponse($this->urlGenerator->generate('app_team_join'));
     }
 
     #[Route('/team/join/cancel', name: 'app_team_join_cancel', methods: ['POST'])]
-    public function cancelRequest(#[CurrentUser] Player $player): Response
+    public function cancelRequest(#[CurrentUser] Player $player): RedirectResponse
     {
         $this->joinTeamService->cancelRequest($player);
 

@@ -71,7 +71,7 @@ class RoundPhaseGeneratorService
         }
 
         if ($daysToAdd > 0) {
-            $dateTime->modify("+{$daysToAdd} days");
+            $dateTime->modify(\sprintf('+%s days', $daysToAdd));
         }
 
         return $dateTime;
@@ -80,8 +80,9 @@ class RoundPhaseGeneratorService
     private function createDateTimeOffset(\DateTime $baseDate, int $daysOffset, int $hour, int $minute): \DateTimeImmutable
     {
         $date = clone $baseDate;
+
         if ($daysOffset > 0) {
-            $date->modify("+{$daysOffset} days");
+            $date->modify(\sprintf('+%d days', $daysOffset));
         }
         $date->setTime($hour, $minute, 0);
 
@@ -93,12 +94,14 @@ class RoundPhaseGeneratorService
         PhaseType $type,
         \DateTimeImmutable $startAt,
         ?\DateTimeImmutable $endAt = null,
-        ?int $groupNumber = null
+        ?int $groupNumber = null,
     ): Phase {
         $phase = new Phase($round, $type, $startAt);
-        if ($endAt !== null) {
+
+        if ($endAt instanceof \DateTimeImmutable) {
             $phase->setEndAt($endAt);
         }
+
         if ($groupNumber !== null) {
             $phase->setGroupNumber($groupNumber);
         }

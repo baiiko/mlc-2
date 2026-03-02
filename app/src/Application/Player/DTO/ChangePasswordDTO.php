@@ -25,7 +25,7 @@ final class ChangePasswordDTO
         message: 'validation.password_lowercase'
     )]
     #[Assert\Regex(
-        pattern: '/[0-9]/',
+        pattern: '/\d/',
         message: 'validation.password_digit'
     )]
     #[Assert\Regex(

@@ -6,7 +6,6 @@ namespace App\Domain\Championship\Entity;
 
 use App\Domain\Player\Entity\Player;
 use Doctrine\ORM\Mapping as ORM;
-use Gedmo\Mapping\Annotation as Gedmo;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 
 #[ORM\Entity]
@@ -149,6 +148,6 @@ class PhaseResult
         $seconds = (int) floor(($milliseconds % 60000) / 1000);
         $ms = $milliseconds % 1000;
 
-        return sprintf('%d:%02d.%03d', $minutes, $seconds, $ms);
+        return \sprintf('%d:%02d.%03d', $minutes, $seconds, $ms);
     }
 }

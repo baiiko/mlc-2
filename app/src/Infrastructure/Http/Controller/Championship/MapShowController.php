@@ -32,7 +32,7 @@ final readonly class MapShowController
     {
         $map = $this->entityManager->getRepository(RoundMap::class)->findOneBy(['uid' => $uid]);
 
-        if (!$map) {
+        if (!$map instanceof RoundMap) {
             throw new NotFoundHttpException('Map not found');
         }
 
@@ -42,8 +42,10 @@ final readonly class MapShowController
         // Get round names for display
         $roundIds = array_keys($rankingsByRound);
         $rounds = [];
-        if (!empty($roundIds)) {
+
+        if ($roundIds !== []) {
             $roundEntities = $this->entityManager->getRepository(Round::class)->findBy(['id' => $roundIds]);
+
             foreach ($roundEntities as $round) {
                 $rounds[$round->getId()] = $round;
             }

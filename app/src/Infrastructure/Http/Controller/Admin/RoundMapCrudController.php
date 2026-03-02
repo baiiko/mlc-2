@@ -6,6 +6,7 @@ namespace App\Infrastructure\Http\Controller\Admin;
 
 use App\Application\Championship\Service\RoundMapService;
 use App\Domain\Championship\Entity\RoundMap;
+use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
@@ -24,7 +25,8 @@ class RoundMapCrudController extends AbstractCrudController
 {
     public function __construct(
         private readonly RoundMapService $roundMapService,
-    ) {}
+    ) {
+    }
 
     public static function getEntityFqcn(): string
     {
@@ -96,13 +98,13 @@ class RoundMapCrudController extends AbstractCrudController
         return new RoundMap();
     }
 
-    public function persistEntity(\Doctrine\ORM\EntityManagerInterface $entityManager, $entityInstance): void
+    public function persistEntity(EntityManagerInterface $entityManager, $entityInstance): void
     {
         $this->handleGbxImport($entityInstance);
         parent::persistEntity($entityManager, $entityInstance);
     }
 
-    public function updateEntity(\Doctrine\ORM\EntityManagerInterface $entityManager, $entityInstance): void
+    public function updateEntity(EntityManagerInterface $entityManager, $entityInstance): void
     {
         $this->handleGbxImport($entityInstance);
         parent::updateEntity($entityManager, $entityInstance);
@@ -111,15 +113,17 @@ class RoundMapCrudController extends AbstractCrudController
     private function handleGbxImport(RoundMap $map): void
     {
         $file = $map->getGbxFile();
+
         if (!$file instanceof UploadedFile) {
             return;
         }
 
         $error = $this->roundMapService->importFromGbxFile($map, $file);
+
         if ($error) {
             $this->addFlash('warning', $error);
         } else {
-            $this->addFlash('success', sprintf('Map "%s" importée avec succès', $map->getName() ?? 'inconnue'));
+            $this->addFlash('success', \sprintf('Map "%s" importée avec succès', $map->getName() ?? 'inconnue'));
         }
     }
 }

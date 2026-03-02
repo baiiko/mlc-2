@@ -20,7 +20,8 @@ final readonly class UpdateProfileService implements UpdateProfileServiceInterfa
         // Check email uniqueness (excluding current player)
         if ($dto->email !== $player->getEmail()) {
             $existingPlayer = $this->playerRepository->findByEmail($dto->email);
-            if ($existingPlayer !== null) {
+
+            if ($existingPlayer instanceof Player) {
                 return [
                     'success' => false,
                     'error' => 'Cette adresse email est déjà utilisée.',
@@ -32,6 +33,7 @@ final readonly class UpdateProfileService implements UpdateProfileServiceInterfa
         $player->setEmail($dto->email);
         $player->setDiscord($dto->discord);
         $player->setNewsletter($dto->newsletter);
+
         $this->playerRepository->save($player);
 
         return [

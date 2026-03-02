@@ -19,9 +19,7 @@ final class PlayerChecker implements UserCheckerInterface
         }
 
         if (!$user->isActive()) {
-            throw new CustomUserMessageAccountStatusException(
-                'Votre compte n\'est pas encore activé. Vérifiez votre boîte mail.'
-            );
+            throw new CustomUserMessageAccountStatusException('Votre compte n\'est pas encore activé. Vérifiez votre boîte mail.');
         }
     }
 

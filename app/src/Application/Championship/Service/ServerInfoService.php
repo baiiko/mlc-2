@@ -13,7 +13,8 @@ class ServerInfoService
 {
     public function __construct(
         private readonly CacheInterface $cache,
-    ) {}
+    ) {
+    }
 
     /**
      * @return array{
@@ -35,6 +36,28 @@ class ServerInfoService
 
             return $this->fetchServerInfo($server);
         });
+    }
+
+    /**
+     * @param Server[] $servers
+     *
+     * @return array<int, array{
+     *     server: Server,
+     *     info: array{online: bool, name: string|null, playerCount: int, maxPlayers: int, currentMap: string|null, players: array<string>, error: string|null}
+     * }>
+     */
+    public function getMultipleServersInfo(array $servers): array
+    {
+        $results = [];
+
+        foreach ($servers as $server) {
+            $results[] = [
+                'server' => $server,
+                'info' => $this->getServerInfo($server),
+            ];
+        }
+
+        return $results;
     }
 
     /**
@@ -62,6 +85,7 @@ class ServerInfoService
 
         if (!$server->getIp() || !$server->getPort()) {
             $default['error'] = 'IP ou port non configuré';
+
             return $default;
         }
 
@@ -70,15 +94,18 @@ class ServerInfoService
         try {
             if (!$client->connect($server->getIp(), $server->getPort(), 2)) {
                 $default['error'] = $client->getError();
+
                 return $default;
             }
 
             // Authenticate with admin account
             $adminLogin = $server->getAdminLogin();
             $password = $server->getPassword();
+
             if ($adminLogin && $password && !$client->authenticate($adminLogin, $password)) {
                 $default['error'] = 'Authentification échouée';
                 $client->disconnect();
+
                 return $default;
             }
 
@@ -87,7 +114,8 @@ class ServerInfoService
             $maxPlayers = $client->query('GetMaxPlayers');
             // TMNF uses GetCurrentChallengeInfo, TM2/TM2020 uses GetCurrentMapInfo
             $currentMap = $client->query('GetCurrentChallengeInfo');
-            if (!is_array($currentMap)) {
+
+            if (!\is_array($currentMap)) {
                 $currentMap = $client->query('GetCurrentMapInfo');
             }
             $players = $client->query('GetPlayerList', 100, 0);
@@ -96,7 +124,8 @@ class ServerInfoService
 
             // Get player list
             $playerList = [];
-            if (is_array($players)) {
+
+            if (\is_array($players)) {
                 foreach ($players as $player) {
                     if (isset($player['NickName'])) {
                         $playerList[] = $player['NickName'];
@@ -106,14 +135,15 @@ class ServerInfoService
 
             // Map name can be in 'Name' or 'NickName' depending on the game version
             $mapName = null;
-            if (is_array($currentMap)) {
+
+            if (\is_array($currentMap)) {
                 $mapName = $currentMap['Name'] ?? $currentMap['NickName'] ?? null;
             }
 
             return [
                 'online' => true,
-                'name' => is_string($serverName) ? $serverName : $server->getName(),
-                'playerCount' => count($playerList),
+                'name' => \is_string($serverName) ? $serverName : $server->getName(),
+                'playerCount' => \count($playerList),
                 'maxPlayers' => isset($maxPlayers['CurrentValue']) ? (int) $maxPlayers['CurrentValue'] : $server->getMaxPlayers(),
                 'currentMap' => $mapName,
                 'players' => $playerList,
@@ -122,28 +152,8 @@ class ServerInfoService
         } catch (\Throwable $e) {
             $client->disconnect();
             $default['error'] = $e->getMessage();
+
             return $default;
         }
-    }
-
-    /**
-     * @param Server[] $servers
-     * @return array<int, array{
-     *     server: Server,
-     *     info: array{online: bool, name: string|null, playerCount: int, maxPlayers: int, currentMap: string|null, players: array<string>, error: string|null}
-     * }>
-     */
-    public function getMultipleServersInfo(array $servers): array
-    {
-        $results = [];
-
-        foreach ($servers as $server) {
-            $results[] = [
-                'server' => $server,
-                'info' => $this->getServerInfo($server),
-            ];
-        }
-
-        return $results;
     }
 }

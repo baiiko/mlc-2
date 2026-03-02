@@ -27,18 +27,21 @@ class QualificationClosingService
     public function closeQualification(Phase $qualificationPhase): array
     {
         $round = $qualificationPhase->getRound();
-        if ($round === null) {
+
+        if (!$round instanceof Round) {
             throw new \RuntimeException('La phase n\'est pas associée à une manche.');
         }
 
         $ranking = $qualificationPhase->getRanking();
+
         if ($ranking === null) {
-            throw new \RuntimeException('Le classement de la phase de qualification n\'est pas disponible.');
+            throw new \RuntimeException("Le classement de la phase de qualification n'est pas disponible.");
         }
 
         // Récupérer les demi-finales actives (non supprimées)
         $activeSemiFinals = $this->getActiveSemiFinals($round);
-        if (empty($activeSemiFinals)) {
+
+        if ($activeSemiFinals === []) {
             throw new \RuntimeException('Aucune demi-finale active trouvée.');
         }
 
@@ -51,7 +54,7 @@ class QualificationClosingService
         }
 
         // Trier le ranking par position
-        usort($ranking, fn (array $a, array $b) => $a['position'] <=> $b['position']);
+        usort($ranking, fn (array $a, array $b): int => $a['position'] <=> $b['position']);
 
         // Joueurs qualifiés pour les demi-finales = positions (qualifyToFinalCount + 1) à (qualifyToFinalCount + qualifyToSemiCount)
         $startPosition = $qualifyToFinalCount + 1;
@@ -59,19 +62,21 @@ class QualificationClosingService
 
         $qualifiedForSemi = array_filter(
             $ranking,
-            fn (array $entry) => $entry['position'] >= $startPosition && $entry['position'] <= $endPosition
+            fn (array $entry): bool => $entry['position'] >= $startPosition && $entry['position'] <= $endPosition
         );
 
         // Récupérer les inscriptions pour connaître les disponibilités
         $registrations = $this->registrationRepository->findByRound($round);
         $registrationsByLogin = [];
+
         foreach ($registrations as $registration) {
             $registrationsByLogin[$registration->getPlayer()->getLogin()] = $registration;
         }
 
         // Si une seule demi-finale, tous les joueurs y vont
-        if (count($activeSemiFinals) === 1) {
+        if (\count($activeSemiFinals) === 1) {
             $allPlayers = [];
+
             foreach ($qualifiedForSemi as $entry) {
                 $allPlayers[] = $entry['login'];
             }
@@ -122,7 +127,7 @@ class QualificationClosingService
 
         // Répartir ceux qui sont dispo pour les 2
         foreach ($bothAvailable as $login) {
-            if (count($semi1Players) <= count($semi2Players)) {
+            if (\count($semi1Players) <= \count($semi2Players)) {
                 $semi1Players[] = $login;
             } else {
                 $semi2Players[] = $login;
@@ -150,6 +155,7 @@ class QualificationClosingService
     private function getActiveSemiFinals(Round $round): array
     {
         $semiFinals = [];
+
         foreach ($round->getPhases() as $phase) {
             if ($phase->getType() === PhaseType::SemiFinal) {
                 $semiFinals[] = $phase;

@@ -8,18 +8,23 @@ use App\Domain\Championship\Entity\Phase;
 use App\Domain\Championship\Entity\PhaseType;
 use App\Domain\Championship\Entity\Round;
 use App\Domain\Championship\Entity\RoundMap;
+use App\Domain\Championship\Entity\Season;
 use Symfony\Component\Filesystem\Filesystem;
 
 class MatchSettingsGeneratorService
 {
-    private Filesystem $filesystem;
-    private string $matchSettingsPath;
-
     // Training/Free settings (same as Qualification)
     private const TRAINING_LAPS = 5;
+
     private const TRAINING_TIME_LIMIT = 210000;
+
     private const TRAINING_FINISH_TIMEOUT = 30000;
+
     private const TRAINING_WARMUP = 1;
+
+    private Filesystem $filesystem;
+
+    private string $matchSettingsPath;
 
     public function __construct(string $matchSettingsPath)
     {
@@ -28,7 +33,8 @@ class MatchSettingsGeneratorService
     }
 
     /**
-     * Generate all MatchSettings files for a round
+     * Generate all MatchSettings files for a round.
+     *
      * @return array<string, string> Array of generated files [filename => path]
      */
     public function generateAllForRound(Round $round): array
@@ -55,12 +61,13 @@ class MatchSettingsGeneratorService
     }
 
     /**
-     * Generate MatchSettings for a phase
+     * Generate MatchSettings for a phase.
      */
     public function generateForPhase(Phase $phase): string
     {
         $round = $phase->getRound();
-        if ($round === null) {
+
+        if (!$round instanceof Round) {
             throw new \InvalidArgumentException('Phase must be attached to a round');
         }
 
@@ -68,10 +75,10 @@ class MatchSettingsGeneratorService
 
         // Filter maps: surprise maps are only included in Final phase
         $includeSurprise = $phase->getType() === PhaseType::Final;
-        $maps = array_filter($maps, fn ($map) => $includeSurprise || !$map->isSurprise());
+        $maps = array_filter($maps, fn (RoundMap $map): bool => $includeSurprise || !$map->isSurprise());
         $maps = array_values($maps); // Reset keys
 
-        if (empty($maps)) {
+        if ($maps === []) {
             throw new \InvalidArgumentException('Round has no maps');
         }
 
@@ -79,9 +86,10 @@ class MatchSettingsGeneratorService
         if ($phase->getType() === PhaseType::SemiFinal) {
             // Count active semi-finals to divide qualifyFromSemiCount
             $activeSemiCount = 0;
+
             foreach ($round->getPhases() as $p) {
                 if ($p->getType() === PhaseType::SemiFinal) {
-                    $activeSemiCount++;
+                    ++$activeSemiCount;
                 }
             }
             $coursesPerSemi = $activeSemiCount > 0
@@ -101,40 +109,7 @@ class MatchSettingsGeneratorService
     }
 
     /**
-     * Generate map list for semi-final based on number of qualified players
-     * First a complete round of all maps, then random maps to complete
-     *
-     * @param array<RoundMap> $availableMaps
-     * @return array<RoundMap>
-     */
-    private function generateSemiFinalMapList(array $availableMaps, int $qualifiedCount): array
-    {
-        if ($qualifiedCount <= 0 || empty($availableMaps)) {
-            return $availableMaps;
-        }
-
-        $mapCount = count($availableMaps);
-        $result = [];
-
-        // First: complete round of all maps
-        $result = $availableMaps;
-
-        // If we need more maps than available, add random maps
-        if ($qualifiedCount > $mapCount) {
-            $remaining = $qualifiedCount - $mapCount;
-            $randomMaps = $availableMaps;
-            shuffle($randomMaps);
-            $result = array_merge($result, array_slice($randomMaps, 0, $remaining));
-        } elseif ($qualifiedCount < $mapCount) {
-            // If we need fewer maps, just take the first N (or shuffle and take N)
-            $result = array_slice($availableMaps, 0, $qualifiedCount);
-        }
-
-        return $result;
-    }
-
-    /**
-     * Save MatchSettings for a phase
+     * Save MatchSettings for a phase.
      */
     public function saveForPhase(Phase $phase, ?string $filename = null): string
     {
@@ -153,16 +128,16 @@ class MatchSettingsGeneratorService
     }
 
     /**
-     * Generate training.xml - maps of the round, no timeout/warmup
+     * Generate training.xml - maps of the round, no timeout/warmup.
      */
     public function generateTraining(Round $round): string
     {
         $maps = $round->getMaps()->toArray();
 
         // Exclude surprise maps
-        $maps = array_filter($maps, fn ($map) => !$map->isSurprise());
+        $maps = array_filter($maps, fn (RoundMap $map): bool => !$map->isSurprise());
 
-        if (empty($maps)) {
+        if ($maps === []) {
             throw new \InvalidArgumentException('Round has no maps');
         }
 
@@ -176,22 +151,23 @@ class MatchSettingsGeneratorService
     }
 
     /**
-     * Save training.xml
+     * Save training.xml.
      */
     public function saveTraining(Round $round): string
     {
         $xml = $this->generateTraining($round);
+
         return $this->saveFile('training.xml', $xml);
     }
 
     /**
-     * Generate free.xml - last 30 maps from the season, no timeout/warmup
+     * Generate free.xml - last 30 maps from the season, no timeout/warmup.
      */
     public function generateFree(Round $round, int $limit = 30): string
     {
         $maps = $this->getSeasonMaps($round, $limit);
 
-        if (empty($maps)) {
+        if ($maps === []) {
             throw new \InvalidArgumentException('No maps found for free mode');
         }
 
@@ -205,32 +181,73 @@ class MatchSettingsGeneratorService
     }
 
     /**
-     * Save free.xml
+     * Save free.xml.
      */
     public function saveFree(Round $round, int $limit = 30): string
     {
         $xml = $this->generateFree($round, $limit);
+
         return $this->saveFile('free.xml', $xml);
     }
 
+    public function getMatchSettingsPath(): string
+    {
+        return $this->matchSettingsPath;
+    }
+
     /**
-     * Get last N maps from all rounds of the season
+     * Generate map list for semi-final based on number of qualified players
+     * First a complete round of all maps, then random maps to complete.
+     *
+     * @param array<RoundMap> $availableMaps
+     *
+     * @return array<RoundMap>
+     */
+    private function generateSemiFinalMapList(array $availableMaps, int $qualifiedCount): array
+    {
+        if ($qualifiedCount <= 0 || $availableMaps === []) {
+            return $availableMaps;
+        }
+
+        $mapCount = \count($availableMaps);
+
+        // First: complete round of all maps
+        $result = $availableMaps;
+
+        // If we need more maps than available, add random maps
+        if ($qualifiedCount > $mapCount) {
+            $remaining = $qualifiedCount - $mapCount;
+            $randomMaps = $availableMaps;
+            shuffle($randomMaps);
+            $result = array_merge($result, \array_slice($randomMaps, 0, $remaining));
+        } elseif ($qualifiedCount < $mapCount) {
+            // If we need fewer maps, just take the first N (or shuffle and take N)
+            $result = \array_slice($availableMaps, 0, $qualifiedCount);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Get last N maps from all rounds of the season.
+     *
      * @return array<RoundMap>
      */
     private function getSeasonMaps(Round $round, int $limit = 30): array
     {
         $season = $round->getSeason();
-        if ($season === null) {
+
+        if (!$season instanceof Season) {
             return array_filter(
                 $round->getMaps()->toArray(),
-                fn ($map) => !$map->isSurprise()
+                fn (RoundMap $map): bool => !$map->isSurprise()
             );
         }
 
         $allMaps = [];
         // Get rounds in reverse order (most recent first)
         $rounds = $season->getRounds()->toArray();
-        usort($rounds, fn ($a, $b) => ($b->getNumber() ?? 0) <=> ($a->getNumber() ?? 0));
+        usort($rounds, fn ($a, $b): int => ($b->getNumber() ?? 0) <=> ($a->getNumber() ?? 0));
 
         foreach ($rounds as $seasonRound) {
             foreach ($seasonRound->getMaps() as $map) {
@@ -240,11 +257,12 @@ class MatchSettingsGeneratorService
             }
         }
 
-        return array_slice($allMaps, 0, $limit);
+        return \array_slice($allMaps, 0, $limit);
     }
 
     /**
-     * Build the XML content
+     * Build the XML content.
+     *
      * @param array<RoundMap> $maps
      */
     private function buildXml(
@@ -252,7 +270,7 @@ class MatchSettingsGeneratorService
         int $laps,
         int $timeLimit,
         int $finishTimeout,
-        int $warmupDuration
+        int $warmupDuration,
     ): string {
         $xml = '<?xml version="1.0" encoding="utf-8" ?>' . "\n";
         $xml .= '<playlist>' . "\n";
@@ -284,6 +302,7 @@ class MatchSettingsGeneratorService
 
         foreach ($maps as $map) {
             $uid = $map->getUid();
+
             if ($uid === null) {
                 continue;
             }
@@ -299,19 +318,18 @@ class MatchSettingsGeneratorService
             $xml .= '    </challenge>' . "\n";
         }
 
-        $xml .= '</playlist>';
-
-        return $xml;
+        return $xml . '</playlist>';
     }
 
     /**
-     * Save XML content to file
+     * Save XML content to file.
      */
     private function saveFile(string $filename, string $content): string
     {
         $destPath = rtrim($this->matchSettingsPath, '/') . '/' . $filename;
 
-        $dir = dirname($destPath);
+        $dir = \dirname($destPath);
+
         if (!$this->filesystem->exists($dir)) {
             $this->filesystem->mkdir($dir, 0755);
         }
@@ -319,10 +337,5 @@ class MatchSettingsGeneratorService
         $this->filesystem->dumpFile($destPath, $content);
 
         return $destPath;
-    }
-
-    public function getMatchSettingsPath(): string
-    {
-        return $this->matchSettingsPath;
     }
 }

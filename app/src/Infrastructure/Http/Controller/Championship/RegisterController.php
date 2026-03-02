@@ -8,11 +8,11 @@ use App\Application\Championship\DTO\RegisterToRoundDTO;
 use App\Application\Championship\Exception\AlreadyRegisteredException;
 use App\Application\Championship\Exception\RegistrationClosedException;
 use App\Application\Championship\Service\RegisterToRoundServiceInterface;
+use App\Domain\Championship\Entity\Round;
 use App\Domain\Championship\Repository\RoundRepositoryInterface;
 use App\Domain\Player\Entity\Player;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -33,11 +33,11 @@ final readonly class RegisterController
     }
 
     #[Route('/championship/round/{id}/register', name: 'app_championship_register', requirements: ['id' => '\d+'], methods: ['POST'])]
-    public function __invoke(int $id, Request $request, #[CurrentUser] Player $player): Response
+    public function __invoke(int $id, Request $request, #[CurrentUser] Player $player): RedirectResponse
     {
         $round = $this->roundRepository->findById($id);
 
-        if ($round === null) {
+        if (!$round instanceof Round) {
             throw new NotFoundHttpException('Manche non trouvée');
         }
 

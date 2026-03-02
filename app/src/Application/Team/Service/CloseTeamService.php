@@ -19,7 +19,7 @@ final readonly class CloseTeamService implements CloseTeamServiceInterface
 
     public function closeTeam(Team $team, Player $player): void
     {
-        if (!$player->isTeamCreator() || $team->getCreator()?->getId() !== $player->getId()) {
+        if (!$player->isTeamCreator() || $team->getCreator()->getId() !== $player->getId()) {
             throw new \RuntimeException('Seul le créateur peut clôturer l\'équipe.');
         }
 

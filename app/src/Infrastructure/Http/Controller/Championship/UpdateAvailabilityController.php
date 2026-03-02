@@ -8,7 +8,6 @@ use App\Application\Championship\Service\UpdateAvailabilityServiceInterface;
 use App\Domain\Player\Entity\Player;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -29,7 +28,7 @@ final readonly class UpdateAvailabilityController
     }
 
     #[Route('/championship/round/{id}/availability', name: 'app_championship_update_availability', requirements: ['id' => '\d+'], methods: ['POST'])]
-    public function __invoke(int $id, Request $request, #[CurrentUser] Player $player): Response
+    public function __invoke(int $id, Request $request, #[CurrentUser] Player $player): RedirectResponse
     {
         try {
             $this->updateAvailabilityService->updateAvailability(
@@ -41,9 +40,10 @@ final readonly class UpdateAvailabilityController
             );
         } catch (\RuntimeException $e) {
             if ($e->getMessage() === 'Manche non trouvée') {
-                throw new NotFoundHttpException($e->getMessage());
+                throw new NotFoundHttpException($e->getMessage(), $e);
             }
-            throw new AccessDeniedHttpException($e->getMessage());
+
+            throw new AccessDeniedHttpException($e->getMessage(), $e);
         }
 
         /** @var Session $session */

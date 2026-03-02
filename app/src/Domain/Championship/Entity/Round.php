@@ -78,6 +78,11 @@ class Round
         $this->maps = new ArrayCollection();
     }
 
+    public function __toString(): string
+    {
+        return \sprintf('%s - %s', $this->season?->getName() ?? '', $this->name ?? '');
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -149,14 +154,15 @@ class Round
     public function isRegistrationOpen(): bool
     {
         $phase = $this->getRegistrationPhase();
-        if ($phase === null) {
+
+        if (!$phase instanceof Phase) {
             return false;
         }
 
         $startAt = $phase->getStartAt();
         $endAt = $phase->getEndAt();
 
-        if ($startAt === null || $endAt === null) {
+        if (!$startAt instanceof \DateTimeImmutable || !$endAt instanceof \DateTimeImmutable) {
             return false;
         }
 
@@ -262,10 +268,8 @@ class Round
 
     public function removeMap(RoundMap $map): self
     {
-        if ($this->maps->removeElement($map)) {
-            if ($map->getRound() === $this) {
-                $map->setRound(null);
-            }
+        if ($this->maps->removeElement($map) && $map->getRound() === $this) {
+            $map->setRound(null);
         }
 
         return $this;
@@ -286,10 +290,5 @@ class Round
         $this->startDate = $startDate;
 
         return $this;
-    }
-
-    public function __toString(): string
-    {
-        return sprintf('%s - %s', $this->season?->getName() ?? '', $this->name ?? '');
     }
 }
