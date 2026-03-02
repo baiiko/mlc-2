@@ -35,7 +35,7 @@
                                     {% endif %}
                                 </h3>
 
-                                {% if map.author and not map.isSurprise %}
+                                {% if map.author and (not map.isSurprise or map.uid) %}
                                     <p class="text-sm text-gray-light">
                                         {{ 'championship.map_author'|trans({}, 'championship') }} <span class="tm-colors">{{ map.author|tm_color|raw }}</span>
                                     </p>
@@ -43,7 +43,7 @@
                             </div>
 
                             {# Thumbnail #}
-                            {% if map.thumbnailPath and not map.isSurprise %}
+                            {% if map.thumbnailPath and (not map.isSurprise or map.uid) %}
                                 <div class="flex-shrink-0">
                                     <img src="{{ asset('uploads/maps/thumbnails/' ~ map.thumbnailPath) }}" alt="{{ map.name }}" class="w-24 h-16 object-cover rounded border border-metal-dark">
                                 </div>
@@ -51,12 +51,12 @@
                         </div>
 
                         {# Records section #}
-                        {% if not map.isSurprise %}
+                        {% if not map.isSurprise or map.uid %}
                             {% set records = map.uid and mapRecords[map.uid] is defined ? mapRecords[map.uid] : [] %}
                             <div class="mt-3 pt-3 border-t border-metal-dark">
                                 <p class="text-xs text-gray-mid mb-2 uppercase">{{ 'championship.records'|trans({}, 'championship') }}</p>
                                 <div class="space-y-1">
-                                    {% for laps in [1, 5, 10] %}
+                                    {% for laps in map.isSurprise ? [1, 10] : [1, 5, 10] %}
                                         {% set recordData = null %}
                                         {% for r in records %}
                                             {% if r.record.laps == laps and recordData is null %}

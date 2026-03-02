@@ -23,7 +23,7 @@
                             prose-strong:text-white
                             prose-ul:text-gray-light prose-ol:text-gray-light
                             prose-li:marker:text-orange">
-                    {{ rule.content|raw }}
+                    {{ rule.getLocalizedContent(locale)|raw }}
                 </div>
             </div>
         {% else %}

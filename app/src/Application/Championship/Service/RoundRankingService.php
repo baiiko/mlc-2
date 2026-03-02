@@ -28,7 +28,7 @@ final readonly class RoundRankingService implements RoundRankingServiceInterface
         $registrations = $this->registrationRepository->findByRound($round);
         $availabilityMap = [];
         foreach ($registrations as $registration) {
-            $login = $registration->getPlayer()->getLogin();
+            $login = mb_strtolower($registration->getPlayer()->getLogin());
             $availabilityMap[$login] = [
                 'availableSemiFinal' => $registration->isAvailableSemiFinal1() || $registration->isAvailableSemiFinal2(),
                 'availableFinal' => $registration->isAvailableFinal(),
@@ -107,7 +107,7 @@ final readonly class RoundRankingService implements RoundRankingServiceInterface
         $position = 1;
 
         foreach ($playerStats as $login => $stats) {
-            $availability = $availabilityMap[$login] ?? ['availableSemiFinal' => false, 'availableFinal' => false];
+            $availability = $availabilityMap[mb_strtolower($login)] ?? ['availableSemiFinal' => false, 'availableFinal' => false];
             $ranking[] = [
                 'position' => $position,
                 'login' => $login,

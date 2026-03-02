@@ -2,42 +2,45 @@
 {% if ranking is empty %}
     <p class="text-gray-mid">{{ 'championship.no_team_ranking'|trans({}, 'championship') }}</p>
 {% else %}
+    {% set isFinal = ranking[0].roundPoints > 0 %}
     <div class="overflow-x-auto">
-        <table class="w-full">
-            <thead>
-                <tr class="text-left text-gray-light text-sm border-b border-metal-dark">
-                    <th class="pb-2 w-12">#</th>
-                    <th class="pb-2">{{ 'championship.team'|trans({}, 'championship') }}</th>
-                    <th class="pb-2 text-center">{{ 'championship.players'|trans({}, 'championship') }}</th>
-                    <th class="pb-2 text-right">{{ 'championship.total_time'|trans({}, 'championship') }}</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in ranking %}
-                    <tr class="border-b border-metal-dark/50 hover:bg-bg-dark/50">
-                        <td class="py-3 font-semibold {{ item.position <= 3 ? 'text-orange' : '' }}">{{ item.position }}</td>
-                        <td class="py-3">
-                            <div class="tm-colors font-semibold">{{ item.team.tag|tm_color|raw }}</div>
-                            <div class="text-sm text-gray-light">{{ item.team.fullName }}</div>
-                        </td>
-                        <td class="py-3 text-center">
-                            <span class="text-turquoise">{{ item.playerCount }}</span>
-                        </td>
-                        <td class="py-3 text-right font-mono">{{ item.formattedTime }}</td>
-                    </tr>
-                    {% if item.topPlayers is not empty %}
-                        <tr class="bg-bg-dark/30">
-                            <td colspan="4" class="py-2 px-4">
-                                <div class="flex flex-wrap gap-4 text-sm text-gray-light">
-                                    {% for player in item.topPlayers %}
-                                        <span class="tm-colors">{{ player.player.pseudo|tm_color|raw }} <span class="text-gray-mid font-mono">({{ player.formattedTime }})</span></span>
-                                    {% endfor %}
-                                </div>
-                            </td>
-                        </tr>
-                    {% endif %}
-                {% endfor %}
-            </tbody>
-        </table>
+        {# Header #}
+        <div class="grid gap-x-2 text-xs text-gray-light uppercase border-b border-metal-dark pb-2 mb-2 {{ isFinal ? 'grid-cols-[2.5rem_1fr_3rem_4rem_4rem]' : 'grid-cols-[2.5rem_1fr_3rem_5rem]' }}">
+            <span class="px-2">#</span>
+            <span>{{ 'championship.team'|trans({}, 'championship') }}</span>
+            <span class="text-center">{{ 'championship.players'|trans({}, 'championship') }}</span>
+            {% if isFinal %}
+                <span class="text-center">{{ 'championship.points'|trans({}, 'championship') }}</span>
+                <span class="text-right">{{ 'championship.bonus'|trans({}, 'championship') }}</span>
+            {% else %}
+                <span class="text-right">{{ 'championship.total_time'|trans({}, 'championship') }}</span>
+            {% endif %}
+        </div>
+        {# Rows #}
+        {% for item in ranking %}
+            <div class="grid gap-x-2 py-2 border-b border-metal-dark/50 last:border-0 text-sm rounded {{ isFinal ? 'grid-cols-[2.5rem_1fr_3rem_4rem_4rem]' : 'grid-cols-[2.5rem_1fr_3rem_5rem]' }}">
+                <span class="px-2 font-semibold {{ item.position <= 3 ? 'text-orange' : 'text-gray-mid' }}">{{ item.position }}</span>
+                <span>
+                    <span class="tm-colors font-semibold">{{ item.team.tag|tm_color|raw }}</span>
+                    <span class="text-gray-light text-xs ml-1">{{ item.team.fullName }}</span>
+                </span>
+                <span class="text-center text-turquoise">{{ item.playerCount }}</span>
+                {% if isFinal %}
+                    <span class="text-center font-mono">{{ item.totalTime }}</span>
+                    <span class="text-right font-semibold text-turquoise">{{ item.roundPoints }}</span>
+                {% else %}
+                    <span class="text-right font-mono">{{ item.formattedTime }}</span>
+                {% endif %}
+            </div>
+            {% if item.topPlayers is not empty %}
+                <div class="py-1.5 px-10 bg-bg-dark/30 border-b border-metal-dark/50">
+                    <div class="flex flex-wrap gap-4 text-sm text-gray-light">
+                        {% for p in item.topPlayers %}
+                            <span class="tm-colors">{{ p.player.pseudo|tm_color|raw }} <span class="text-gray-mid font-mono">({{ p.formattedTime }})</span></span>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
     </div>
 {% endif %}

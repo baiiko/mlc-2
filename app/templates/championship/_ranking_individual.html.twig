@@ -3,43 +3,38 @@
     <p class="text-gray-mid">{{ 'championship.no_ranking'|trans({}, 'championship') }}</p>
 {% else %}
     <div class="overflow-x-auto">
-        <table class="w-full">
-            <thead>
-                <tr class="text-left text-gray-light text-sm border-b border-metal-dark">
-                    <th class="pb-2 w-12">#</th>
-                    <th class="pb-2">{{ 'championship.player'|trans({}, 'championship') }}</th>
-                    <th class="pb-2">{{ 'championship.team'|trans({}, 'championship') }}</th>
-                    <th class="pb-2 text-right">{{ 'championship.time'|trans({}, 'championship') }}</th>
-                    <th class="pb-2 text-center">{{ 'championship.status'|trans({}, 'championship') }}</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in ranking %}
-                    <tr class="border-b border-metal-dark/50 hover:bg-bg-dark/50 {{ item.isQualified ? 'bg-green-500/5' : '' }}">
-                        <td class="py-3 font-semibold {{ item.position <= 3 ? 'text-orange' : '' }}">{{ item.position }}</td>
-                        <td class="py-3 tm-colors">{{ item.player.pseudo|tm_color|raw }}</td>
-                        <td class="py-3 text-gray-light tm-colors">
-                            {% if item.team %}
-                                {{ item.team.tag|tm_color|raw }}
+        {# Header #}
+        <div class="grid grid-cols-[2.5rem_1fr_auto_auto] gap-x-2 text-xs text-gray-light uppercase border-b border-metal-dark pb-2 mb-2">
+            <span class="px-2">#</span>
+            <span>{{ 'championship.player'|trans({}, 'championship') }}</span>
+            <span>{{ 'championship.team'|trans({}, 'championship') }}</span>
+            <span class="text-center">{{ 'championship.status'|trans({}, 'championship') }}</span>
+        </div>
+        {# Rows #}
+        {% for item in ranking %}
+            {% set isCurrentPlayer = player is defined and player and item.player.login|lower == player.login|lower %}
+            <div class="grid grid-cols-[2.5rem_1fr_auto_auto] gap-x-2 py-2 border-b border-metal-dark/50 last:border-0 text-sm rounded {{ isCurrentPlayer ? 'border-l-4 border-l-turquoise' : '' }}">
+                <span class="px-2 font-semibold {{ item.position <= 3 ? 'text-orange' : 'text-gray-mid' }}">{{ item.position }}</span>
+                <span class="tm-colors truncate">{{ item.player.pseudo|tm_color|raw }}</span>
+                <span class="text-gray-light tm-colors">
+                    {% if item.team %}
+                        {{ item.team.tag|tm_color|raw }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </span>
+                <span class="text-center">
+                    {% if item.isQualified %}
+                        <span class="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded">
+                            {% if item.qualifiedTo %}
+                                {{ item.qualifiedTo }}
                             {% else %}
-                                -
+                                {{ 'championship.qualified'|trans({}, 'championship') }}
                             {% endif %}
-                        </td>
-                        <td class="py-3 text-right font-mono">{{ item.formattedTime }}</td>
-                        <td class="py-3 text-center">
-                            {% if item.isQualified %}
-                                <span class="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded">
-                                    {% if item.qualifiedTo %}
-                                        {{ item.qualifiedTo }}
-                                    {% else %}
-                                        {{ 'championship.qualified'|trans({}, 'championship') }}
-                                    {% endif %}
-                                </span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                        </span>
+                    {% endif %}
+                </span>
+            </div>
+        {% endfor %}
     </div>
 {% endif %}

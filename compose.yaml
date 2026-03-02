@@ -39,6 +39,23 @@ services:
     restart: unless-stopped
     volumes:
       - mlc_thumbs:/var/www/app/public/uploads/
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
+      # HTTP
+      - "traefik.http.routers.new-mlc.entrypoints=http"
+      - "traefik.http.routers.new-mlc.rule=Host(`new-mlc.tmnf.fr`) || Host(`www.new-mlc.tmnf.fr`)"
+      - "traefik.http.routers.new-mlc.middlewares=https-redirect"
+      # HTTPS
+      - "traefik.http.routers.new-mlc-secure.entrypoints=https"
+      - "traefik.http.routers.new-mlc-secure.rule=Host(`new-mlc.tmnf.fr`) || Host(`www.new-mlc.tmnf.fr`)"
+      - "traefik.http.routers.new-mlc-secure.tls=true"
+      - "traefik.http.routers.mlc-secure.tls.certresolver=letsencrypt"
+      # Middleware
+      - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
+      # Logging
+      - "logging.enabled=true"
+      - "logging.service=mlc-nginx"
 
   database:
     image: mysql:8
@@ -53,6 +70,7 @@ services:
     networks:
       - mlc_database
       - mlc_network
+      - proxy
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
@@ -80,6 +98,8 @@ services:
     restart: unless-stopped
 
 networks:
+  proxy:
+    external: true
   mlc_network:
     driver: bridge
   mlc_database:

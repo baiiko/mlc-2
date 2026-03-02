@@ -177,32 +177,34 @@
     {% endif %}
 
     {# ===== CLASSEMENT ===== #}
-    <section class="max-w-[1400px] mx-auto px-10 py-16">
-        {% include 'components/_section_header.html.twig' with {
-            title: 'home.ranking.title'|trans({'%number%': 12}, 'common'),
-            link: '#',
-            link_text: 'home.ranking.see_all'|trans({}, 'common')
-        } %}
+    {% if activeSeason and seasonRanking is not empty %}
+        <section class="max-w-[1400px] mx-auto px-10 py-16">
+            {% include 'components/_section_header.html.twig' with {
+                title: 'home.ranking.title'|trans({'%number%': activeSeason.name}, 'common'),
+                link: path('app_championship_season_show', {slug: activeSeason.slug}),
+                link_text: 'home.ranking.see_all'|trans({}, 'common')
+            } %}
 
-        <div class="bg-bg-card rounded-lg overflow-x-auto border border-metal-dark">
-            <table class="w-full min-w-[700px]">
-                <thead>
-                    <tr class="bg-metal-dark border-b-2 border-b-orange">
-                        <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-mid">{{ 'home.ranking.position'|trans({}, 'common') }}</th>
-                        <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-mid">{{ 'home.ranking.driver'|trans({}, 'common') }}</th>
-                        <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-mid">{{ 'home.ranking.points'|trans({}, 'common') }}</th>
-                        <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-mid">{{ 'home.ranking.wins'|trans({}, 'common') }}</th>
-                        <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-mid">{{ 'home.ranking.podiums'|trans({}, 'common') }}</th>
-                        <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-mid">{{ 'home.ranking.evolution'|trans({}, 'common') }}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for player in players %}
-                        {% include 'components/_ranking_row.html.twig' with { player: player } %}
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </section>
+            <div class="bg-bg-card rounded-lg border border-metal-dark p-4">
+                {# Header #}
+                <div class="grid grid-cols-[2.5rem_1fr_1fr_3.5rem] gap-x-2 text-xs text-gray-light uppercase border-b border-metal-dark pb-2 mb-2">
+                    <span class="px-2">#</span>
+                    <span>{{ 'championship.player'|trans({}, 'championship') }}</span>
+                    <span>{{ 'championship.team'|trans({}, 'championship') }}</span>
+                    <span class="text-right">{{ 'championship.total'|trans({}, 'championship') }}</span>
+                </div>
+                {# Rows #}
+                {% for item in seasonRanking %}
+                    {% set isCurrentPlayer = app.user and item.entity.login|lower == app.user.login|lower %}
+                    <div class="grid grid-cols-[2.5rem_1fr_1fr_3.5rem] gap-x-2 py-2 border-b border-metal-dark/50 last:border-0 text-sm rounded {{ isCurrentPlayer ? 'border-l-4 border-l-turquoise' : '' }}">
+                        <span class="px-2 font-semibold {{ item.position <= 3 ? 'text-orange' : 'text-gray-mid' }}">{{ item.position }}</span>
+                        <span class="tm-colors truncate">{{ item.entity.pseudo|tm_color|raw }}</span>
+                        <span class="text-gray-light tm-colors truncate">{{ item.entity.hasTeam ? item.entity.team.fullName|tm_color|raw : 'No Team' }}</span>
+                        <span class="text-right font-semibold text-turquoise">{{ item.totalPoints }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
 
 {% endblock %}

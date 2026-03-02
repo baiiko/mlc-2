@@ -26,14 +26,10 @@
                             <p class="text-gray-mid text-sm mb-4 line-clamp-2">{{ season.description }}</p>
                         {% endif %}
 
-                        <div class="flex items-center justify-between text-sm">
-                            <span class="text-gray-light">
-                                {{ season.startDate|date('d/m/Y') }}
-                                {% if season.endDate %}
-                                    - {{ season.endDate|date('d/m/Y') }}
-                                {% endif %}
-                            </span>
-                            <span class="text-turquoise">{{ season.rounds|length }} {{ 'championship.rounds'|trans({}, 'championship') }}</span>
+                        <div class="flex flex-wrap gap-1 text-xs">
+                            {% for round in season.rounds %}
+                                <span class="px-2 py-0.5 bg-metal-dark rounded text-gray-light">{{ round.name }}</span>
+                            {% endfor %}
                         </div>
                     </a>
                 {% endfor %}

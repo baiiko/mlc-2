@@ -53,6 +53,7 @@ final readonly class RoundPhaseController
 
         $phaseRanking = null;
         $qualificationRanking = null;
+        $finalRanking = null;
         $phasePlayers = [];
 
         // Get players for this phase (semi-final, final)
@@ -68,13 +69,29 @@ final readonly class RoundPhaseController
 
             // Calculate qualification ranking for qualification phase
             if ($phase->getType() === PhaseType::Qualification) {
-                $qualificationRanking = $this->roundRankingService->calculateQualificationRanking($round, $phase);
+                // Use stored ranking for finished rounds, recalculate for active ones
+                if (!$round->isActive() && $phase->getRanking() !== null) {
+                    $qualificationRanking = $phase->getRanking();
+                } else {
+                    $qualificationRanking = $this->roundRankingService->calculateQualificationRanking($round, $phase);
 
-                // Store ranking in phase if changed
-                if ($phase->getRanking() !== $qualificationRanking) {
-                    $phase->setRanking($qualificationRanking);
-                    $phase->setRankingUpdatedAt(new \DateTimeImmutable());
-                    $this->phaseRepository->save($phase);
+                    // Store ranking in phase if changed
+                    if ($phase->getRanking() !== $qualificationRanking) {
+                        $phase->setRanking($qualificationRanking);
+                        $phase->setRankingUpdatedAt(new \DateTimeImmutable());
+                        $this->phaseRepository->save($phase);
+                    }
+                }
+            }
+
+            // Use stored ranking for final phase on finished rounds
+            if ($phase->getType() === PhaseType::Final && !$round->isActive() && $phase->getRanking() !== null) {
+                $storedData = $phase->getRanking();
+                if (isset($storedData['ranking'])) {
+                    $finalRanking = $storedData;
+                } else {
+                    // Legacy format without maps
+                    $finalRanking = ['ranking' => $storedData, 'maps' => []];
                 }
             }
         }
@@ -89,6 +106,7 @@ final readonly class RoundPhaseController
                 'player' => $player,
                 'phaseRanking' => $phaseRanking,
                 'qualificationRanking' => $qualificationRanking,
+                'finalRanking' => $finalRanking,
                 'phasePlayers' => $phasePlayers,
             ])
         );

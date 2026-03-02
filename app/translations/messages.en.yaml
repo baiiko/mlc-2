@@ -61,8 +61,8 @@ admin.rule.singular: Rule
 admin.rule.plural: Rules
 admin.rule.version: Version
 admin.rule.date: Date
-admin.rule.content: Content
-admin.rule.content_help: "Paste HTML rules content. Tags h1, h2, h3, hr, blockquote, ul, ol are supported."
+admin.rule.content_fr: "Content (French)"
+admin.rule.content_en: "Content (English)"
 
 # Server admin
 admin.server.singular: Server

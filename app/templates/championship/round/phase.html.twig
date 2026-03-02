@@ -105,8 +105,9 @@
                                 {% set isFullyAvailable = registration.availableSemiFinal1 and registration.availableSemiFinal2 and registration.availableFinal %}
                                 {% set isForfait = not registration.availableSemiFinal1 and not registration.availableSemiFinal2 and not registration.availableFinal %}
                                 {% set borderColor = isForfait ? 'border-l-red-500' : (isFullyAvailable ? 'border-l-green-500' : 'border-l-orange') %}
+                                {% set isCurrentPlayer = player and registration.player.login == player.login %}
 
-                                <div class="flex items-center justify-between p-3 bg-bg-dark rounded border-l-4 {{ borderColor }}">
+                                <div class="flex items-center justify-between p-3 bg-bg-dark rounded border-l-4 {{ isCurrentPlayer ? 'border-l-turquoise' : borderColor }}">
                                     <div class="flex items-center gap-2">
                                         <span class="tm-colors">{{ registration.player.pseudo|tm_color|raw }}</span>
                                         {% if not isForfait and not isFullyAvailable %}
@@ -145,8 +146,8 @@
                     <h3 class="text-lg font-semibold mb-4">{{ 'championship.participants'|trans({}, 'championship') }} ({{ phasePlayers|length }})</h3>
                     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                         {% for p in phasePlayers %}
-                            {% set isCurrentPlayer = player and p.login == player.login %}
-                            <div class="flex items-center gap-2 p-3 bg-bg-dark rounded border-l-4 border-l-turquoise {{ isCurrentPlayer ? 'ring-1 ring-inset ring-turquoise' : '' }}">
+                            {% set isCurrentPlayer = player and p.login|lower == player.login|lower %}
+                            <div class="flex items-center gap-2 p-3 bg-bg-dark rounded {{ isCurrentPlayer ? 'border-l-4 border-l-turquoise' : '' }}">
                                 <a href="{{ path('app_championship_round_player', {id: round.id, login: p.login}) }}" class="tm-colors truncate hover:underline">{{ p.pseudo|tm_color|raw }}</a>
                             </div>
                         {% endfor %}
@@ -170,10 +171,11 @@
                             {% if qualifyToSemi > 0 %}
                                 <span class="flex items-center gap-1"><span class="w-3 h-3 bg-turquoise/30 rounded-sm"></span> {{ 'championship.qualified_semi'|trans({}, 'championship') }}</span>
                             {% endif %}
+                            <span class="flex items-center gap-1"><span class="w-3 h-3 bg-red-500/30 rounded-sm"></span> {{ 'championship.incomplete_maps'|trans({}, 'championship') }}</span>
                         </div>
                     {% endif %}
 
-                    <div class="grid grid-cols-[3rem_1fr_3rem_3rem_3rem_3rem] gap-x-2 text-xs text-gray-mid uppercase border-b border-metal-dark pb-2 mb-2">
+                    <div class="grid grid-cols-[3rem_1fr_3rem_3rem_3rem_3rem] gap-x-2 text-xs text-gray-light uppercase border-b border-metal-dark pb-2 mb-2">
                         <span>#</span>
                         <span>{{ 'championship.player'|trans({}, 'championship') }}</span>
                         <span class="text-center">{{ 'championship.maps'|trans({}, 'championship') }}</span>
@@ -183,30 +185,36 @@
                     </div>
                     {% set finalSlotsUsed = 0 %}
                     {% set semiSlotsUsed = 0 %}
+                    {% set totalMaps = round.maps|filter(m => not m.isSurprise)|length %}
                     {% for entry in qualificationRanking %}
-                        {% set isCurrentPlayer = player and entry.login == player.login %}
+                        {% set isCurrentPlayer = player and entry.login|lower == player.login|lower %}
+                        {% set hasAllMaps = entry.nbMaps >= totalMaps %}
 
-                        {# Check qualification based on availability #}
+                        {# Check qualification based on availability and all maps completed #}
                         {% set isQualifiedFinal = false %}
                         {% set isQualifiedSemi = false %}
                         {% set isForfait = false %}
 
-                        {# Check if player can take a final slot #}
-                        {% if finalSlotsUsed < qualifyToFinal and entry.availableFinal %}
+                        {% set isIncomplete = false %}
+
+                        {# Check if player can take a final slot (must have completed all maps) #}
+                        {% if hasAllMaps and finalSlotsUsed < qualifyToFinal and entry.availableFinal %}
                             {% set isQualifiedFinal = true %}
                             {% set finalSlotsUsed = finalSlotsUsed + 1 %}
-                        {% elseif semiSlotsUsed < qualifyToSemi and entry.availableSemiFinal and entry.availableFinal %}
+                        {% elseif hasAllMaps and semiSlotsUsed < qualifyToSemi and entry.availableSemiFinal and entry.availableFinal %}
                             {# Semi slot: must be available for both semi AND final #}
                             {% set isQualifiedSemi = true %}
                             {% set semiSlotsUsed = semiSlotsUsed + 1 %}
+                        {% elseif not hasAllMaps and (entry.availableSemiFinal or entry.availableFinal) %}
+                            {# Available but hasn't completed all maps #}
+                            {% set isIncomplete = true %}
                         {% else %}
-                            {# Forfait: not available for final, OR in semi position but can't play semi #}
+                            {# Forfait: not available or no slots left #}
                             {% set isForfait = true %}
                         {% endif %}
-                        {% set rowBg = isQualifiedFinal ? 'bg-orange/20' : (isQualifiedSemi ? 'bg-turquoise/20' : '') %}
-                        {% set rowBg = isCurrentPlayer ? rowBg ~ ' ring-1 ring-inset ring-turquoise' : rowBg %}
-                        <div class="grid grid-cols-[3rem_1fr_3rem_3rem_3rem_3rem] gap-x-2 py-2 border-b border-metal-dark/50 last:border-0 {{ rowBg }}">
-                            <span class="pl-2 {{ isForfait ? 'line-through text-gray-mid' : (entry.position <= 3 ? 'text-orange font-bold' : 'text-gray-mid') }}">{{ entry.position }}</span>
+                        {% set rowBg = isQualifiedFinal ? 'bg-orange/20' : (isQualifiedSemi ? 'bg-turquoise/20' : (isIncomplete ? 'bg-red-500/20' : '')) %}
+                        <div class="grid grid-cols-[3rem_1fr_3rem_3rem_3rem_3rem] gap-x-2 py-2 border-b border-metal-dark/50 last:border-0 text-sm rounded {{ rowBg }} {{ isCurrentPlayer ? 'border-l-4 border-l-turquoise' : '' }}">
+                            <span class="pl-2 {{ isForfait ? 'line-through text-gray-mid' : (entry.position <= 3 ? 'text-orange font-semibold' : 'text-gray-mid') }}">{{ entry.position }}</span>
                             <a href="{{ path('app_championship_round_player', {id: round.id, login: entry.login}) }}" class="tm-colors truncate hover:underline {{ isForfait ? 'line-through opacity-50' : '' }}">{{ entry.pseudo|tm_color|raw }}</a>
                             <span class="text-center {{ isForfait ? 'line-through text-gray-mid' : 'text-gray-light' }}">{{ entry.nbMaps }}</span>
                             <span class="text-center {{ isForfait ? 'line-through text-gray-mid' : 'text-gray-light' }}">{{ entry.points }}</span>
@@ -215,10 +223,57 @@
                         </div>
                     {% endfor %}
                 </div>
+            {% elseif finalRanking is defined and finalRanking is not empty %}
+                {% set fRanking = finalRanking.ranking %}
+                {% set fMaps = finalRanking.maps|default([]) %}
+                {% set mapCols = '' %}
+                {% for map in fMaps %}{% set mapCols = mapCols ~ ' 4.5rem' %}{% endfor %}
+                {% set gridStyle = '2rem auto' ~ mapCols ~ ' 2rem 2rem 2rem 3rem' %}
+                <div class="mb-8">
+                    <h3 class="text-lg font-semibold mb-4">{{ 'championship.individual_ranking'|trans({}, 'championship') }}</h3>
+                    <div class="overflow-x-auto">
+                        {# Header #}
+                        <div class="grid gap-x-2 text-xs text-gray-light uppercase border-b border-metal-dark pb-2 mb-2" style="grid-template-columns: {{ gridStyle }};">
+                            <span>#</span>
+                            <span>{{ 'championship.player'|trans({}, 'championship') }}</span>
+                            {% for map in fMaps %}
+                                <span class="text-center tm-colors whitespace-nowrap" title="{{ map.name|tm_strip }}">{{ map.name|tm_color|raw }}</span>
+                            {% endfor %}
+                            <span class="text-center text-turquoise">BQ</span>
+                            <span class="text-center text-turquoise">BD</span>
+                            <span class="text-center text-turquoise">BF</span>
+                            <span class="text-center">{{ 'championship.total'|trans({}, 'championship') }}</span>
+                        </div>
+                        {# Rows #}
+                        {% for entry in fRanking %}
+                            {% set isCurrentPlayer = player and entry.login|lower == player.login|lower %}
+                            {% set hasMaps = entry.bf > 0 %}
+                            <div class="grid gap-x-2 py-2 border-b border-metal-dark/50 last:border-0 text-sm rounded {{ isCurrentPlayer ? 'border-l-4 border-l-turquoise' : '' }} {{ not hasMaps ? 'opacity-50' : '' }}" style="grid-template-columns: {{ gridStyle }};">
+                                <span class="pl-1 {{ entry.position <= 3 ? 'text-orange font-semibold' : 'text-gray-mid' }}">{{ entry.position }}</span>
+                                <a href="{{ path('app_championship_round_player', {id: round.id, login: entry.login}) }}" class="tm-colors truncate hover:underline">{{ entry.pseudo|tm_color|raw }}</a>
+                                {% for map in fMaps %}
+                                    {% set mapResult = entry.maps['' ~ map.id]|default(null) %}
+                                    <span class="text-center font-mono text-xs {{ mapResult ? (mapResult.place == 1 ? 'text-orange font-bold' : (mapResult.place == 2 ? 'text-orange/80 font-bold' : (mapResult.place == 3 ? 'text-orange/60 font-bold' : 'text-gray-light'))) : 'text-gray-mid' }}">{{ mapResult ? mapResult.place : '-' }}</span>
+                                {% endfor %}
+                                <span class="text-center text-gray-light">{{ entry.bq }}</span>
+                                <span class="text-center {{ entry.bd > 0 ? 'text-turquoise' : 'text-gray-mid' }}">{{ entry.bd }}</span>
+                                <span class="text-center {{ entry.bf > 0 ? 'text-orange' : 'text-gray-mid' }}">{{ entry.bf }}</span>
+                                <span class="text-center font-mono text-white font-bold">{{ entry.total }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {% if phaseRanking and phaseRanking.team is not empty %}
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold mb-4">{{ 'championship.team_ranking'|trans({}, 'championship') }}</h3>
+                        {% include 'championship/_ranking_team.html.twig' with {ranking: phaseRanking.team} %}
+                    </div>
+                {% endif %}
             {% elseif phaseRanking %}
                 {% if phaseRanking.individual is not empty %}
                     <div class="mb-8">
-                        <h3 class="text-lg font-semibold mb-4">{{ 'championship.individual_ranking'|trans({}, 'championship') }}</h3>
+                        <h3 class="text-lg font-semibold mb-4">{{ 'championship.qualified_list'|trans({}, 'championship') }}</h3>
                         {% include 'championship/_ranking_individual.html.twig' with {ranking: phaseRanking.individual} %}
                     </div>
                 {% endif %}

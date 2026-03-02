@@ -6,10 +6,12 @@ namespace App\Infrastructure\Http\Controller\Championship;
 
 use App\Application\Championship\Service\CalculateRankingServiceInterface;
 use App\Domain\Championship\Repository\SeasonRepositoryInterface;
+use App\Domain\Player\Entity\Player;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Twig\Environment;
 
 #[AsController]
@@ -23,7 +25,7 @@ final readonly class SeasonShowController
     }
 
     #[Route('/championship/{slug}', name: 'app_championship_season_show', methods: ['GET'])]
-    public function __invoke(string $slug): Response
+    public function __invoke(string $slug, #[CurrentUser] ?Player $player): Response
     {
         $season = $this->seasonRepository->findBySlug($slug);
 
@@ -39,6 +41,7 @@ final readonly class SeasonShowController
                 'season' => $season,
                 'individualRanking' => $individualRanking,
                 'teamRanking' => $teamRanking,
+                'player' => $player,
             ])
         );
     }

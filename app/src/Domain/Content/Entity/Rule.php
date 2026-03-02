@@ -26,6 +26,9 @@ class Rule
     #[ORM\Column(type: Types::TEXT)]
     private ?string $content = null;
 
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $contentEn = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -41,6 +44,27 @@ class Rule
         $this->content = $content;
 
         return $this;
+    }
+
+    public function getContentEn(): ?string
+    {
+        return $this->contentEn;
+    }
+
+    public function setContentEn(?string $contentEn): self
+    {
+        $this->contentEn = $contentEn;
+
+        return $this;
+    }
+
+    public function getLocalizedContent(string $locale): ?string
+    {
+        if ($locale === 'en' && $this->contentEn !== null) {
+            return $this->contentEn;
+        }
+
+        return $this->content;
     }
 
     public function __toString(): string

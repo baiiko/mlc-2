@@ -7,7 +7,10 @@
       "Bash(docker compose exec:*)",
       "Bash(make db-diff:*)",
       "Bash(make db-migrate:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(docker exec:*)",
+      "Bash(docker cp:*)"
     ]
   }
 }

@@ -34,20 +34,23 @@
                                 <a href="{{ path('app_championship_round_show', {id: round.id}) }}" class="block p-4 bg-bg-dark rounded border border-metal-dark hover:border-turquoise transition-colors">
                                     <div class="flex items-center justify-between mb-1">
                                         <span class="font-semibold">{{ round.name }}</span>
-                                        {% if round.isActive %}
-                                            <span class="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded">{{ 'championship.active'|trans({}, 'championship') }}</span>
-                                        {% endif %}
-                                    </div>
-                                    {% if round.maps is not empty %}
-                                        <p class="text-sm text-gray-mid">
-                                            {% for map in round.maps %}{{ map.name }}{% if not loop.last %}, {% endif %}{% endfor %}
-                                        </p>
-                                    {% endif %}
-                                    <div class="text-xs text-gray-light mt-2">
-                                        {% if round.isRegistrationOpen %}
-                                            <span class="text-turquoise">{{ 'championship.registration_open'|trans({}, 'championship') }}</span>
+                                        {% set now = "now"|date("U") %}
+                                        {% set firstStart = null %}
+                                        {% set lastEnd = null %}
+                                        {% for phase in round.phases %}
+                                            {% if phase.startAt and (firstStart is null or phase.startAt|date("U") < firstStart) %}
+                                                {% set firstStart = phase.startAt|date("U") %}
+                                            {% endif %}
+                                            {% if phase.endAt and (lastEnd is null or phase.endAt|date("U") > lastEnd) %}
+                                                {% set lastEnd = phase.endAt|date("U") %}
+                                            {% endif %}
+                                        {% endfor %}
+                                        {% if lastEnd and now > lastEnd %}
+                                            <span class="px-2 py-0.5 bg-gray-500/20 text-gray-400 text-xs rounded">{{ 'championship.round_status.completed'|trans({}, 'championship') }}</span>
+                                        {% elseif firstStart and now >= firstStart %}
+                                            <span class="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded">{{ 'championship.round_status.in_progress'|trans({}, 'championship') }}</span>
                                         {% else %}
-                                            {{ round.registrationStartAt|date('d/m/Y H:i') }} - {{ round.registrationEndAt|date('d/m/Y H:i') }}
+                                            <span class="px-2 py-0.5 bg-blue-500/20 text-blue-400 text-xs rounded">{{ 'championship.round_status.upcoming'|trans({}, 'championship') }}</span>
                                         {% endif %}
                                     </div>
                                 </a>

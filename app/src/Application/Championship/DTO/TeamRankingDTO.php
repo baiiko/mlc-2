@@ -18,6 +18,7 @@ final readonly class TeamRankingDTO
         public string $formattedTime,
         public int $playerCount,
         public array $topPlayers,
+        public int $roundPoints = 0,
     ) {
     }
 }

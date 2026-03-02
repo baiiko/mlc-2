@@ -26,6 +26,7 @@ class RuleService
         $latestRule = $this->ruleRepository->findLatest();
         if ($latestRule !== null) {
             $rule->setContent($latestRule->getContent());
+            $rule->setContentEn($latestRule->getContentEn());
         }
 
         return $rule;

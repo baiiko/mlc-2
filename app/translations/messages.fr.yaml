@@ -61,8 +61,8 @@ admin.rule.singular: Règlement
 admin.rule.plural: Règlements
 admin.rule.version: Version
 admin.rule.date: Date
-admin.rule.content: Contenu
-admin.rule.content_help: "Coller le HTML du règlement. Les balises h1, h2, h3, hr, blockquote, ul, ol sont supportées."
+admin.rule.content_fr: "Contenu (Français)"
+admin.rule.content_en: "Contenu (Anglais)"
 
 # Server admin
 admin.server.singular: Serveur

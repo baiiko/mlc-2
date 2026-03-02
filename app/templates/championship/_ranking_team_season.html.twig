@@ -2,39 +2,38 @@
 {% if ranking is empty %}
     <p class="text-gray-mid">{{ 'championship.no_team_ranking'|trans({}, 'championship') }}</p>
 {% else %}
+    {% set cols = '2.5rem 1fr' %}
+    {% for round in rounds %}{% set cols = cols ~ ' 4rem' %}{% endfor %}
+    {% set cols = cols ~ ' 3.5rem' %}
     <div class="overflow-x-auto">
-        <table class="w-full">
-            <thead>
-                <tr class="text-left text-gray-light text-sm border-b border-metal-dark">
-                    <th class="pb-2 w-12">#</th>
-                    <th class="pb-2">{{ 'championship.team'|trans({}, 'championship') }}</th>
-                    {% for round in rounds %}
-                        <th class="pb-2 text-center text-xs">M{{ round.number }}</th>
-                    {% endfor %}
-                    <th class="pb-2 text-right">{{ 'championship.total'|trans({}, 'championship') }}</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in ranking %}
-                    <tr class="border-b border-metal-dark/50 hover:bg-bg-dark/50">
-                        <td class="py-3 font-semibold {{ item.position <= 3 ? 'text-orange' : '' }}">{{ item.position }}</td>
-                        <td class="py-3">
-                            <div class="tm-colors">{{ item.entity.tag|tm_color|raw }}</div>
-                            <div class="text-sm text-gray-light">{{ item.entity.fullName }}</div>
-                        </td>
-                        {% for round in rounds %}
-                            <td class="py-3 text-center text-sm">
-                                {% if item.roundScores[round.id] is defined %}
-                                    {{ item.roundScores[round.id] }}
-                                {% else %}
-                                    <span class="text-gray-mid">-</span>
-                                {% endif %}
-                            </td>
-                        {% endfor %}
-                        <td class="py-3 text-right font-semibold text-turquoise">{{ item.totalPoints }}</td>
-                    </tr>
+        {# Header #}
+        <div class="grid gap-x-2 text-xs text-gray-light uppercase border-b border-metal-dark pb-2 mb-2" style="grid-template-columns: {{ cols }};">
+            <span class="px-2">#</span>
+            <span>{{ 'championship.team'|trans({}, 'championship') }}</span>
+            {% for round in rounds %}
+                <span class="text-center">{{ round.name }}</span>
+            {% endfor %}
+            <span class="text-right">{{ 'championship.total'|trans({}, 'championship') }}</span>
+        </div>
+        {# Rows #}
+        {% for item in ranking %}
+            <div class="grid gap-x-2 py-2 border-b border-metal-dark/50 last:border-0 text-sm rounded" style="grid-template-columns: {{ cols }};">
+                <span class="px-2 font-semibold {{ item.position <= 3 ? 'text-orange' : 'text-gray-mid' }}">{{ item.position }}</span>
+                <span>
+                    <span class="tm-colors">{{ item.entity.tag|tm_color|raw }}</span>
+                    <span class="text-gray-light text-xs ml-1">{{ item.entity.fullName }}</span>
+                </span>
+                {% for round in rounds %}
+                    <span class="text-center">
+                        {% if item.roundScores[round.id] is defined %}
+                            {{ item.roundScores[round.id] }}
+                        {% else %}
+                            <span class="text-gray-mid">-</span>
+                        {% endif %}
+                    </span>
                 {% endfor %}
-            </tbody>
-        </table>
+                <span class="text-right font-semibold text-turquoise">{{ item.totalPoints }}</span>
+            </div>
+        {% endfor %}
     </div>
 {% endif %}

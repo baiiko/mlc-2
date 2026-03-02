@@ -101,7 +101,7 @@
                                     {% endif %}
                                 </h3>
 
-                                {% if map.author and not map.isSurprise %}
+                                {% if map.author and (not map.isSurprise or map.uid) %}
                                     <p class="text-sm text-gray-light">
                                         {{ 'championship.map_author'|trans({}, 'championship') }} <span class="tm-colors">{{ map.author|tm_color|raw }}</span>
                                     </p>
@@ -109,7 +109,7 @@
                             </div>
 
                             {# Thumbnail #}
-                            {% if map.thumbnailPath and not map.isSurprise %}
+                            {% if map.thumbnailPath and (not map.isSurprise or map.uid) %}
                                 <div class="flex-shrink-0">
                                     <img src="{{ asset('uploads/maps/thumbnails/' ~ map.thumbnailPath) }}" alt="{{ map.name }}" class="w-24 h-16 object-cover rounded border border-metal-dark">
                                 </div>
@@ -117,12 +117,12 @@
                         </div>
 
                         {# Player records section #}
-                        {% if not map.isSurprise %}
+                        {% if not map.isSurprise or map.uid %}
                             {% set records = map.uid and playerRecords[map.uid] is defined ? playerRecords[map.uid] : [] %}
                             <div class="mt-3 pt-3 border-t border-metal-dark">
                                 <p class="text-xs text-gray-mid mb-2 uppercase">{{ 'championship.records'|trans({}, 'championship') }}</p>
                                 <div class="space-y-2">
-                                    {% for laps in [1, 5, 10] %}
+                                    {% for laps in map.isSurprise ? [1, 10] : [1, 5, 10] %}
                                         {% set recordData = records[laps] is defined ? records[laps] : null %}
                                         <div class="flex items-baseline justify-between text-xs gap-2">
                                             <span class="text-gray-light whitespace-nowrap">{{ 'championship.record.laps'|trans({'%count%': laps}, 'championship') }}</span>
