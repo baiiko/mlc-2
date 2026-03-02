@@ -113,7 +113,7 @@ FROM php-prod AS web
 
 USER root
 COPY docker/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+RUN sed -i 's/\r$//' /entrypoint.sh && chmod +x /entrypoint.sh
 USER app
 
 HEALTHCHECK --start-period=10s --interval=10s CMD nc -z -w90 127.0.0.1 9000
