@@ -15,14 +15,9 @@ server {
         proxy_cache_bypass $http_upgrade;
     }
 
+    # Assets: static file first, fallback to Vite dev server
     location ~ ^/(build/|@@vite|@vite|@id|@fs|__vite_ping|node_modules/) {
-        proxy_pass http://${VITE_HOST}:5173;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_cache_bypass $http_upgrade;
+        try_files $uri @vite;
     }
 
     location / {
