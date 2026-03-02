@@ -139,4 +139,4 @@ COPY --from=node-builder /app/public /var/www/app/public
 COPY ./app/public /var/www/app/public
 
 EXPOSE 80
-HEALTHCHECK --start-period=10s --interval=10s CMD wget -q --spider http://localhost || exit 1
+HEALTHCHECK --start-period=10s --interval=10s CMD wget -q -O /dev/null --server-response http://127.0.0.1 2>&1 | grep -q "HTTP/" || exit 1

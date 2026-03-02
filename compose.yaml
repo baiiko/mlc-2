@@ -42,13 +42,13 @@ services:
       - "traefik.enable=true"
       - "traefik.docker.network=proxy"
       # HTTP
-      - "traefik.http.routers.new-mlc.entrypoints=http"
-      - "traefik.http.routers.new-mlc.rule=Host(`new-mlc.tmnf.fr`) || Host(`www.new-mlc.tmnf.fr`)"
-      - "traefik.http.routers.new-mlc.middlewares=https-redirect"
+      - "traefik.http.routers.mlc-new.entrypoints=http"
+      - "traefik.http.routers.mlc-new.rule=Host(`mlc-new.tmnf.fr`) || Host(`www.mlc-new.tmnf.fr`)"
+      - "traefik.http.routers.mlc-new.middlewares=https-redirect"
       # HTTPS
-      - "traefik.http.routers.new-mlc-secure.entrypoints=https"
-      - "traefik.http.routers.new-mlc-secure.rule=Host(`new-mlc.tmnf.fr`) || Host(`www.new-mlc.tmnf.fr`)"
-      - "traefik.http.routers.new-mlc-secure.tls=true"
+      - "traefik.http.routers.mlc-new-secure.entrypoints=https"
+      - "traefik.http.routers.mlc-new-secure.rule=Host(`mlc-new.tmnf.fr`) || Host(`www.mlc-new.tmnf.fr`)"
+      - "traefik.http.routers.mlc-new-secure.tls=true"
       - "traefik.http.routers.mlc-secure.tls.certresolver=letsencrypt"
       # Middleware
       - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
