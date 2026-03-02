@@ -41,70 +41,15 @@ RUN apk --no-cache add \
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # PHP configuration
-RUN cat <<'EOF' > /usr/local/etc/php/conf.d/app.ini
-[PHP]
-upload_max_filesize = 20M
-post_max_size = 25M
-memory_limit = 256M
-date.timezone = Europe/Paris
-EOF
+COPY docker/php/app.ini /usr/local/etc/php/conf.d/app.ini
 
 # PHP-FPM pool configuration
-RUN cat <<'EOF' > /usr/local/etc/php-fpm.d/www.conf
-[www]
-user = app
-group = app
-listen = 9000
-pm = dynamic
-pm.max_children = 20
-pm.start_servers = 2
-pm.min_spare_servers = 1
-pm.max_spare_servers = 3
-pm.max_requests = 500
-clear_env = no
-catch_workers_output = yes
-decorate_workers_output = no
-EOF
+COPY docker/php/www.conf /usr/local/etc/php-fpm.d/www.conf
 
 # Supervisor configuration
-RUN mkdir -p /etc/supervisor/conf.d /var/log/supervisor \
-    && cat <<'EOF' > /etc/supervisord.conf
-[supervisord]
-nodaemon=true
-user=root
-logfile=/var/log/supervisor/supervisord.log
-pidfile=/var/run/supervisord.pid
-
-[unix_http_server]
-file=/var/run/supervisor.sock
-
-[supervisorctl]
-serverurl=unix:///var/run/supervisor.sock
-
-[rpcinterface:supervisor]
-supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
-
-[include]
-files = /etc/supervisor/conf.d/*.conf
-EOF
-
-RUN cat <<'EOF' > /etc/supervisor/conf.d/messenger.conf
-[program:messenger-async]
-command=php /var/www/app/bin/console messenger:consume async --time-limit=3600 --memory-limit=128M -vv
-directory=/var/www/app
-user=app
-numprocs=1
-autostart=true
-autorestart=true
-startsecs=0
-startretries=10
-stopsignal=SIGTERM
-stopwaitsecs=10
-stdout_logfile=/dev/stdout
-stdout_logfile_maxbytes=0
-stderr_logfile=/dev/stderr
-stderr_logfile_maxbytes=0
-EOF
+RUN mkdir -p /etc/supervisor/conf.d /var/log/supervisor
+COPY docker/supervisor/supervisord.conf /etc/supervisord.conf
+COPY docker/supervisor/messenger.conf /etc/supervisor/conf.d/messenger.conf
 
 RUN chown -R app:app /var/www/app
 USER app
@@ -146,15 +91,7 @@ FROM php-base AS php-prod
 USER root
 
 # Enable opcache for production
-RUN cat <<'EOF' > /usr/local/etc/php/conf.d/opcache.ini
-[opcache]
-opcache.enable=1
-opcache.memory_consumption=256
-opcache.max_accelerated_files=20000
-opcache.validate_timestamps=0
-opcache.interned_strings_buffer=16
-opcache.fast_shutdown=1
-EOF
+COPY docker/php/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
 
 # Copy application source
 COPY --chown=app:app ./app/ /var/www/app/
