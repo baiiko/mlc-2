@@ -32,6 +32,7 @@ services:
       VITE_HOST: ${VITE_HOST:-localhost}
     networks:
       - mlc_network
+      - proxy
     depends_on:
       - php
     restart: unless-stopped
