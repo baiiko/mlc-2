@@ -93,6 +93,13 @@ class Player implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->login;
     }
 
+    public function setLogin(string $login): self
+    {
+        $this->login = $login;
+
+        return $this;
+    }
+
     public function getEmail(): string
     {
         return $this->email;

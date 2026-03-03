@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Http\Controller\Admin;
 
+use App\Application\Player\Service\ChangeLoginServiceInterface;
 use App\Application\Player\Service\RoleManagementServiceInterface;
 use App\Domain\Championship\Repository\MapRecordRepositoryInterface;
 use App\Domain\Player\Entity\Player;
@@ -29,6 +30,7 @@ class PlayerCrudController extends AbstractCrudController
     public function __construct(
         private readonly RoleManagementServiceInterface $roleManagementService,
         private readonly MapRecordRepositoryInterface $mapRecordRepository,
+        private readonly ChangeLoginServiceInterface $changeLoginService,
     ) {
     }
 
@@ -114,6 +116,50 @@ class PlayerCrudController extends AbstractCrudController
             return;
         }
 
+        if ($entityInstance instanceof Player) {
+            $uow = $entityManager->getUnitOfWork();
+            $uow->computeChangeSet($entityManager->getClassMetadata(Player::class), $entityInstance);
+            $changeSet = $uow->getEntityChangeSet($entityInstance);
+
+            if (!$this->isGranted('ROLE_SUPER_ADMIN')) {
+                if (isset($changeSet['pseudo'])) {
+                    $entityInstance->setPseudo($changeSet['pseudo'][0]);
+                    $this->addFlash('danger', 'Seul un super administrateur peut modifier le pseudo.');
+
+                    return;
+                }
+
+                if (isset($changeSet['login'])) {
+                    $entityInstance->setLogin($changeSet['login'][0]);
+                    $this->addFlash('danger', 'Seul un super administrateur peut modifier le login.');
+
+                    return;
+                }
+            }
+
+            if (isset($changeSet['login'])) {
+                $oldLogin = $changeSet['login'][0];
+                $newLogin = $changeSet['login'][1];
+
+                // Revert login before delegating to service (it will set it again)
+                $entityInstance->setLogin($oldLogin);
+
+                $result = $this->changeLoginService->changeLogin($entityInstance, $newLogin);
+
+                if (!$result['success']) {
+                    $this->addFlash('danger', $result['error']);
+
+                    return;
+                }
+
+                $this->addFlash('info', \sprintf(
+                    '%d record(s) et %d phase(s) mis à jour avec le nouveau login.',
+                    $result['updatedRecords'],
+                    $result['updatedPhases'],
+                ));
+            }
+        }
+
         parent::updateEntity($entityManager, $entityInstance);
     }
 
@@ -122,13 +168,29 @@ class PlayerCrudController extends AbstractCrudController
         yield IdField::new('id')
             ->hideOnForm();
 
-        yield TextField::new('login')
-            ->setFormTypeOption('disabled', true)
-            ->setHelp('Le login ne peut pas être modifié');
+        $isSuperAdmin = $this->isGranted('ROLE_SUPER_ADMIN');
 
-        yield TextField::new('pseudo')
+        $loginField = TextField::new('login');
+
+        if (!$isSuperAdmin) {
+            $loginField
+                ->setFormTypeOption('disabled', true)
+                ->setHelp('Seul un super administrateur peut modifier le login');
+        }
+
+        $pseudoField = TextField::new('pseudo')
             ->formatValue(fn (string $value): string => '<span class="tm-pseudo">' . TmColorParser::toHtml($value) . '</span>')
             ->renderAsHtml();
+
+        if (!$isSuperAdmin) {
+            $pseudoField
+                ->setFormTypeOption('disabled', true)
+                ->setHelp('Seul un super administrateur peut modifier le pseudo');
+        }
+
+        yield $loginField;
+
+        yield $pseudoField;
 
         yield EmailField::new('email');
 

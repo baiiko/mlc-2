@@ -36,6 +36,13 @@ interface MapRecordRepositoryInterface
     public function deleteByPlayerLogin(string $playerLogin): int;
 
     /**
+     * Updates all records from one login to another.
+     *
+     * @return int Number of updated records
+     */
+    public function updatePlayerLogin(string $oldLogin, string $newLogin): int;
+
+    /**
      * Returns all records for a map grouped by laps, sorted by time.
      *
      * @return array<int, array<array{record: MapRecord, playerPseudo: ?string}>>

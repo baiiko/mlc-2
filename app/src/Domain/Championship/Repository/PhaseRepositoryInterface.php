@@ -32,4 +32,9 @@ interface PhaseRepositoryInterface
      * Find the active qualification phase (currently running).
      */
     public function findActiveQualificationPhase(): ?Phase;
+
+    /**
+     * @return Phase[]
+     */
+    public function findWithLoginData(): array;
 }

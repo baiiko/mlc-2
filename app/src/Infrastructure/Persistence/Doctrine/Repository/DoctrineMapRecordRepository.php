@@ -84,6 +84,18 @@ final readonly class DoctrineMapRecordRepository implements MapRecordRepositoryI
             ->execute();
     }
 
+    public function updatePlayerLogin(string $oldLogin, string $newLogin): int
+    {
+        return $this->entityManager->createQueryBuilder()
+            ->update(MapRecord::class, 'r')
+            ->set('r.playerLogin', ':newLogin')
+            ->where('r.playerLogin = :oldLogin')
+            ->setParameter('oldLogin', $oldLogin)
+            ->setParameter('newLogin', $newLogin)
+            ->getQuery()
+            ->execute();
+    }
+
     public function findRankingsByMapUid(string $mapUid): array
     {
         $qb = $this->entityManager->createQueryBuilder();

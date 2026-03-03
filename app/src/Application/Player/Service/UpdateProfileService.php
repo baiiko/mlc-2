@@ -29,7 +29,6 @@ final readonly class UpdateProfileService implements UpdateProfileServiceInterfa
             }
         }
 
-        $player->setPseudo($dto->pseudo);
         $player->setEmail($dto->email);
         $player->setDiscord($dto->discord);
         $player->setNewsletter($dto->newsletter);

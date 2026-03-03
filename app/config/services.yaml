@@ -54,6 +54,9 @@ services:
     App\Application\Player\Service\RoleManagementServiceInterface:
         class: App\Application\Player\Service\RoleManagementService
 
+    App\Application\Player\Service\ChangeLoginServiceInterface:
+        class: App\Application\Player\Service\ChangeLoginService
+
     # Interface bindings - Team
     App\Domain\Team\Repository\TeamRepositoryInterface:
         class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrineTeamRepository

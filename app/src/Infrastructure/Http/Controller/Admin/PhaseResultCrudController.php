@@ -51,7 +51,7 @@ class PhaseResultCrudController extends AbstractCrudController
 
         yield AssociationField::new('phase', 'Phase');
 
-        yield TextField::new('playerPseudo', 'Joueur')
+        yield TextField::new('player.pseudo', 'Joueur')
             ->hideOnForm()
             ->formatValue(fn ($value, PhaseResult $entity): string => '<span class="tm-pseudo">' . TmColorParser::toHtml($entity->getPlayer()->getPseudo()) . '</span>')
             ->renderAsHtml();
@@ -72,12 +72,12 @@ class PhaseResultCrudController extends AbstractCrudController
 
         yield ChoiceField::new('qualifiedTo', 'Qualifié vers')
             ->setChoices([
-                'Aucun' => null,
                 'Demi-finale' => PhaseType::SemiFinal,
                 'Finale' => PhaseType::Final,
             ])
             ->allowMultipleChoices(false)
-            ->renderExpanded(false);
+            ->renderExpanded(false)
+            ->setRequired(false);
 
         yield IntegerField::new('serverNumber', 'Serveur');
 

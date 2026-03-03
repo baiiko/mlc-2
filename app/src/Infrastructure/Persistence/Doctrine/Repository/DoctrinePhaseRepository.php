@@ -71,6 +71,17 @@ final readonly class DoctrinePhaseRepository implements PhaseRepositoryInterface
             ->getResult();
     }
 
+    public function findWithLoginData(): array
+    {
+        return $this->entityManager
+            ->createQueryBuilder()
+            ->select('p')
+            ->from(Phase::class, 'p')
+            ->where('p.ranking IS NOT NULL OR p.players IS NOT NULL')
+            ->getQuery()
+            ->getResult();
+    }
+
     public function findActiveQualificationPhase(): ?Phase
     {
         $now = new \DateTimeImmutable();
