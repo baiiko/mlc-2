@@ -14,18 +14,22 @@ final class UpdateTeamType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        $readonly = $options['readonly'];
+
         $builder
             ->add('tag', TextType::class, [
                 'label' => 'form.tag',
-                'attr' => [
+                'attr' => array_filter([
                     'placeholder' => 'form.tag_placeholder',
-                ],
+                    'readonly' => $readonly ?: null,
+                ]),
             ])
             ->add('fullName', TextType::class, [
                 'label' => 'form.fullname',
-                'attr' => [
+                'attr' => array_filter([
                     'placeholder' => 'form.fullname_placeholder',
-                ],
+                    'readonly' => $readonly ?: null,
+                ]),
             ]);
     }
 
@@ -34,6 +38,7 @@ final class UpdateTeamType extends AbstractType
         $resolver->setDefaults([
             'data_class' => UpdateTeamDTO::class,
             'translation_domain' => 'team',
+            'readonly' => false,
         ]);
     }
 }

@@ -36,6 +36,8 @@
         autocomplete="off"
         {% if value is not empty %}value="{{ value }}"{% endif %}
         {% if required %}required{% endif %}
+        {% if disabled %}disabled{% endif %}
+        {% if attr.readonly is defined and attr.readonly %}readonly{% endif %}
         {% if attr.placeholder is defined %}placeholder="{{ attr.placeholder|trans({}, translation_domain) }}"{% endif %}
         class="w-full px-4 py-3 {{ has_icon ? 'pl-12' : '' }}
                bg-metal-dark border rounded-lg

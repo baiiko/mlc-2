@@ -45,9 +45,11 @@
 
                     {# Submit #}
                     <div class="flex gap-4">
-                        <button type="submit" class="inline-flex items-center justify-center px-8 py-4 font-semibold text-sm uppercase tracking-wider rounded transition-all duration-300 no-underline bg-gradient-to-br from-orange to-orange-dark text-white shadow-[0_4px_15px_rgba(255,140,0,0.4)] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(255,140,0,0.5)]">
-                            {{ 'edit.submit'|trans({}, 'team') }}
-                        </button>
+                        {% if isCreator %}
+                            <button type="submit" class="inline-flex items-center justify-center px-8 py-4 font-semibold text-sm uppercase tracking-wider rounded transition-all duration-300 no-underline bg-gradient-to-br from-orange to-orange-dark text-white shadow-[0_4px_15px_rgba(255,140,0,0.4)] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(255,140,0,0.5)]">
+                                {{ 'edit.submit'|trans({}, 'team') }}
+                            </button>
+                        {% endif %}
 
                         <a href="{{ path('app_profile') }}" class="inline-flex items-center justify-center px-8 py-4 font-semibold text-sm uppercase tracking-wider rounded transition-all duration-300 no-underline bg-transparent text-white border-2 border-metal-light hover:border-turquoise hover:text-turquoise">
                             {{ 'edit.back_to_profile'|trans({}, 'team') }}
@@ -55,32 +57,34 @@
                     </div>
                 {{ form_end(form) }}
 
-                {# Transfert de propriété #}
-                {% set other_members = team.activeMembers|filter(p => p.id != app.user.id) %}
-                {% if other_members|length > 0 %}
-                    <div class="bg-bg-card rounded-lg p-6 border border-metal-dark mt-6">
-                        <h2 class="font-russo text-xl text-orange mb-4">{{ 'edit.transfer_ownership'|trans({}, 'team') }}</h2>
-                        <p class="text-sm text-gray-light mb-4">
-                            {{ 'edit.transfer_description'|trans({}, 'team') }}
-                        </p>
+                {% if isCreator %}
+                    {# Transfert de propriété #}
+                    {% set other_members = team.activeMembers|filter(p => p.id != app.user.id) %}
+                    {% if other_members|length > 0 %}
+                        <div class="bg-bg-card rounded-lg p-6 border border-metal-dark mt-6">
+                            <h2 class="font-russo text-xl text-orange mb-4">{{ 'edit.transfer_ownership'|trans({}, 'team') }}</h2>
+                            <p class="text-sm text-gray-light mb-4">
+                                {{ 'edit.transfer_description'|trans({}, 'team') }}
+                            </p>
 
-                        <form action="{{ path('app_team_transfer') }}" method="post" onsubmit="return confirm('{{ 'edit.transfer_confirm'|trans({}, 'team')|e('js') }}');">
-                            <div class="mb-4">
-                                <label for="new_creator_id" class="block text-sm font-medium text-gray-light mb-2">
-                                    {{ 'edit.new_owner'|trans({}, 'team') }}
-                                </label>
-                                <select name="new_creator_id" id="new_creator_id" class="w-full px-4 py-3 bg-metal-dark border border-metal-light rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange focus:border-transparent">
-                                    {% for member in other_members %}
-                                        <option value="{{ member.id }}">{{ member.displayName|tm_color }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
+                            <form action="{{ path('app_team_transfer') }}" method="post" onsubmit="return confirm('{{ 'edit.transfer_confirm'|trans({}, 'team')|e('js') }}');">
+                                <div class="mb-4">
+                                    <label for="new_creator_id" class="block text-sm font-medium text-gray-light mb-2">
+                                        {{ 'edit.new_owner'|trans({}, 'team') }}
+                                    </label>
+                                    <select name="new_creator_id" id="new_creator_id" class="w-full px-4 py-3 bg-metal-dark border border-metal-light rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange focus:border-transparent">
+                                        {% for member in other_members %}
+                                            <option value="{{ member.id }}">{{ member.displayName|tm_color }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
 
-                            <button type="submit" class="inline-flex items-center justify-center px-6 py-3 font-semibold text-sm uppercase tracking-wider rounded transition-all duration-300 no-underline bg-transparent text-red-400 border border-red-400 hover:bg-red-400/10">
-                                {{ 'edit.transfer_button'|trans({}, 'team') }}
-                            </button>
-                        </form>
-                    </div>
+                                <button type="submit" class="inline-flex items-center justify-center px-6 py-3 font-semibold text-sm uppercase tracking-wider rounded transition-all duration-300 no-underline bg-transparent text-red-400 border border-red-400 hover:bg-red-400/10">
+                                    {{ 'edit.transfer_button'|trans({}, 'team') }}
+                                </button>
+                            </form>
+                        </div>
+                    {% endif %}
                 {% endif %}
             </div>
 
@@ -118,7 +122,7 @@
                                     </div>
                                     <div class="text-xs text-gray-mid">{{ member.login }}</div>
                                 </div>
-                                {% if not team.isCreator(member) %}
+                                {% if isCreator and not team.isCreator(member) %}
                                     <form action="{{ path('app_team_remove_member', {playerId: member.id}) }}" method="post" onsubmit="return confirm('{{ 'members.remove_confirm'|trans({'%name%': member.displayName|tm_strip}, 'team')|e('js') }}');">
                                         <button type="submit" class="px-3 py-1 text-xs font-medium uppercase rounded transition-all duration-300 text-red-400 border border-red-400 hover:bg-red-400/10">
                                             {{ 'members.remove'|trans({}, 'team') }}
@@ -130,7 +134,7 @@
                     </div>
                 </div>
 
-                {% if pendingRequests|length > 0 %}
+                {% if isCreator and pendingRequests|length > 0 %}
                     <div class="bg-bg-card rounded-lg p-6 border border-metal-dark mb-6">
                         <h3 class="font-russo text-xl mb-4">{{ 'requests.title'|trans({}, 'team') }}</h3>
                         <p class="text-sm text-gray-light mb-4">
@@ -142,18 +146,20 @@
                     </div>
                 {% endif %}
 
-                {# Clôturer l'équipe #}
-                <div class="bg-bg-card rounded-lg p-6 border border-red-500/30">
-                    <h3 class="font-russo text-xl text-red-400 mb-2">{{ 'edit.close_team'|trans({}, 'team') }}</h3>
-                    <p class="text-gray-light text-sm mb-4">
-                        {{ 'edit.close_description'|trans({}, 'team') }}
-                    </p>
-                    <form action="{{ path('app_team_close') }}" method="post" onsubmit="return confirm('{{ 'edit.close_confirm'|trans({'%team%': team.tag}, 'team')|e('js') }}');">
-                        <button type="submit" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium uppercase tracking-wider rounded transition-all duration-300 bg-red-500/20 text-red-400 border border-red-500 hover:bg-red-500/30">
-                            {{ 'edit.close_button'|trans({}, 'team') }}
-                        </button>
-                    </form>
-                </div>
+                {% if isCreator %}
+                    {# Clôturer l'équipe #}
+                    <div class="bg-bg-card rounded-lg p-6 border border-red-500/30">
+                        <h3 class="font-russo text-xl text-red-400 mb-2">{{ 'edit.close_team'|trans({}, 'team') }}</h3>
+                        <p class="text-gray-light text-sm mb-4">
+                            {{ 'edit.close_description'|trans({}, 'team') }}
+                        </p>
+                        <form action="{{ path('app_team_close') }}" method="post" onsubmit="return confirm('{{ 'edit.close_confirm'|trans({'%team%': team.tag}, 'team')|e('js') }}');">
+                            <button type="submit" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium uppercase tracking-wider rounded transition-all duration-300 bg-red-500/20 text-red-400 border border-red-500 hover:bg-red-500/30">
+                                {{ 'edit.close_button'|trans({}, 'team') }}
+                            </button>
+                        </form>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </section>

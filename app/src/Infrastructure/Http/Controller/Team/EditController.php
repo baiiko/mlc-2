@@ -44,34 +44,38 @@ final readonly class EditController
             return new RedirectResponse($this->urlGenerator->generate('app_profile'));
         }
 
-        if (!$player->isTeamCreator()) {
-            throw new AccessDeniedHttpException('Vous n\'êtes pas le créateur de cette équipe.');
-        }
+        $isCreator = $player->isTeamCreator();
+        $pendingRequests = $isCreator ? $this->joinRequestRepository->findPendingByTeam($team) : [];
 
         $dto = new UpdateTeamDTO();
         $dto->tag = $team->getTag();
         $dto->fullName = $team->getFullName();
 
-        $form = $this->formFactory->create(UpdateTeamType::class, $dto);
-        $form->handleRequest($request);
+        $form = $this->formFactory->create(UpdateTeamType::class, $dto, [
+            'disabled' => !$isCreator,
+            'readonly' => !$isCreator,
+        ]);
 
-        $pendingRequests = $this->joinRequestRepository->findPendingByTeam($team);
+        if ($isCreator) {
+            $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            try {
-                $result = $this->updateTeamService->updateTeam($team, $player, $dto);
+            if ($form->isSubmitted() && $form->isValid()) {
+                try {
+                    $result = $this->updateTeamService->updateTeam($team, $player, $dto);
 
-                return new Response(
-                    $this->twig->render('team/edit.html.twig', [
-                        'form' => $form->createView(),
-                        'team' => $team,
-                        'pendingRequests' => $pendingRequests,
-                        'success' => $result['success'],
-                        'error' => $result['error'],
-                    ])
-                );
-            } catch (\RuntimeException $e) {
-                throw new AccessDeniedHttpException($e->getMessage(), $e);
+                    return new Response(
+                        $this->twig->render('team/edit.html.twig', [
+                            'form' => $form->createView(),
+                            'team' => $team,
+                            'isCreator' => true,
+                            'pendingRequests' => $pendingRequests,
+                            'success' => $result['success'],
+                            'error' => $result['error'],
+                        ])
+                    );
+                } catch (\RuntimeException $e) {
+                    throw new AccessDeniedHttpException($e->getMessage(), $e);
+                }
             }
         }
 
@@ -79,6 +83,7 @@ final readonly class EditController
             $this->twig->render('team/edit.html.twig', [
                 'form' => $form->createView(),
                 'team' => $team,
+                'isCreator' => $isCreator,
                 'pendingRequests' => $pendingRequests,
                 'success' => false,
             ])
