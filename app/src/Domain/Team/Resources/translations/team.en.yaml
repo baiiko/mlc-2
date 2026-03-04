@@ -51,6 +51,7 @@ members:
     title: "Members"
     count: "%count% member(s)"
     you: "(you)"
+    leader: "Leader"
     remove: "Remove"
     remove_confirm: "Remove %name% from the team?"
     leave: "Leave team"

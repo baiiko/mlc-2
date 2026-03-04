@@ -117,7 +117,10 @@
                                     <div class="text-white font-medium">
                                         {{ member.displayName|tm_color }}
                                         {% if team.isCreator(member) %}
-                                            <span class="text-xs text-orange ml-1">{{ 'members.you'|trans({}, 'team') }}</span>
+                                            <span class="text-xs text-orange ml-1">{{ 'members.leader'|trans({}, 'team') }}</span>
+                                        {% endif %}
+                                        {% if member.id == app.user.id %}
+                                            <span class="text-xs text-turquoise ml-1">{{ 'members.you'|trans({}, 'team') }}</span>
                                         {% endif %}
                                     </div>
                                     <div class="text-xs text-gray-mid">{{ member.login }}</div>

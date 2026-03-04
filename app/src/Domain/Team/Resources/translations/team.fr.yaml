@@ -51,6 +51,7 @@ members:
     title: "Membres"
     count: "%count% membre(s)"
     you: "(vous)"
+    leader: "Leader"
     remove: "Retirer"
     remove_confirm: "Retirer %name% de l'équipe ?"
     leave: "Quitter l'équipe"
