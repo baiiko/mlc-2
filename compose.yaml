@@ -11,6 +11,7 @@ services:
       APP_ENV: ${APP_ENV:-prod}
       DATABASE_URL: ${DATABASE_URL}
       MAILER_DSN: ${MAILER_DSN}
+      TRUSTED_PROXIES: REMOTE_ADDR
     networks:
       - mlc_network
     depends_on:
