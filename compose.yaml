@@ -19,8 +19,9 @@ services:
         condition: service_healthy
     restart: unless-stopped
     volumes:
-      - mlc_config:/var/matchsettings
+      - mlc_config:/var/www/matchsettings
       - mlc_thumbs:/var/www/app/public/uploads
+      - mlc_maps:/var/www/maps/:rw
 
   nginx:
     build:
@@ -110,3 +111,4 @@ volumes:
   db_data:
   mlc_config:
   mlc_thumbs:
+  mlc_maps:
