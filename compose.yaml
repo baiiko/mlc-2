@@ -112,3 +112,5 @@ volumes:
   mlc_config:
   mlc_thumbs:
   mlc_maps:
+    external: true
+    name: mlc_maps
