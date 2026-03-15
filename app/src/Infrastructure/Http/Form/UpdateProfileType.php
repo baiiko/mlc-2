@@ -19,7 +19,6 @@ final class UpdateProfileType extends AbstractType
         $builder
             ->add('pseudo', TextType::class, [
                 'label' => 'form.pseudo',
-                'disabled' => true,
                 'attr' => [
                     'placeholder' => 'form.pseudo_help',
                 ],
