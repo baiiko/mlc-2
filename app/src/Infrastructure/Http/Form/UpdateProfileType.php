@@ -22,7 +22,6 @@ final class UpdateProfileType extends AbstractType
                 'disabled' => true,
                 'attr' => [
                     'placeholder' => 'form.pseudo_help',
-                    'readonly' => true,
                 ],
             ])
             ->add('email', EmailType::class, [
