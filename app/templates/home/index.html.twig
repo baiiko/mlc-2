@@ -154,6 +154,20 @@
             } %}
 
             {% include 'components/_round_timeline.html.twig' with { round: currentRound } %}
+
+            {% if currentRound.isRegistrationOpen %}
+                <div class="mt-6 flex justify-center">
+                    <a href="{{ path('app_championship_round_show', {id: currentRound.id}) }}"
+                       class="inline-flex items-center gap-2 px-8 py-4 font-semibold text-sm uppercase tracking-wider rounded
+                              bg-gradient-to-br from-orange to-orange-dark text-white
+                              shadow-[0_4px_15px_rgba(255,140,0,0.4)]
+                              hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(255,140,0,0.5)]
+                              transition-all duration-300 no-underline">
+                        <span class="inline-block w-2 h-2 bg-white rounded-full animate-pulse"></span>
+                        {{ 'championship.register_now'|trans({}, 'championship') }}
+                    </a>
+                </div>
+            {% endif %}
         </section>
     {% endif %}
 
