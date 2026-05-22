@@ -90,6 +90,7 @@ admin.server.created_at: Créé le
 admin.server.action.warmup: WarmUp
 admin.server.action.restart: Restart
 admin.server.action.skip: Skip
+admin.server.action.phase_qualification: Phase qualification
 
 # Phase admin
 Phase: Phase
