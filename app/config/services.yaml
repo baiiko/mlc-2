@@ -133,6 +133,7 @@ services:
     App\Application\Championship\Service\RoundMapService:
         arguments:
             $publicDir: '%kernel.project_dir%/public'
+            $matchSettingsPath: '%env(resolve:MATCHSETTINGS_PATH)%'
 
     App\Application\Championship\Service\MatchSettingsGeneratorService:
         arguments:

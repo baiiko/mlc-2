@@ -13,6 +13,7 @@ class RoundMapService
     public function __construct(
         private readonly GbxParserService $gbxParser,
         private readonly string $publicDir,
+        private readonly string $matchSettingsPath,
     ) {
     }
 
@@ -64,9 +65,29 @@ class RoundMapService
             }
         }
 
+        if ($data->uid) {
+            $this->saveGbxFile($file, $map, $data->uid);
+        }
+
         $map->setGbxFile(null);
 
         return null;
+    }
+
+    private function saveGbxFile(UploadedFile $file, RoundMap $map, string $uid): void
+    {
+        $mapsDir = \dirname(rtrim($this->matchSettingsPath, '/'));
+        $round = $map->getRound();
+        $season = $round?->getSeason();
+
+        $relativeDir = ($season?->getId() ?? 'default') . '/' . ($round?->getName() ?? 'round');
+        $destDir = $mapsDir . '/' . $relativeDir;
+
+        if (!is_dir($destDir)) {
+            mkdir($destDir, 0755, true);
+        }
+
+        $file->move($destDir, $uid . '.Challenge.Gbx');
     }
 
     private function saveThumbnail(string $base64Data, string $uid): ?string
