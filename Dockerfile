@@ -99,9 +99,9 @@ COPY --from=node-builder --chown=app:app /app/public/build /var/www/app/public/b
 
 # Create directories with correct ownership (for Docker volume initialization)
 RUN mkdir -p /var/www/app/public/uploads/maps/thumbnails \
-    && mkdir -p /var/matchsettings \
+    && mkdir -p /var/www/matchsettings \
     && chown -R app:app /var/www/app/public/uploads \
-    && chown -R app:app /var/matchsettings
+    && chown -R app:app /var/www/matchsettings
 
 USER app
 ENV APP_ENV=prod

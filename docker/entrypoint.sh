@@ -3,9 +3,9 @@ set -e
 
 # Fix volume directories permissions (for existing volumes)
 mkdir -p /var/www/app/public/uploads/maps/thumbnails
-mkdir -p /var/matchsettings
+mkdir -p /var/www/matchsettings
 chown -R app:app /var/www/app/public/uploads
-chown -R app:app /var/matchsettings
+chown -R app:app /var/www/matchsettings
 
 if [ -n "$DATABASE_URL" ]; then
     echo "Running database migrations..."
