@@ -19,7 +19,6 @@ services:
         condition: service_healthy
     restart: unless-stopped
     volumes:
-      - mlc_config:/var/www/matchsettings
       - mlc_thumbs:/var/www/app/public/uploads
       - mlc_maps:/var/www/maps/:rw
 
