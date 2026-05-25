@@ -43,6 +43,13 @@ interface MapRecordRepositoryInterface
     public function updatePlayerLogin(string $oldLogin, string $newLogin): int;
 
     /**
+     * Migrates all records of a given map UID to a new UID, scoped to a single round.
+     *
+     * @return int Number of updated records
+     */
+    public function updateMapUidForRound(string $oldUid, string $newUid, int $roundId): int;
+
+    /**
      * Returns all records for a map grouped by laps, sorted by time.
      *
      * @return array<int, array<array{record: MapRecord, playerPseudo: ?string}>>

@@ -96,6 +96,20 @@ final readonly class DoctrineMapRecordRepository implements MapRecordRepositoryI
             ->execute();
     }
 
+    public function updateMapUidForRound(string $oldUid, string $newUid, int $roundId): int
+    {
+        return $this->entityManager->createQueryBuilder()
+            ->update(MapRecord::class, 'r')
+            ->set('r.mapUid', ':newUid')
+            ->where('r.mapUid = :oldUid')
+            ->andWhere('r.roundId = :roundId')
+            ->setParameter('oldUid', $oldUid)
+            ->setParameter('newUid', $newUid)
+            ->setParameter('roundId', $roundId)
+            ->getQuery()
+            ->execute();
+    }
+
     public function findRankingsByMapUid(string $mapUid): array
     {
         $qb = $this->entityManager->createQueryBuilder();

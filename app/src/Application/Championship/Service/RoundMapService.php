@@ -6,12 +6,14 @@ namespace App\Application\Championship\Service;
 
 use App\Application\Championship\DTO\GbxMapDataDTO;
 use App\Domain\Championship\Entity\RoundMap;
+use App\Domain\Championship\Repository\MapRecordRepositoryInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class RoundMapService
 {
     public function __construct(
         private readonly GbxParserService $gbxParser,
+        private readonly MapRecordRepositoryInterface $mapRecordRepository,
         private readonly string $publicDir,
         private readonly string $matchSettingsPath,
     ) {
@@ -26,6 +28,13 @@ class RoundMapService
         }
 
         if ($data->uid) {
+            $previousUid = $map->getUid();
+            $roundId = $map->getRound()?->getId();
+
+            if ($previousUid !== null && $previousUid !== $data->uid && $roundId !== null) {
+                $this->mapRecordRepository->updateMapUidForRound($previousUid, $data->uid, $roundId);
+            }
+
             $map->setUid($data->uid);
         }
 
