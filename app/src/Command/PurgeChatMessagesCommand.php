@@ -40,7 +40,8 @@ final class PurgeChatMessagesCommand extends Command
             return Command::INVALID;
         }
 
-        $threshold = new \DateTimeImmutable(\sprintf('-%d hours', $hours));
+        $threshold = (new \DateTimeImmutable(\sprintf('-%d hours', $hours)))
+            ->setTimezone(new \DateTimeZone('UTC'));
         $deleted = $this->chatMessageRepository->deleteOlderThan($threshold);
 
         $io->success(\sprintf('Deleted %d chat message(s) older than %s.', $deleted, $threshold->format('Y-m-d H:i:s')));

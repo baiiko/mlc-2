@@ -51,7 +51,7 @@ class ChatMessage
         $this->type = $type;
         $this->playerLogin = $playerLogin;
         $this->playerPseudo = $playerPseudo;
-        $this->createdAt = $createdAt ?? new \DateTimeImmutable();
+        $this->createdAt = ($createdAt ?? new \DateTimeImmutable())->setTimezone(new \DateTimeZone('UTC'));
     }
 
     public function getId(): ?int
@@ -86,6 +86,12 @@ class ChatMessage
 
     public function getCreatedAt(): \DateTimeImmutable
     {
-        return $this->createdAt;
+        // The DATETIME column stores wall-clock UTC values, but Doctrine hydrates
+        // them with PHP's default timezone. Re-tag (not convert) to UTC.
+        return \DateTimeImmutable::createFromFormat(
+            'Y-m-d H:i:s',
+            $this->createdAt->format('Y-m-d H:i:s'),
+            new \DateTimeZone('UTC'),
+        ) ?: $this->createdAt;
     }
 }

@@ -20,7 +20,8 @@ final readonly class PurgeChatMessagesMessageHandler
 
     public function __invoke(PurgeChatMessagesMessage $message): void
     {
-        $threshold = new \DateTimeImmutable(\sprintf('-%d hours', $message->retentionHours));
+        $threshold = (new \DateTimeImmutable(\sprintf('-%d hours', $message->retentionHours)))
+            ->setTimezone(new \DateTimeZone('UTC'));
         $deleted = $this->chatMessageRepository->deleteOlderThan($threshold);
 
         $this->logger->info('Purged chat messages', [
