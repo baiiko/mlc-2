@@ -14,27 +14,13 @@ class ServerCommandService
      */
     public function toggleWarmUp(Server $server): array
     {
-        return $this->executeCommand($server, function (GbxRemote $client): array {
-            $currentWarmUp = $client->query('GetAllWarmUpDuration');
+        $result = $this->sendChatMessage($server, '/warmup');
 
-            if ($currentWarmUp === false) {
-                return ['success' => false, 'message' => $client->getError() ?? 'Erreur inconnue'];
-            }
+        if ($result['success']) {
+            return ['success' => true, 'message' => 'Commande /warmup envoyée au plugin serveur.'];
+        }
 
-            $isEnabled = ($currentWarmUp['CurrentValue'] ?? 0) === 1;
-            $newValue = $isEnabled ? 0 : 1;
-
-            $result = $client->query('SetAllWarmUpDuration', $newValue);
-
-            if ($result === false) {
-                return ['success' => false, 'message' => $client->getError() ?? 'Erreur inconnue'];
-            }
-
-            return [
-                'success' => true,
-                'message' => $newValue === 1 ? 'WarmUp activé' : 'WarmUp désactivé',
-            ];
-        });
+        return $result;
     }
 
     /**
