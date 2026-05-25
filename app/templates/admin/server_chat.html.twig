@@ -16,14 +16,14 @@
                     <div class="chat-line" data-id="{{ m.id }}">
                         <span style="color: #888;">[{{ m.createdAt|date('H:i:s') }}]</span>
                         {% if m.type.value == 'player' %}
-                            <span style="color: #4fc3f7;">{{ m.playerPseudo ?? m.playerLogin ?? '?' }}:</span>
-                            <span>{{ m.content }}</span>
+                            <span class="tm-colors">{{ (m.playerPseudo ?? m.playerLogin ?? '?')|tm_color|raw }}<span style="color:#4fc3f7;">:</span></span>
+                            <span class="tm-colors">{{ m.content|tm_color|raw }}</span>
                         {% elseif m.type.value == 'server' %}
                             <span style="color: #ffb74d;">[SERVER]</span>
-                            <span>{{ m.content }}</span>
+                            <span class="tm-colors">{{ m.content|tm_color|raw }}</span>
                         {% else %}
                             <span style="color: #aed581;">[SYSTEM]</span>
-                            <span>{{ m.content }}</span>
+                            <span class="tm-colors">{{ m.content|tm_color|raw }}</span>
                         {% endif %}
                     </div>
                 {% else %}
@@ -32,9 +32,9 @@
             </div>
 
             <form id="chat-send-form" class="mt-3">
-                <div class="input-group">
+                <div class="input-group input-group-lg">
                     <input id="chat-send-input" type="text" name="message" class="form-control" placeholder="Envoyer un message en tant que serveur…" maxlength="500" required autofocus>
-                    <button id="chat-send-btn" type="submit" class="btn btn-primary"><i class="fa fa-paper-plane"></i> Envoyer</button>
+                    <button id="chat-send-btn" type="submit" class="btn btn-primary px-4"><i class="fa fa-paper-plane me-2"></i> Envoyer</button>
                 </div>
                 <div id="chat-send-feedback" class="small mt-1" style="min-height: 1.2em;"></div>
             </form>
@@ -58,14 +58,15 @@
 
             function renderMessage(m) {
                 const time = new Date(m.createdAt).toLocaleTimeString('fr-FR', {hour12: false});
+                const contentHtml = m.contentHtml ?? '';
                 let body;
                 if (m.type === 'player') {
-                    const who = escapeHtml(m.pseudo || m.login || '?');
-                    body = `<span style="color:#4fc3f7;">${who}:</span> <span>${escapeHtml(m.content)}</span>`;
+                    const whoHtml = m.pseudoHtml || escapeHtml(m.login || '?');
+                    body = `<span class="tm-colors">${whoHtml}<span style="color:#4fc3f7;">:</span></span> <span class="tm-colors">${contentHtml}</span>`;
                 } else if (m.type === 'server') {
-                    body = `<span style="color:#ffb74d;">[SERVER]</span> <span>${escapeHtml(m.content)}</span>`;
+                    body = `<span style="color:#ffb74d;">[SERVER]</span> <span class="tm-colors">${contentHtml}</span>`;
                 } else {
-                    body = `<span style="color:#aed581;">[SYSTEM]</span> <span>${escapeHtml(m.content)}</span>`;
+                    body = `<span style="color:#aed581;">[SYSTEM]</span> <span class="tm-colors">${contentHtml}</span>`;
                 }
                 return `<div class="chat-line" data-id="${m.id}"><span style="color:#888;">[${time}]</span> ${body}</div>`;
             }

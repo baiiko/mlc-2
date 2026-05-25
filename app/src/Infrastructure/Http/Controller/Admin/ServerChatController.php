@@ -10,6 +10,7 @@ use App\Domain\Championship\Repository\ServerRepositoryInterface;
 use App\Domain\Communication\Entity\ChatMessage;
 use App\Domain\Communication\Enum\ChatMessageType;
 use App\Domain\Communication\Repository\ChatMessageRepositoryInterface;
+use App\Infrastructure\Service\TmColorParser;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -49,8 +50,8 @@ final class ServerChatController extends AbstractController
         $payload = array_map(fn ($m): array => [
             'id' => $m->getId(),
             'login' => $m->getPlayerLogin(),
-            'pseudo' => $m->getPlayerPseudo(),
-            'content' => $m->getContent(),
+            'pseudoHtml' => $m->getPlayerPseudo() !== null ? TmColorParser::toHtml($m->getPlayerPseudo()) : null,
+            'contentHtml' => TmColorParser::toHtml($m->getContent()),
             'type' => $m->getType()->value,
             'createdAt' => $m->getCreatedAt()->format(\DateTimeInterface::ATOM),
         ], array_reverse($messages));
@@ -70,12 +71,14 @@ final class ServerChatController extends AbstractController
             return new JsonResponse(['success' => false, 'message' => 'Message vide.'], 400);
         }
 
-        $result = $this->serverCommandService->sendChatMessage($server, $message);
+        $prefixed = '$f80[Server]$z$s '.$message;
+
+        $result = $this->serverCommandService->sendChatMessage($server, $prefixed);
 
         if ($result['success']) {
             $this->chatMessageRepository->save(new ChatMessage(
                 $server,
-                $message,
+                $prefixed,
                 ChatMessageType::Server,
             ));
         }
