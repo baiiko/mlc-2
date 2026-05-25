@@ -22,6 +22,20 @@ admin.menu.phases: Phases
 admin.menu.maps: Maps
 admin.menu.registrations: Inscriptions
 admin.menu.results: Résultats
+admin.menu.map_records: Temps des maps
+
+# Map record admin
+admin.map_record.singular: Temps
+admin.map_record.plural: Temps des maps
+admin.map_record.round_id: Manche (ID)
+admin.map_record.player_login: Login joueur
+admin.map_record.player_pseudo: Pseudo
+admin.map_record.map_uid: UID Map
+admin.map_record.laps: Tours
+admin.map_record.time: Temps
+admin.map_record.time_ms: Temps (ms)
+admin.map_record.game_mode: Mode de jeu
+admin.map_record.created_at: Créé le
 admin.menu.infrastructure: Infrastructure
 admin.menu.servers: Serveurs
 admin.menu.content: Contenu

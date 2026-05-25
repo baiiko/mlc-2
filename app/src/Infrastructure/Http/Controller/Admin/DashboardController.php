@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Http\Controller\Admin;
 
+use App\Domain\Championship\Entity\MapRecord;
 use App\Domain\Championship\Entity\Phase;
 use App\Domain\Championship\Entity\PhaseResult;
 use App\Domain\Championship\Entity\Round;
@@ -80,6 +81,8 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkToCrud('admin.menu.registrations', 'fa fa-clipboard-list', RoundRegistration::class)->setPermission('ROLE_ADMIN');
 
         yield MenuItem::linkToCrud('admin.menu.results', 'fa fa-trophy', PhaseResult::class)->setPermission('ROLE_ADMIN');
+
+        yield MenuItem::linkToCrud('admin.menu.map_records', 'fa fa-stopwatch', MapRecord::class)->setPermission('ROLE_ADMIN');
 
         yield MenuItem::section('admin.menu.infrastructure')->setPermission('ROLE_SERVER_ADMIN');
 

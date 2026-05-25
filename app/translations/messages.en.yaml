@@ -22,6 +22,20 @@ admin.menu.phases: Phases
 admin.menu.maps: Maps
 admin.menu.registrations: Registrations
 admin.menu.results: Results
+admin.menu.map_records: Map records
+
+# Map record admin
+admin.map_record.singular: Record
+admin.map_record.plural: Map records
+admin.map_record.round_id: Round (ID)
+admin.map_record.player_login: Player login
+admin.map_record.player_pseudo: Pseudo
+admin.map_record.map_uid: Map UID
+admin.map_record.laps: Laps
+admin.map_record.time: Time
+admin.map_record.time_ms: Time (ms)
+admin.map_record.game_mode: Game mode
+admin.map_record.created_at: Created at
 admin.menu.infrastructure: Infrastructure
 admin.menu.servers: Servers
 admin.menu.content: Content
