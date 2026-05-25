@@ -102,8 +102,13 @@ RUN mkdir -p /var/www/app/public/uploads/maps/thumbnails \
     && chown -R app:app /var/www/app/public/uploads
 
 USER app
-ENV APP_ENV=prod
-RUN composer install --no-dev --no-scripts --optimize-autoloader \
+ARG APP_ENV=prod
+ENV APP_ENV=${APP_ENV}
+RUN if [ "$APP_ENV" = "dev" ]; then \
+        composer install --no-scripts --optimize-autoloader; \
+    else \
+        composer install --no-dev --no-scripts --optimize-autoloader; \
+    fi \
     && php bin/console assets:install
 
 # Stage: Web Prod - PHP-FPM for production

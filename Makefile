@@ -27,7 +27,7 @@ down: ## Arrête les containers
 restart: down up ## Redémarre les containers
 
 logs: ## Affiche les logs des containers
-	$(DOCKER_COMPOSE) logs -f
+	$(DOCKER_COMPOSE) logs -f -n 10
 
 ps: ## Affiche le status des containers
 	$(DOCKER_COMPOSE) ps
