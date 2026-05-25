@@ -7,6 +7,8 @@ namespace App\Infrastructure\Http\Controller\Admin;
 use App\Application\Championship\Service\ServerCommandService;
 use App\Domain\Championship\Entity\Server;
 use App\Domain\Championship\Repository\ServerRepositoryInterface;
+use App\Domain\Communication\Entity\ChatMessage;
+use App\Domain\Communication\Enum\ChatMessageType;
 use App\Domain\Communication\Repository\ChatMessageRepositoryInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -69,6 +71,14 @@ final class ServerChatController extends AbstractController
         }
 
         $result = $this->serverCommandService->sendChatMessage($server, $message);
+
+        if ($result['success']) {
+            $this->chatMessageRepository->save(new ChatMessage(
+                $server,
+                $message,
+                ChatMessageType::Server,
+            ));
+        }
 
         return new JsonResponse($result, $result['success'] ? 200 : 502);
     }
