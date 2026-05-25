@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Http\Controller\Admin;
 
-use App\Application\Championship\Service\MatchSettingsGeneratorService;
 use App\Application\Championship\Service\ServerCommandService;
+use App\Domain\Championship\Entity\PhaseType;
 use App\Domain\Championship\Entity\Server;
 use App\Domain\Championship\Repository\PhaseRepositoryInterface;
+use App\Domain\Championship\Repository\RoundRepositoryInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
@@ -31,6 +32,7 @@ class ServerCrudController extends AbstractCrudController
         private readonly ServerCommandService $serverCommandService,
         private readonly AdminUrlGenerator $adminUrlGenerator,
         private readonly PhaseRepositoryInterface $phaseRepository,
+        private readonly RoundRepositoryInterface $roundRepository,
     ) {
     }
 
@@ -227,12 +229,9 @@ class ServerCrudController extends AbstractCrudController
         /** @var Server $server */
         $server = $context->getEntity()->getInstance();
 
-        $activePhase = $this->phaseRepository->findActivePlayablePhase();
-        $filename = $activePhase !== null
-            ? MatchSettingsGeneratorService::getFilenameForPhase($activePhase)
-            : 'default.xml';
+        $phaseName = $this->resolvePhaseName();
 
-        $result = $this->serverCommandService->reloadMatchSettings($server, 'MatchSettings/' . $filename);
+        $result = $this->serverCommandService->reloadMatchSettings($server, $phaseName);
 
         if ($result['success']) {
             $this->addFlash('success', $result['message']);
@@ -267,5 +266,50 @@ class ServerCrudController extends AbstractCrudController
                 ->setAction(Action::INDEX)
                 ->generateUrl()
         );
+    }
+
+    private function resolvePhaseName(): string
+    {
+        $activePhase = $this->phaseRepository->findActivePlayablePhase();
+
+        if ($activePhase !== null) {
+            return match ($activePhase->getType()) {
+                PhaseType::SemiFinal => 'demi',
+                PhaseType::Final => 'finale',
+                default => 'qualification',
+            };
+        }
+
+        // No competitive phase active right now.
+        // → training if we're inside a round window (between two phases of the same round)
+        // → free otherwise (between rounds)
+        $round = $this->roundRepository->findCurrentOrUpcoming();
+
+        if ($round === null) {
+            return 'free';
+        }
+
+        $now = new \DateTimeImmutable();
+        $starts = [];
+        $ends = [];
+
+        foreach ($round->getPhases() as $phase) {
+            if ($phase->getStartAt() !== null) {
+                $starts[] = $phase->getStartAt();
+            }
+
+            if ($phase->getEndAt() !== null) {
+                $ends[] = $phase->getEndAt();
+            }
+        }
+
+        if ($starts === [] || $ends === []) {
+            return 'free';
+        }
+
+        $firstStart = min($starts);
+        $lastEnd = max($ends);
+
+        return ($now >= $firstStart && $now <= $lastEnd) ? 'training' : 'free';
     }
 }

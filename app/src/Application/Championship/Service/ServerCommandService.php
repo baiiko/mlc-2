@@ -76,29 +76,21 @@ class ServerCommandService
     /**
      * @return array{success: bool, message: string}
      */
-    public function reloadMatchSettings(Server $server, string $filename = 'MatchSettings/default.xml'): array
+    /**
+     * Trigger the server-side plugin to reload its match settings by sending the
+     * "/phase {type}" chat command. The plugin handles the actual .xml reload.
+     *
+     * @return array{success: bool, message: string}
+     */
+    public function reloadMatchSettings(Server $server, string $phaseName = 'qualification'): array
     {
-        return $this->executeCommand($server, function (GbxRemote $client) use ($filename): array {
-            // TMF requires the server to be in "Lobby" state to load new match settings.
-            $client->query('StopServer');
+        $result = $this->sendChatMessage($server, '/phase ' . $phaseName);
 
-            $result = $client->query('LoadMatchSettings', $filename);
+        if ($result['success']) {
+            return ['success' => true, 'message' => \sprintf('Phase "%s" demandée au plugin serveur.', $phaseName)];
+        }
 
-            if ($result === false) {
-                $error = $client->getError() ?? 'Erreur inconnue';
-                $client->query('StartServer');
-
-                return ['success' => false, 'message' => $error];
-            }
-
-            $started = $client->query('StartServer');
-
-            if ($started === false) {
-                return ['success' => false, 'message' => 'MatchSettings chargé mais impossible de redémarrer le serveur : ' . ($client->getError() ?? 'Erreur inconnue')];
-            }
-
-            return ['success' => true, 'message' => \sprintf('MatchSettings rechargé (%s) — %d maps.', $filename, \is_int($result) ? $result : 0)];
-        });
+        return $result;
     }
 
     /**
