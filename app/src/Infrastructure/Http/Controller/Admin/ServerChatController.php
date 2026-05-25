@@ -10,7 +10,6 @@ use App\Domain\Championship\Repository\ServerRepositoryInterface;
 use App\Domain\Communication\Repository\ChatMessageRepositoryInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -58,26 +57,20 @@ final class ServerChatController extends AbstractController
     }
 
     #[Route('/admin/server/{id}/chat/send', name: 'admin_server_chat_send', requirements: ['id' => '\d+'], methods: ['POST'])]
-    public function send(int $id, Request $request): RedirectResponse
+    public function send(int $id, Request $request): JsonResponse
     {
         $server = $this->loadServer($id);
-        $message = trim((string) $request->request->get('message', ''));
+
+        $payload = json_decode($request->getContent(), true);
+        $message = trim((string) ($payload['message'] ?? $request->request->get('message', '')));
 
         if ($message === '') {
-            $this->addFlash('warning', 'Message vide.');
-
-            return $this->redirectToRoute('admin_server_chat', ['id' => $id]);
+            return new JsonResponse(['success' => false, 'message' => 'Message vide.'], 400);
         }
 
         $result = $this->serverCommandService->sendChatMessage($server, $message);
 
-        if ($result['success']) {
-            $this->addFlash('success', $result['message']);
-        } else {
-            $this->addFlash('danger', $result['message']);
-        }
-
-        return $this->redirectToRoute('admin_server_chat', ['id' => $id]);
+        return new JsonResponse($result, $result['success'] ? 200 : 502);
     }
 
     private function loadServer(int $id): Server
