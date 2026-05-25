@@ -106,6 +106,8 @@ admin.server.action.restart: Restart
 admin.server.action.skip: Skip
 admin.server.action.phase_qualification: Qualification phase
 admin.server.action.chat: Chat
+admin.server.action.reboot: Reboot
+admin.server.action.reload_match_settings: Reload MatchSettings
 
 # Phase admin
 Phase: Phase

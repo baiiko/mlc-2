@@ -62,18 +62,29 @@ class ServerCrudController extends AbstractCrudController
         $openChat = Action::new('openChat', 'admin.server.action.chat', 'fa fa-comments')
             ->linkToRoute('admin_server_chat', fn (\App\Domain\Championship\Entity\Server $server): array => ['id' => $server->getId()]);
 
+        $rebootServer = Action::new('rebootServer', 'admin.server.action.reboot', 'fa fa-power-off')
+            ->linkToCrudAction('rebootServer')
+            ->addCssClass('text-danger');
+
+        $reloadMatchSettings = Action::new('reloadMatchSettings', 'admin.server.action.reload_match_settings', 'fa fa-rotate')
+            ->linkToCrudAction('reloadMatchSettings');
+
         return $actions
             ->add(Crud::PAGE_INDEX, Action::DETAIL)
             ->add(Crud::PAGE_DETAIL, $setWarmUp)
             ->add(Crud::PAGE_DETAIL, $restartMap)
             ->add(Crud::PAGE_DETAIL, $skipMap)
             ->add(Crud::PAGE_DETAIL, $setPhaseQualification)
+            ->add(Crud::PAGE_DETAIL, $reloadMatchSettings)
             ->add(Crud::PAGE_DETAIL, $openChat)
+            ->add(Crud::PAGE_DETAIL, $rebootServer)
             ->add(Crud::PAGE_INDEX, $setWarmUp)
             ->add(Crud::PAGE_INDEX, $restartMap)
             ->add(Crud::PAGE_INDEX, $skipMap)
             ->add(Crud::PAGE_INDEX, $setPhaseQualification)
-            ->add(Crud::PAGE_INDEX, $openChat);
+            ->add(Crud::PAGE_INDEX, $reloadMatchSettings)
+            ->add(Crud::PAGE_INDEX, $openChat)
+            ->add(Crud::PAGE_INDEX, $rebootServer);
     }
 
     public function configureFields(string $pageName): iterable
@@ -193,6 +204,48 @@ class ServerCrudController extends AbstractCrudController
         $server = $context->getEntity()->getInstance();
 
         $result = $this->serverCommandService->sendChatMessage($server, '/phase qualification');
+
+        if ($result['success']) {
+            $this->addFlash('success', $result['message']);
+        } else {
+            $this->addFlash('danger', $result['message']);
+        }
+
+        return $this->redirect(
+            $this->adminUrlGenerator
+                ->setController(self::class)
+                ->setAction(Action::INDEX)
+                ->generateUrl()
+        );
+    }
+
+    public function reloadMatchSettings(AdminContext $context): Response
+    {
+        /** @var Server $server */
+        $server = $context->getEntity()->getInstance();
+
+        $result = $this->serverCommandService->reloadMatchSettings($server);
+
+        if ($result['success']) {
+            $this->addFlash('success', $result['message']);
+        } else {
+            $this->addFlash('danger', $result['message']);
+        }
+
+        return $this->redirect(
+            $this->adminUrlGenerator
+                ->setController(self::class)
+                ->setAction(Action::INDEX)
+                ->generateUrl()
+        );
+    }
+
+    public function rebootServer(AdminContext $context): Response
+    {
+        /** @var Server $server */
+        $server = $context->getEntity()->getInstance();
+
+        $result = $this->serverCommandService->rebootServer($server);
 
         if ($result['success']) {
             $this->addFlash('success', $result['message']);

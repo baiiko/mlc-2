@@ -76,6 +76,38 @@ class ServerCommandService
     /**
      * @return array{success: bool, message: string}
      */
+    public function reloadMatchSettings(Server $server, string $filename = 'MatchSettings/default.xml'): array
+    {
+        return $this->executeCommand($server, function (GbxRemote $client) use ($filename): array {
+            $result = $client->query('LoadMatchSettings', $filename);
+
+            if ($result === false) {
+                return ['success' => false, 'message' => $client->getError() ?? 'Erreur inconnue'];
+            }
+
+            return ['success' => true, 'message' => \sprintf('MatchSettings rechargé (%s) — %d maps.', $filename, \is_int($result) ? $result : 0)];
+        });
+    }
+
+    /**
+     * @return array{success: bool, message: string}
+     */
+    public function rebootServer(Server $server): array
+    {
+        return $this->executeCommand($server, function (GbxRemote $client): array {
+            $result = $client->query('QuitGame');
+
+            if ($result === false) {
+                return ['success' => false, 'message' => $client->getError() ?? 'Erreur inconnue'];
+            }
+
+            return ['success' => true, 'message' => 'Serveur en cours de redémarrage…'];
+        });
+    }
+
+    /**
+     * @return array{success: bool, message: string}
+     */
     public function skipMap(Server $server): array
     {
         return $this->executeCommand($server, function (GbxRemote $client): array {
