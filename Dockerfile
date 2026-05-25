@@ -138,7 +138,7 @@ COPY ./docker/nginx/default.conf.template /etc/nginx/templates/default.conf.temp
 ENV NGINX_HOST=localhost
 ENV PHP_FPM_HOST=php
 
-COPY --from=node-builder /app/public /var/www/app/public
+COPY --from=php-prod /var/www/app/public /var/www/app/public
 COPY ./app/public /var/www/app/public
 
 EXPOSE 80
