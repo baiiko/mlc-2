@@ -34,6 +34,11 @@ interface PhaseRepositoryInterface
     public function findActiveQualificationPhase(): ?Phase;
 
     /**
+     * Find the playable phase currently running (startAt <= now <= endAt).
+     */
+    public function findActivePlayablePhase(): ?Phase;
+
+    /**
      * @return Phase[]
      */
     public function findWithLoginData(): array;

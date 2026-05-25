@@ -114,17 +114,20 @@ class MatchSettingsGeneratorService
     public function saveForPhase(Phase $phase, ?string $filename = null): string
     {
         $xml = $this->generateForPhase($phase);
-
-        if ($filename === null) {
-            $groupSuffix = $phase->getGroupNumber() !== null ? $phase->getGroupNumber() : '';
-            $filename = match ($phase->getType()) {
-                PhaseType::SemiFinal => 'demi' . $groupSuffix . '.xml',
-                PhaseType::Final => 'finale' . $groupSuffix . '.xml',
-                default => 'default.xml',
-            };
-        }
+        $filename ??= self::getFilenameForPhase($phase);
 
         return $this->saveFile($filename, $xml);
+    }
+
+    public static function getFilenameForPhase(Phase $phase): string
+    {
+        $groupSuffix = $phase->getGroupNumber() !== null ? $phase->getGroupNumber() : '';
+
+        return match ($phase->getType()) {
+            PhaseType::SemiFinal => 'demi' . $groupSuffix . '.xml',
+            PhaseType::Final => 'finale' . $groupSuffix . '.xml',
+            default => 'default.xml',
+        };
     }
 
     /**

@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Http\Controller\Admin;
 
+use App\Application\Championship\Service\MatchSettingsGeneratorService;
 use App\Application\Championship\Service\ServerCommandService;
 use App\Domain\Championship\Entity\Server;
+use App\Domain\Championship\Repository\PhaseRepositoryInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
@@ -28,6 +30,7 @@ class ServerCrudController extends AbstractCrudController
     public function __construct(
         private readonly ServerCommandService $serverCommandService,
         private readonly AdminUrlGenerator $adminUrlGenerator,
+        private readonly PhaseRepositoryInterface $phaseRepository,
     ) {
     }
 
@@ -224,7 +227,12 @@ class ServerCrudController extends AbstractCrudController
         /** @var Server $server */
         $server = $context->getEntity()->getInstance();
 
-        $result = $this->serverCommandService->reloadMatchSettings($server);
+        $activePhase = $this->phaseRepository->findActivePlayablePhase();
+        $filename = $activePhase !== null
+            ? MatchSettingsGeneratorService::getFilenameForPhase($activePhase)
+            : 'default.xml';
+
+        $result = $this->serverCommandService->reloadMatchSettings($server, 'MatchSettings/' . $filename);
 
         if ($result['success']) {
             $this->addFlash('success', $result['message']);
