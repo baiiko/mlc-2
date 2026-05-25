@@ -34,6 +34,13 @@ final readonly class DoctrineServerRepository implements ServerRepositoryInterfa
             ->find($id);
     }
 
+    public function findByLogin(string $login): ?Server
+    {
+        return $this->entityManager
+            ->getRepository(Server::class)
+            ->findOneBy(['login' => $login]);
+    }
+
     public function findAll(): array
     {
         return $this->entityManager

@@ -115,6 +115,9 @@ services:
     App\Domain\Communication\Repository\NewsletterRepositoryInterface:
         class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrineNewsletterRepository
 
+    App\Domain\Communication\Repository\ChatMessageRepositoryInterface:
+        class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrineChatMessageRepository
+
     App\Application\Championship\Service\RegisterToRoundServiceInterface:
         class: App\Application\Championship\Service\RegisterToRoundService
 

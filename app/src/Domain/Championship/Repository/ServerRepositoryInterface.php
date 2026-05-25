@@ -14,6 +14,8 @@ interface ServerRepositoryInterface
 
     public function findById(int $id): ?Server;
 
+    public function findByLogin(string $login): ?Server;
+
     /**
      * @return Server[]
      */
