@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Http\Controller\Admin;
 
 use App\Application\Championship\Service\ServerCommandService;
+use App\Application\Championship\Service\ServerInfoService;
 use App\Domain\Championship\Entity\Server;
 use App\Domain\Championship\Repository\ServerRepositoryInterface;
 use App\Domain\Communication\Entity\ChatMessage;
@@ -26,6 +27,7 @@ final class ServerChatController extends AbstractController
         private readonly ServerRepositoryInterface $serverRepository,
         private readonly ChatMessageRepositoryInterface $chatMessageRepository,
         private readonly ServerCommandService $serverCommandService,
+        private readonly ServerInfoService $serverInfoService,
     ) {
     }
 
@@ -57,6 +59,25 @@ final class ServerChatController extends AbstractController
         ], array_reverse($messages));
 
         return new JsonResponse(['messages' => $payload]);
+    }
+
+    #[Route('/admin/server/{id}/chat/players', name: 'admin_server_chat_players', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function players(int $id): JsonResponse
+    {
+        $server = $this->loadServer($id);
+        $info = $this->serverInfoService->getServerInfo($server);
+
+        $players = array_map(fn (string $pseudo): array => [
+            'pseudoHtml' => TmColorParser::toHtml($pseudo),
+            'pseudoStrip' => TmColorParser::stripColors($pseudo),
+        ], $info['players'] ?? []);
+
+        return new JsonResponse([
+            'online' => $info['online'] ?? false,
+            'playerCount' => $info['playerCount'] ?? 0,
+            'maxPlayers' => $info['maxPlayers'] ?? 0,
+            'players' => $players,
+        ]);
     }
 
     #[Route('/admin/server/{id}/chat/send', name: 'admin_server_chat_send', requirements: ['id' => '\d+'], methods: ['POST'])]

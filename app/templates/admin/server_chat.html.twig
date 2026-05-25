@@ -10,38 +10,53 @@
                 <span class="badge bg-secondary" id="chat-count">{{ messages|length }} message(s)</span>
             </h5>
 
-            <div id="chat-messages"
-                 style="height: 480px; overflow-y: auto; background: #1a1a1a; color: #e0e0e0; padding: 12px; border-radius: 4px; font-family: monospace; font-size: 13px; line-height: 1.5;">
-                {% for m in messages %}
-                    <div class="chat-line" data-id="{{ m.id }}">
-                        <span style="color: #888;">[{{ m.createdAt|date('H:i:s') }}]</span>
-                        {% if m.type.value == 'player' %}
-                            <span class="tm-colors">{{ (m.playerPseudo ?? m.playerLogin ?? '?')|tm_color|raw }}<span style="color:#4fc3f7;">:</span></span>
-                            <span class="tm-colors">{{ m.content|tm_color|raw }}</span>
-                        {% elseif m.type.value == 'server' %}
-                            <span style="color: #ffb74d;">[SERVER]</span>
-                            <span class="tm-colors">{{ m.content|tm_color|raw }}</span>
+            <div style="display: flex; gap: 12px;">
+                <div style="flex: 1; min-width: 0;">
+                    <div id="chat-messages"
+                         style="height: 480px; overflow-y: auto; background: #1a1a1a; color: #e0e0e0; padding: 12px; border-radius: 4px; font-family: monospace; font-size: 13px; line-height: 1.5;">
+                        {% for m in messages %}
+                            <div class="chat-line" data-id="{{ m.id }}">
+                                <span style="color: #888;">[{{ m.createdAt|date('H:i:s') }}]</span>
+                                {% if m.type.value == 'player' %}
+                                    <span class="tm-colors">{{ (m.playerPseudo ?? m.playerLogin ?? '?')|tm_color|raw }}<span style="color:#4fc3f7;">:</span></span>
+                                    <span class="tm-colors">{{ m.content|tm_color|raw }}</span>
+                                {% elseif m.type.value == 'server' %}
+                                    <span style="color: #ffb74d;">[SERVER]</span>
+                                    <span class="tm-colors">{{ m.content|tm_color|raw }}</span>
+                                {% else %}
+                                    <span style="color: #aed581;">[SYSTEM]</span>
+                                    <span class="tm-colors">{{ m.content|tm_color|raw }}</span>
+                                {% endif %}
+                            </div>
                         {% else %}
-                            <span style="color: #aed581;">[SYSTEM]</span>
-                            <span class="tm-colors">{{ m.content|tm_color|raw }}</span>
-                        {% endif %}
+                            <div class="text-muted">Aucun message pour le moment.</div>
+                        {% endfor %}
                     </div>
-                {% else %}
-                    <div class="text-muted">Aucun message pour le moment.</div>
-                {% endfor %}
+                </div>
+
+                <div style="width: 240px; flex-shrink: 0;">
+                    <div style="height: 480px; overflow-y: auto; background: #1a1a1a; color: #e0e0e0; padding: 12px; border-radius: 4px; font-family: monospace; font-size: 13px;">
+                        <div style="color: #888; text-transform: uppercase; font-size: 11px; margin-bottom: 8px; border-bottom: 1px solid #333; padding-bottom: 6px;">
+                            Joueurs connectés <span id="players-count">(–)</span>
+                        </div>
+                        <div id="players-list">
+                            <div class="text-muted" style="font-size: 12px;">Chargement…</div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <form id="chat-send-form" class="mt-3" autocomplete="off">
-                <div class="input-group">
+                <div style="display: flex; gap: 8px; align-items: stretch;">
                     <input id="chat-send-input" type="text" name="message"
                            class="form-control"
-                           style="height: 56px !important; min-height: 56px !important; font-size: 16px; padding: 0 16px;"
+                           style="flex: 1; height: 56px; font-size: 16px; padding: 0 16px;"
                            placeholder="Envoyer un message en tant que serveur…"
                            maxlength="500" required autofocus
                            autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
                     <button id="chat-send-btn" type="submit"
                             class="btn btn-primary"
-                            style="height: 56px !important; min-height: 56px !important; min-width: 180px; font-size: 18px; font-weight: 600; padding: 0 32px;">
+                            style="height: 56px; min-width: 180px; font-size: 18px; font-weight: 600; padding: 0 32px; white-space: nowrap;">
                         <i class="fa fa-paper-plane me-2"></i> Envoyer
                     </button>
                 </div>
@@ -54,8 +69,11 @@
         (function () {
             const url = {{ path('admin_server_chat_messages', {id: server.id})|json_encode|raw }};
             const sendUrl = {{ path('admin_server_chat_send', {id: server.id})|json_encode|raw }};
+            const playersUrl = {{ path('admin_server_chat_players', {id: server.id})|json_encode|raw }};
             const container = document.getElementById('chat-messages');
             const counter = document.getElementById('chat-count');
+            const playersList = document.getElementById('players-list');
+            const playersCount = document.getElementById('players-count');
             const form = document.getElementById('chat-send-form');
             const input = document.getElementById('chat-send-input');
             const sendBtn = document.getElementById('chat-send-btn');
@@ -132,9 +150,35 @@
                 }
             });
 
+            async function pollPlayers() {
+                try {
+                    const res = await fetch(playersUrl, {headers: {'Accept': 'application/json'}});
+                    if (!res.ok) return;
+                    const data = await res.json();
+                    if (!data.online) {
+                        playersList.innerHTML = '<div class="text-muted" style="font-size: 12px;">Serveur hors ligne</div>';
+                        playersCount.textContent = '(0)';
+                        return;
+                    }
+                    playersCount.textContent = `(${data.playerCount}/${data.maxPlayers})`;
+                    const players = data.players || [];
+                    if (players.length === 0) {
+                        playersList.innerHTML = '<div class="text-muted" style="font-size: 12px;">Aucun joueur</div>';
+                        return;
+                    }
+                    playersList.innerHTML = players.map(p =>
+                        `<div class="tm-colors" style="padding: 2px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${(p.pseudoStrip || '').replace(/"/g, '&quot;')}">${p.pseudoHtml}</div>`
+                    ).join('');
+                } catch (e) {
+                    // network glitch
+                }
+            }
+
             // Scroll to bottom on initial load
             container.scrollTop = container.scrollHeight;
             setInterval(poll, 1000);
+            pollPlayers();
+            setInterval(pollPlayers, 5000);
         })();
     </script>
 {% endblock %}
