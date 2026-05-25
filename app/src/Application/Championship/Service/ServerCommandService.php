@@ -79,10 +79,22 @@ class ServerCommandService
     public function reloadMatchSettings(Server $server, string $filename = 'MatchSettings/default.xml'): array
     {
         return $this->executeCommand($server, function (GbxRemote $client) use ($filename): array {
+            // TMF requires the server to be in "Lobby" state to load new match settings.
+            $client->query('StopServer');
+
             $result = $client->query('LoadMatchSettings', $filename);
 
             if ($result === false) {
-                return ['success' => false, 'message' => $client->getError() ?? 'Erreur inconnue'];
+                $error = $client->getError() ?? 'Erreur inconnue';
+                $client->query('StartServer');
+
+                return ['success' => false, 'message' => $error];
+            }
+
+            $started = $client->query('StartServer');
+
+            if ($started === false) {
+                return ['success' => false, 'message' => 'MatchSettings chargé mais impossible de redémarrer le serveur : ' . ($client->getError() ?? 'Erreur inconnue')];
             }
 
             return ['success' => true, 'message' => \sprintf('MatchSettings rechargé (%s) — %d maps.', $filename, \is_int($result) ? $result : 0)];
