@@ -192,4 +192,14 @@ class MapRecord
             default => $this->laps . ' tours',
         };
     }
+
+    public function getFormattedTime(): string
+    {
+        return $this->formatTime() ?? '-';
+    }
+
+    public function getGameModeLabel(): string
+    {
+        return $this->gameMode->name;
+    }
 }

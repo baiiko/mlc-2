@@ -12,7 +12,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\Field;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
@@ -78,11 +77,9 @@ class MapRecordCrudController extends AbstractCrudController
 
         yield IntegerField::new('laps', 'admin.map_record.laps');
 
-        yield Field::new('time', 'admin.map_record.time')
-            ->formatValue(fn ($value, ?MapRecord $entity): ?string => $entity?->formatTime());
+        yield TextField::new('formattedTime', 'admin.map_record.time');
 
-        yield Field::new('gameMode', 'admin.map_record.game_mode')
-            ->formatValue(fn ($value, ?MapRecord $entity): ?string => $entity?->getGameMode()->name);
+        yield TextField::new('gameModeLabel', 'admin.map_record.game_mode');
 
         yield DateTimeField::new('createdAt', 'admin.map_record.created_at')
             ->hideOnForm();
