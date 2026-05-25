@@ -1,0 +1,33 @@
+# Symfony runtime caches/logs (regenerated in the container)
+app/var/cache/
+app/var/log/
+app/var/share/
+
+# Dependencies (reinstalled in the container)
+app/vendor/
+app/node_modules/
+
+# Build artifacts (rebuilt in the container)
+app/public/build/
+app/public/bundles/
+
+# Local env overrides (must not leak to image)
+app/.env.local
+app/.env.*.local
+.env.local
+.env.*.local
+
+# VCS, IDE, OS
+.git/
+.gitignore
+.idea/
+.vscode/
+.DS_Store
+
+# Project meta
+README*
+CLAUDE.md
+*.md
+
+# Compose overrides (host-only)
+compose.override.yaml
