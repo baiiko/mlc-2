@@ -59,16 +59,21 @@ class ServerCrudController extends AbstractCrudController
         $setPhaseQualification = Action::new('setPhaseQualification', 'admin.server.action.phase_qualification', 'fa fa-flag-checkered')
             ->linkToCrudAction('setPhaseQualification');
 
+        $openChat = Action::new('openChat', 'admin.server.action.chat', 'fa fa-comments')
+            ->linkToRoute('admin_server_chat', fn (\App\Domain\Championship\Entity\Server $server): array => ['id' => $server->getId()]);
+
         return $actions
             ->add(Crud::PAGE_INDEX, Action::DETAIL)
             ->add(Crud::PAGE_DETAIL, $setWarmUp)
             ->add(Crud::PAGE_DETAIL, $restartMap)
             ->add(Crud::PAGE_DETAIL, $skipMap)
             ->add(Crud::PAGE_DETAIL, $setPhaseQualification)
+            ->add(Crud::PAGE_DETAIL, $openChat)
             ->add(Crud::PAGE_INDEX, $setWarmUp)
             ->add(Crud::PAGE_INDEX, $restartMap)
             ->add(Crud::PAGE_INDEX, $skipMap)
-            ->add(Crud::PAGE_INDEX, $setPhaseQualification);
+            ->add(Crud::PAGE_INDEX, $setPhaseQualification)
+            ->add(Crud::PAGE_INDEX, $openChat);
     }
 
     public function configureFields(string $pageName): iterable

@@ -105,6 +105,7 @@ admin.server.action.warmup: WarmUp
 admin.server.action.restart: Restart
 admin.server.action.skip: Skip
 admin.server.action.phase_qualification: Phase qualification
+admin.server.action.chat: Chat
 
 # Phase admin
 Phase: Phase
