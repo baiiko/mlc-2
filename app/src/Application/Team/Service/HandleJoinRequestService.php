@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Team\Service;
 
+use App\Application\Championship\Service\SyncCurrentRegistrationTeamService;
 use App\Domain\Player\Entity\Player;
 use App\Domain\Team\Entity\Team;
 use App\Domain\Team\Entity\TeamJoinRequest;
@@ -16,6 +17,7 @@ final readonly class HandleJoinRequestService implements HandleJoinRequestServic
     public function __construct(
         private TeamJoinRequestRepositoryInterface $joinRequestRepository,
         private TeamMembershipRepositoryInterface $membershipRepository,
+        private SyncCurrentRegistrationTeamService $registrationTeamSync,
     ) {
     }
 
@@ -41,6 +43,8 @@ final readonly class HandleJoinRequestService implements HandleJoinRequestServic
         $team = $request->getTeam();
         $membership = new TeamMembership($requestPlayer, $team);
         $this->membershipRepository->save($membership);
+
+        $this->registrationTeamSync->syncForPlayer($requestPlayer, $team);
 
         $request->accept();
         $this->joinRequestRepository->save($request);

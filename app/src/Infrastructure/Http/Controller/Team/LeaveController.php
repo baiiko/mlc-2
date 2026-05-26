@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Http\Controller\Team;
 
+use App\Application\Championship\Service\SyncCurrentRegistrationTeamService;
 use App\Domain\Player\Entity\Player;
 use App\Domain\Team\Entity\TeamMembership;
 use App\Domain\Team\Repository\TeamMembershipRepositoryInterface;
@@ -22,6 +23,7 @@ final readonly class LeaveController
     public function __construct(
         private TeamMembershipRepositoryInterface $membershipRepository,
         private UrlGeneratorInterface $urlGenerator,
+        private SyncCurrentRegistrationTeamService $registrationTeamSync,
     ) {
     }
 
@@ -40,6 +42,8 @@ final readonly class LeaveController
 
         $membership->leave();
         $this->membershipRepository->save($membership);
+
+        $this->registrationTeamSync->syncForPlayer($player, null);
 
         return new RedirectResponse($this->urlGenerator->generate('app_profile'));
     }

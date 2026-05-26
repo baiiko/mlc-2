@@ -84,6 +84,13 @@ class RoundRegistration
         return $this->team;
     }
 
+    public function setTeam(?Team $team): self
+    {
+        $this->team = $team;
+
+        return $this;
+    }
+
     public function getRegisteredAt(): \DateTimeImmutable
     {
         return $this->registeredAt;

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Team\Service;
 
+use App\Application\Championship\Service\SyncCurrentRegistrationTeamService;
 use App\Domain\Player\Entity\Player;
 use App\Domain\Team\Entity\Team;
 use App\Domain\Team\Repository\TeamMembershipRepositoryInterface;
@@ -14,6 +15,7 @@ final readonly class CloseTeamService implements CloseTeamServiceInterface
     public function __construct(
         private TeamRepositoryInterface $teamRepository,
         private TeamMembershipRepositoryInterface $membershipRepository,
+        private SyncCurrentRegistrationTeamService $registrationTeamSync,
     ) {
     }
 
@@ -25,8 +27,10 @@ final readonly class CloseTeamService implements CloseTeamServiceInterface
 
         // Make all members leave
         foreach ($team->getActiveMemberships() as $membership) {
+            $member = $membership->getPlayer();
             $membership->leave();
             $this->membershipRepository->save($membership);
+            $this->registrationTeamSync->syncForPlayer($member, null);
         }
 
         // Soft delete team
