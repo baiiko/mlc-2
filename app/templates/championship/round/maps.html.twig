@@ -12,13 +12,22 @@
             {% for map in round.maps %}
                 <a href="{{ map.uid ? path('app_championship_map_show', {uid: map.uid}) : '#' }}" class="block bg-bg-card rounded-lg border border-metal-dark overflow-hidden hover:border-turquoise/50 transition-colors {{ map.uid ? 'cursor-pointer' : 'cursor-default' }}">
                     <div class="p-4">
-                        {# Header with environment #}
+                        {# Header with environment + karma #}
                         <div class="flex items-center justify-between gap-2 mb-3">
-                            {% if map.isSurprise %}
-                                <span class="px-2 py-0.5 bg-purple-500/20 text-purple-400 text-xs rounded uppercase">{{ 'championship.surprise'|trans({}, 'championship') }}</span>
-                            {% else %}
-                                <span></span>
-                            {% endif %}
+                            <div class="flex items-center gap-2">
+                                {% if map.isSurprise %}
+                                    <span class="px-2 py-0.5 bg-purple-500/20 text-purple-400 text-xs rounded uppercase">{{ 'championship.surprise'|trans({}, 'championship') }}</span>
+                                {% endif %}
+                                {% set karma = map.karmaStats %}
+                                {% if karma %}
+                                    {% set color = karma.percentage >= 66 ? 'text-green-400' : (karma.percentage >= 33 ? 'text-yellow-400' : 'text-red-400') %}
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-metal-dark text-xs rounded {{ color }}" title="{{ karma.positive }} 👍 / {{ karma.negative }} 👎">
+                                        <i class="fa fa-thumbs-up"></i>
+                                        <span class="font-semibold">{{ karma.percentage }}%</span>
+                                        <span class="text-gray-mid">({{ karma.total }})</span>
+                                    </span>
+                                {% endif %}
+                            </div>
                             {% if map.environment %}
                                 <span class="px-2 py-0.5 bg-metal-dark text-gray-light text-xs rounded">{{ map.environment }}</span>
                             {% endif %}

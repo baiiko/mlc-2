@@ -58,6 +58,10 @@ class RoundMap
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $thumbnailPath = null;
 
+    /** @var array<string, mixed>|null */
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $karma = null;
+
     /** Virtual property for file upload (not persisted) */
     private mixed $gbxFile = null;
 
@@ -215,6 +219,58 @@ class RoundMap
         $this->thumbnailPath = $thumbnailPath;
 
         return $this;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function getKarma(): ?array
+    {
+        return $this->karma;
+    }
+
+    /**
+     * @param array<string, mixed>|null $karma
+     */
+    public function setKarma(?array $karma): self
+    {
+        $this->karma = $karma;
+
+        return $this;
+    }
+
+    /**
+     * @return array{total: int, positive: int, negative: int, percentage: int}|null
+     */
+    public function getKarmaStats(): ?array
+    {
+        if ($this->karma === null || $this->karma === []) {
+            return null;
+        }
+
+        $positive = 0;
+        $negative = 0;
+
+        foreach ($this->karma as $vote) {
+            if ((int) $vote > 0) {
+                ++$positive;
+            } elseif ((int) $vote < 0) {
+                ++$negative;
+            }
+        }
+
+        $total = $positive + $negative;
+
+        if ($total === 0) {
+            return null;
+        }
+
+        return [
+            'total' => $total,
+            'positive' => $positive,
+            'negative' => $negative,
+            'percentage' => (int) round($positive * 100 / $total),
+        ];
     }
 
     public function getGbxFile(): mixed
