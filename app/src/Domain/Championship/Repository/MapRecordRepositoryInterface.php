@@ -50,6 +50,14 @@ interface MapRecordRepositoryInterface
     public function updateMapUidForRound(string $oldUid, string $newUid, int $roundId): int;
 
     /**
+     * Attaches orphaned records (round_id IS NULL) of a player to the given round,
+     * scoped to maps that actually belong to that round (via round_map.uid).
+     *
+     * @return int Number of attached records
+     */
+    public function attachOrphanRecordsToRound(string $playerLogin, int $roundId): int;
+
+    /**
      * Returns all records for a map grouped by laps, sorted by time.
      *
      * @return array<int, array<array{record: MapRecord, playerPseudo: ?string}>>

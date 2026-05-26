@@ -4,17 +4,20 @@ declare(strict_types=1);
 
 namespace App\Application\Championship\Service;
 
+use App\Application\Championship\Message\UpdateRankingMessage;
 use App\Domain\Championship\Entity\Round;
 use App\Domain\Championship\Entity\RoundRegistration;
 use App\Domain\Championship\Repository\RoundRegistrationRepositoryInterface;
 use App\Domain\Championship\Repository\RoundRepositoryInterface;
 use App\Domain\Player\Entity\Player;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 final readonly class UpdateAvailabilityService implements UpdateAvailabilityServiceInterface
 {
     public function __construct(
         private RoundRepositoryInterface $roundRepository,
         private RoundRegistrationRepositoryInterface $registrationRepository,
+        private MessageBusInterface $messageBus,
     ) {
     }
 
@@ -42,5 +45,7 @@ final readonly class UpdateAvailabilityService implements UpdateAvailabilityServ
         $registration->setAvailableFinal($availableFinal);
 
         $this->registrationRepository->save($registration);
+
+        $this->messageBus->dispatch(new UpdateRankingMessage(new \DateTimeImmutable()));
     }
 }

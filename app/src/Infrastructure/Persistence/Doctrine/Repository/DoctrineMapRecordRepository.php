@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Persistence\Doctrine\Repository;
 
 use App\Domain\Championship\Entity\MapRecord;
+use App\Domain\Championship\Entity\RoundMap;
 use App\Domain\Championship\Repository\MapRecordRepositoryInterface;
 use App\Domain\Player\Entity\Player;
 use Doctrine\ORM\EntityManagerInterface;
@@ -105,6 +106,27 @@ final readonly class DoctrineMapRecordRepository implements MapRecordRepositoryI
             ->andWhere('r.roundId = :roundId')
             ->setParameter('oldUid', $oldUid)
             ->setParameter('newUid', $newUid)
+            ->setParameter('roundId', $roundId)
+            ->getQuery()
+            ->execute();
+    }
+
+    public function attachOrphanRecordsToRound(string $playerLogin, int $roundId): int
+    {
+        $sub = $this->entityManager->createQueryBuilder()
+            ->select('m.uid')
+            ->from(RoundMap::class, 'm')
+            ->where('m.round = :roundId')
+            ->andWhere('m.uid IS NOT NULL')
+            ->getDQL();
+
+        return $this->entityManager->createQueryBuilder()
+            ->update(MapRecord::class, 'r')
+            ->set('r.roundId', ':roundId')
+            ->where('r.playerLogin = :playerLogin')
+            ->andWhere('r.roundId IS NULL')
+            ->andWhere(\sprintf('r.mapUid IN (%s)', $sub))
+            ->setParameter('playerLogin', $playerLogin)
             ->setParameter('roundId', $roundId)
             ->getQuery()
             ->execute();
