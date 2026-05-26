@@ -104,6 +104,9 @@ services:
     App\Domain\Championship\Repository\MapRecordRepositoryInterface:
         class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrineMapRecordRepository
 
+    App\Domain\Championship\Repository\RoundMapRepositoryInterface:
+        class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrineRoundMapRepository
+
     App\Domain\Championship\Repository\ServerRepositoryInterface:
         class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrineServerRepository
 

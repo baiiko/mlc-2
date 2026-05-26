@@ -1,0 +1,115 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'championship.maps'|trans({}, 'championship') }} - MLC{% endblock %}
+
+{% block body %}
+    <section class="max-w-[1400px] mx-auto px-10 py-12">
+        <header class="mb-6">
+            <h1 class="font-russo text-4xl mb-2">{{ 'championship.maps'|trans({}, 'championship') }}</h1>
+            <p class="text-gray-light">{{ total }} circuit(s){% if search %} pour « {{ search }} »{% endif %}</p>
+        </header>
+
+        <form method="get" action="{{ path('app_championship_maps') }}" class="mb-6">
+            <input type="search" name="q" value="{{ search ?? '' }}" autocomplete="off"
+                   placeholder="Rechercher un circuit par nom…"
+                   class="w-full px-4 py-3 bg-bg-card border border-metal-dark rounded text-white placeholder-gray-mid focus:border-turquoise focus:outline-none">
+        </form>
+
+        {% if maps is empty %}
+            <div class="bg-bg-card rounded-lg p-8 border border-metal-dark text-center">
+                <p class="text-gray-mid">
+                    {% if search %}Aucun circuit ne correspond à votre recherche.{% else %}{{ 'championship.no_maps'|trans({}, 'championship') }}{% endif %}
+                </p>
+            </div>
+        {% else %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for map in maps %}
+                    <a href="{{ map.uid ? path('app_championship_map_show', {uid: map.uid}) : '#' }}" class="block bg-bg-card rounded-lg border border-metal-dark overflow-hidden hover:border-turquoise/50 transition-colors {{ map.uid ? 'cursor-pointer' : 'cursor-default' }}">
+                        <div class="p-4">
+                            <div class="flex items-center justify-between gap-2 mb-3">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    {% if map.round %}
+                                        <span class="px-2 py-0.5 bg-turquoise/10 text-turquoise text-xs rounded" title="{{ map.round.season ? map.round.season.name : '' }}">
+                                            M{{ map.round.number }}{% if map.round.season %} · {{ map.round.season.name }}{% endif %}
+                                        </span>
+                                    {% endif %}
+                                    {% if map.isSurprise %}
+                                        <span class="px-2 py-0.5 bg-purple-500/20 text-purple-400 text-xs rounded uppercase">{{ 'championship.surprise'|trans({}, 'championship') }}</span>
+                                    {% endif %}
+                                    {% set karma = map.karmaStats %}
+                                    {% if karma %}
+                                        {% set color = karma.percentage >= 66 ? 'text-green-400' : (karma.percentage >= 33 ? 'text-yellow-400' : 'text-red-400') %}
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-metal-dark text-xs rounded {{ color }}" title="{{ karma.positive }} 👍 / {{ karma.negative }} 👎">
+                                            <i class="fa fa-thumbs-up"></i>
+                                            <span class="font-semibold">{{ karma.percentage }}%</span>
+                                            <span class="text-gray-mid">({{ karma.total }})</span>
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                {% if map.environment %}
+                                    <span class="px-2 py-0.5 bg-metal-dark text-gray-light text-xs rounded">{{ map.environment }}</span>
+                                {% endif %}
+                            </div>
+
+                            <div class="flex gap-4">
+                                <div class="flex-1 min-w-0">
+                                    <h3 class="font-semibold text-white mb-2 tm-colors truncate">
+                                        {% if map.isSurprise and not map.name %}
+                                            <span class="text-purple-400">???</span>
+                                        {% else %}
+                                            {{ map.name|tm_color|raw }}
+                                        {% endif %}
+                                    </h3>
+
+                                    {% if map.author and (not map.isSurprise or map.uid) %}
+                                        <p class="text-sm text-gray-light">
+                                            {{ 'championship.map_author'|trans({}, 'championship') }} <span class="tm-colors">{{ map.author|tm_color|raw }}</span>
+                                        </p>
+                                    {% endif %}
+                                </div>
+
+                                {% if map.thumbnailPath and (not map.isSurprise or map.uid) %}
+                                    <div class="flex-shrink-0">
+                                        <img src="{{ asset('uploads/maps/thumbnails/' ~ map.thumbnailPath) }}" alt="{{ map.name }}" class="w-24 h-16 object-cover rounded border border-metal-dark">
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+
+            {% if totalPages > 1 %}
+                <nav class="mt-8 flex items-center justify-center gap-2 flex-wrap" aria-label="Pagination">
+                    {% set baseParams = search ? {q: search} : {} %}
+                    {% if page > 1 %}
+                        <a href="{{ path('app_championship_maps', baseParams|merge({page: page - 1})) }}"
+                           class="px-3 py-2 bg-bg-card border border-metal-dark rounded text-gray-light hover:text-turquoise hover:border-turquoise/50">‹</a>
+                    {% endif %}
+
+                    {% set windowStart = max(1, page - 2) %}
+                    {% set windowEnd = min(totalPages, page + 2) %}
+                    {% if windowStart > 1 %}
+                        <a href="{{ path('app_championship_maps', baseParams|merge({page: 1})) }}" class="px-3 py-2 bg-bg-card border border-metal-dark rounded text-gray-light hover:text-turquoise hover:border-turquoise/50">1</a>
+                        {% if windowStart > 2 %}<span class="text-gray-mid">…</span>{% endif %}
+                    {% endif %}
+
+                    {% for p in windowStart..windowEnd %}
+                        <a href="{{ path('app_championship_maps', baseParams|merge({page: p})) }}"
+                           class="px-3 py-2 border rounded {{ p == page ? 'bg-orange/20 border-orange text-white' : 'bg-bg-card border-metal-dark text-gray-light hover:text-turquoise hover:border-turquoise/50' }}">{{ p }}</a>
+                    {% endfor %}
+
+                    {% if windowEnd < totalPages %}
+                        {% if windowEnd < totalPages - 1 %}<span class="text-gray-mid">…</span>{% endif %}
+                        <a href="{{ path('app_championship_maps', baseParams|merge({page: totalPages})) }}" class="px-3 py-2 bg-bg-card border border-metal-dark rounded text-gray-light hover:text-turquoise hover:border-turquoise/50">{{ totalPages }}</a>
+                    {% endif %}
+
+                    {% if page < totalPages %}
+                        <a href="{{ path('app_championship_maps', baseParams|merge({page: page + 1})) }}"
+                           class="px-3 py-2 bg-bg-card border border-metal-dark rounded text-gray-light hover:text-turquoise hover:border-turquoise/50">›</a>
+                    {% endif %}
+                </nav>
+            {% endif %}
+        {% endif %}
+    </section>
+{% endblock %}

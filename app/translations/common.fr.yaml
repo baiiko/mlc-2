@@ -2,6 +2,7 @@
 nav:
     home: "Accueil"
     championship: "Championnat"
+    maps: "Circuits"
     ranking: "Classement"
     calendar: "Calendrier"
     rules: "Règlement"
