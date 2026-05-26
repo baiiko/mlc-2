@@ -40,7 +40,7 @@
             {% set available_routes = ['app_home', 'app_register', 'app_login', 'app_championship_seasons', 'app_championship_maps', 'app_rules'] %}
             {% for item in nav_items %}
                 <a href="{{ item.route in available_routes ? path(item.route) : '#' }}"
-                   class="relative px-5 py-3 text-sm font-medium uppercase tracking-wider rounded
+                   class="relative px-4 py-3 text-sm font-medium uppercase tracking-wider rounded
                           {{ current_route == item.route
                              ? 'text-white bg-orange/20 active'
                              : 'text-gray-light hover:text-white hover:bg-orange/10' }}">
