@@ -14,7 +14,7 @@ use Twig\Environment;
 #[AsController]
 final readonly class MapListController
 {
-    private const PER_PAGE = 30;
+    private const PER_PAGE = 12;
 
     public function __construct(
         private Environment $twig,
