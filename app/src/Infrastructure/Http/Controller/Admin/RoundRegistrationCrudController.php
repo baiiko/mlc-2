@@ -76,6 +76,7 @@ class RoundRegistrationCrudController extends AbstractCrudController
         yield BooleanField::new('availableFinal', 'Finale')
             ->renderAsSwitch(false);
 
-        yield DateTimeField::new('registeredAt', 'Inscrit le');
+        yield DateTimeField::new('registeredAt', 'Inscrit le')
+            ->hideOnForm();
     }
 }
