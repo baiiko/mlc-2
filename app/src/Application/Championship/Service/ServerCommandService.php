@@ -40,6 +40,24 @@ class ServerCommandService
     }
 
     /**
+     * Send a private chat message to a single player identified by its login.
+     *
+     * @return array{success: bool, message: string}
+     */
+    public function sendChatMessageToLogin(Server $server, string $message, string $login): array
+    {
+        return $this->executeCommand($server, function (GbxRemote $client) use ($message, $login): array {
+            $result = $client->query('ChatSendServerMessageToLogin', $message, $login);
+
+            if ($result === false) {
+                return ['success' => false, 'message' => $client->getError() ?? 'Erreur inconnue'];
+            }
+
+            return ['success' => true, 'message' => 'Message envoyé'];
+        });
+    }
+
+    /**
      * @return array{success: bool, message: string}
      */
     public function restartMap(Server $server): array

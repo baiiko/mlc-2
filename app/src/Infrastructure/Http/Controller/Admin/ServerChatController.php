@@ -67,10 +67,11 @@ final class ServerChatController extends AbstractController
         $server = $this->loadServer($id);
         $info = $this->serverInfoService->getServerInfo($server);
 
-        $players = array_map(fn (string $pseudo): array => [
-            'pseudoHtml' => TmColorParser::toHtml($pseudo),
-            'pseudoStrip' => TmColorParser::stripColors($pseudo),
-        ], $info['players'] ?? []);
+        $players = array_map(fn (array $p): array => [
+            'login' => $p['login'],
+            'pseudoHtml' => TmColorParser::toHtml($p['nickname']),
+            'pseudoStrip' => TmColorParser::stripColors($p['nickname']),
+        ], $info['playerDetails'] ?? []);
 
         return new JsonResponse([
             'online' => $info['online'] ?? false,
@@ -87,6 +88,7 @@ final class ServerChatController extends AbstractController
 
         $payload = json_decode($request->getContent(), true);
         $message = trim((string) ($payload['message'] ?? $request->request->get('message', '')));
+        $login = trim((string) ($payload['login'] ?? $request->request->get('login', '')));
 
         if ($message === '') {
             return new JsonResponse(['success' => false, 'message' => 'Message vide.'], 400);
@@ -94,12 +96,18 @@ final class ServerChatController extends AbstractController
 
         $prefixed = '$f80[Server]$z$s '.$message;
 
-        $result = $this->serverCommandService->sendChatMessage($server, $prefixed);
+        if ($login !== '') {
+            $result = $this->serverCommandService->sendChatMessageToLogin($server, $prefixed, $login);
+            $stored = '$f80[Privé → '.$login.']$z$s '.$message;
+        } else {
+            $result = $this->serverCommandService->sendChatMessage($server, $prefixed);
+            $stored = $prefixed;
+        }
 
         if ($result['success']) {
             $this->chatMessageRepository->save(new ChatMessage(
                 $server,
-                $prefixed,
+                $stored,
                 ChatMessageType::Server,
             ));
         }

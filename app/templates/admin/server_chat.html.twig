@@ -48,6 +48,12 @@
 
             <form id="chat-send-form" class="mt-3" autocomplete="off">
                 <div style="display: flex; gap: 8px; align-items: stretch;">
+                    <select id="chat-recipient" name="login"
+                            class="form-select"
+                            style="flex: 0 0 220px; height: 56px; font-size: 14px;"
+                            title="Destinataire du message">
+                        <option value="">Tous (public)</option>
+                    </select>
                     <input id="chat-send-input" type="text" name="message"
                            class="form-control"
                            style="flex: 1; height: 56px; font-size: 16px; padding: 0 16px;"
@@ -76,6 +82,7 @@
             const playersCount = document.getElementById('players-count');
             const form = document.getElementById('chat-send-form');
             const input = document.getElementById('chat-send-input');
+            const recipient = document.getElementById('chat-recipient');
             const sendBtn = document.getElementById('chat-send-btn');
             const feedback = document.getElementById('chat-send-feedback');
 
@@ -96,6 +103,24 @@
                     body = `<span style="color:#aed581;">[SYSTEM]</span> <span class="tm-colors">${contentHtml}</span>`;
                 }
                 return `<div class="chat-line" data-id="${m.id}"><span style="color:#888;">[${time}]</span> ${body}</div>`;
+            }
+
+            function syncRecipients(players) {
+                const current = recipient.value;
+                const desired = ['', ...players.map(p => p.login)];
+                const existing = Array.from(recipient.options).map(o => o.value);
+                // Only rebuild when the set of logins actually changed
+                if (existing.length === desired.length && existing.every((v, i) => v === desired[i])) {
+                    return;
+                }
+                recipient.innerHTML = '<option value="">Tous (public)</option>'
+                    + players.map(p =>
+                        `<option value="${escapeHtml(p.login)}">${escapeHtml(p.pseudoStrip || p.login)}</option>`
+                    ).join('');
+                // Restore previous selection if the player is still connected
+                if (Array.from(recipient.options).some(o => o.value === current)) {
+                    recipient.value = current;
+                }
             }
 
             function isPinnedToBottom() {
@@ -123,6 +148,7 @@
                 e.preventDefault();
                 const message = input.value.trim();
                 if (!message) return;
+                const login = recipient.value;
                 sendBtn.disabled = true;
                 feedback.textContent = '';
                 feedback.className = 'small mt-1';
@@ -130,7 +156,7 @@
                     const res = await fetch(sendUrl, {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
-                        body: JSON.stringify({message}),
+                        body: JSON.stringify({message, login}),
                     });
                     const data = await res.json().catch(() => ({}));
                     if (res.ok && data.success) {
@@ -158,17 +184,25 @@
                     if (!data.online) {
                         playersList.innerHTML = '<div class="text-muted" style="font-size: 12px;">Serveur hors ligne</div>';
                         playersCount.textContent = '(0)';
+                        syncRecipients([]);
                         return;
                     }
                     playersCount.textContent = `(${data.playerCount}/${data.maxPlayers})`;
                     const players = data.players || [];
+                    syncRecipients(players);
                     if (players.length === 0) {
                         playersList.innerHTML = '<div class="text-muted" style="font-size: 12px;">Aucun joueur</div>';
                         return;
                     }
                     playersList.innerHTML = players.map(p =>
-                        `<div class="tm-colors" style="padding: 2px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${(p.pseudoStrip || '').replace(/"/g, '&quot;')}">${p.pseudoHtml}</div>`
+                        `<div class="tm-colors player-row" data-login="${escapeHtml(p.login)}" style="padding: 2px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer;" title="Cliquer pour écrire en privé à ${(p.pseudoStrip || '').replace(/"/g, '&quot;')}">${p.pseudoHtml}</div>`
                     ).join('');
+                    playersList.querySelectorAll('.player-row').forEach(row => {
+                        row.addEventListener('click', () => {
+                            recipient.value = row.dataset.login || '';
+                            input.focus();
+                        });
+                    });
                 } catch (e) {
                     // network glitch
                 }

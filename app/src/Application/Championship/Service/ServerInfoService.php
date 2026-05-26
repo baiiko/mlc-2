@@ -24,6 +24,7 @@ class ServerInfoService
      *     maxPlayers: int,
      *     currentMap: string|null,
      *     players: array<string>,
+     *     playerDetails: array<array{login: string, nickname: string}>,
      *     error: string|null
      * }
      */
@@ -43,7 +44,7 @@ class ServerInfoService
      *
      * @return array<int, array{
      *     server: Server,
-     *     info: array{online: bool, name: string|null, playerCount: int, maxPlayers: int, currentMap: string|null, players: array<string>, error: string|null}
+     *     info: array{online: bool, name: string|null, playerCount: int, maxPlayers: int, currentMap: string|null, players: array<string>, playerDetails: array<array{login: string, nickname: string}>, error: string|null}
      * }>
      */
     public function getMultipleServersInfo(array $servers): array
@@ -68,6 +69,7 @@ class ServerInfoService
      *     maxPlayers: int,
      *     currentMap: string|null,
      *     players: array<string>,
+     *     playerDetails: array<array{login: string, nickname: string}>,
      *     error: string|null
      * }
      */
@@ -80,6 +82,7 @@ class ServerInfoService
             'maxPlayers' => $server->getMaxPlayers(),
             'currentMap' => null,
             'players' => [],
+            'playerDetails' => [],
             'error' => null,
         ];
 
@@ -124,11 +127,16 @@ class ServerInfoService
 
             // Get player list
             $playerList = [];
+            $playerDetails = [];
 
             if (\is_array($players)) {
                 foreach ($players as $player) {
                     if (isset($player['NickName'])) {
                         $playerList[] = $player['NickName'];
+                        $playerDetails[] = [
+                            'login' => isset($player['Login']) ? (string) $player['Login'] : '',
+                            'nickname' => (string) $player['NickName'],
+                        ];
                     }
                 }
             }
@@ -147,6 +155,7 @@ class ServerInfoService
                 'maxPlayers' => isset($maxPlayers['CurrentValue']) ? (int) $maxPlayers['CurrentValue'] : $server->getMaxPlayers(),
                 'currentMap' => $mapName,
                 'players' => $playerList,
+                'playerDetails' => $playerDetails,
                 'error' => null,
             ];
         } catch (\Throwable $e) {
