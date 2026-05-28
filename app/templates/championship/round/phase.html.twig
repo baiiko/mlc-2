@@ -17,7 +17,8 @@
                         </div>
                     </div>
 
-                    {% if round.isRegistrationOpen %}
+                    {% set canEditAvailability = player and playerRegistration and round.canUpdateAvailability %}
+                    {% if round.isRegistrationOpen or canEditAvailability %}
                         {% if player %}
                             {% if playerRegistration %}
                                 <div class="p-4 bg-green-500/20 border border-green-500 rounded text-green-400 text-center mb-4">
@@ -45,7 +46,7 @@
                                         {{ 'championship.save_availability'|trans({}, 'championship') }}
                                     </button>
                                 </form>
-                            {% else %}
+                            {% elseif round.isRegistrationOpen %}
                                 <form method="post" action="{{ path('app_championship_register', {id: round.id}) }}">
                                     <div class="mb-4">
                                         <p class="text-sm text-gray-light mb-3">{{ 'championship.availability'|trans({}, 'championship') }}</p>
@@ -69,7 +70,7 @@
                                     </button>
                                 </form>
                             {% endif %}
-                        {% else %}
+                        {% elseif round.isRegistrationOpen %}
                             <a href="{{ path('app_login') }}" class="w-full inline-flex items-center justify-center px-6 py-3 font-semibold text-sm uppercase tracking-wider rounded transition-all duration-300 bg-transparent text-white border-2 border-metal-light hover:border-turquoise hover:text-turquoise">
                                 {{ 'championship.login_to_register'|trans({}, 'championship') }}
                             </a>

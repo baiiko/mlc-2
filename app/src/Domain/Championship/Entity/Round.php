@@ -171,6 +171,26 @@ class Round
         return $startAt <= $now && $now <= $endAt;
     }
 
+    /**
+     * Registered players can still tweak their availabilities up to 2 h before
+     * the first semi-final starts — even after the registration phase has ended.
+     */
+    public function canUpdateAvailability(): bool
+    {
+        if ($this->isRegistrationOpen()) {
+            return true;
+        }
+
+        $semi = $this->getPhaseByType(PhaseType::SemiFinal);
+        $semiStart = $semi?->getStartAt();
+
+        if (!$semiStart instanceof \DateTimeImmutable) {
+            return false;
+        }
+
+        return new \DateTimeImmutable() < $semiStart->modify('-2 hours');
+    }
+
     public function getQualifyToFinalCount(): int
     {
         return $this->qualifyToFinalCount;

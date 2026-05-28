@@ -40,6 +40,10 @@ final readonly class UpdateAvailabilityService implements UpdateAvailabilityServ
             throw new \RuntimeException('Vous n\'êtes pas inscrit à cette manche');
         }
 
+        if (!$round->canUpdateAvailability()) {
+            throw new \RuntimeException('Les disponibilités ne peuvent plus être modifiées (verrouillage 2 h avant la première demi-finale).');
+        }
+
         $registration->setAvailableSemiFinal1($availableSemiFinal1);
         $registration->setAvailableSemiFinal2($availableSemiFinal2);
         $registration->setAvailableFinal($availableFinal);
