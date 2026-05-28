@@ -34,12 +34,24 @@ final readonly class DoctrineRoundRepository implements RoundRepositoryInterface
             ->getRepository(Round::class)
             ->find($id);
     }
-
     public function findBySeason(Season $season): array
     {
         return $this->entityManager
             ->getRepository(Round::class)
             ->findBy(['season' => $season], ['number' => 'ASC']);
+    }
+
+    public function findAllOrderedRecent(): array
+    {
+        return $this->entityManager
+            ->createQueryBuilder()
+            ->select('r', 's')
+            ->from(Round::class, 'r')
+            ->leftJoin('r.season', 's')
+            ->orderBy('s.id', 'DESC')
+            ->addOrderBy('r.number', 'DESC')
+            ->getQuery()
+            ->getResult();
     }
 
     public function findActiveRounds(): array

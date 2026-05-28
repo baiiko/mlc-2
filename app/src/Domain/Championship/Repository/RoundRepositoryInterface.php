@@ -21,6 +21,13 @@ interface RoundRepositoryInterface
     public function findBySeason(Season $season): array;
 
     /**
+     * Return every round across every season, latest first (suitable for select dropdowns).
+     *
+     * @return Round[]
+     */
+    public function findAllOrderedRecent(): array;
+
+    /**
      * @return Round[]
      */
     public function findActiveRounds(): array;

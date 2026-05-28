@@ -9,16 +9,42 @@
             <p class="text-gray-light">{{ total }} circuit(s){% if search %} pour « {{ search }} »{% endif %}</p>
         </header>
 
-        <form method="get" action="{{ path('app_championship_maps') }}" class="mb-6">
+        <form method="get" action="{{ path('app_championship_maps') }}" class="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
             <input type="search" name="q" value="{{ search ?? '' }}" autocomplete="off"
-                   placeholder="Rechercher un circuit par nom…"
-                   class="w-full px-4 py-3 bg-bg-card border border-metal-dark rounded text-white placeholder-gray-mid focus:border-turquoise focus:outline-none">
+                   placeholder="Nom du circuit…"
+                   class="px-4 py-3 bg-bg-card border border-metal-dark rounded text-white placeholder-gray-mid focus:border-turquoise focus:outline-none">
+
+            <input type="text" name="author" value="{{ author ?? '' }}" autocomplete="off"
+                   placeholder="Auteur…"
+                   class="px-4 py-3 bg-bg-card border border-metal-dark rounded text-white placeholder-gray-mid focus:border-turquoise focus:outline-none">
+
+            <select name="season" class="px-4 py-3 bg-bg-card border border-metal-dark rounded text-white focus:border-turquoise focus:outline-none">
+                <option value="">Toutes les saisons</option>
+                {% for s in seasons %}
+                    <option value="{{ s.id }}" {{ seasonId == s.id ? 'selected' : '' }}>{{ s.name }}</option>
+                {% endfor %}
+            </select>
+
+            <div class="flex gap-2">
+                <select name="round" class="flex-1 min-w-0 px-4 py-3 bg-bg-card border border-metal-dark rounded text-white focus:border-turquoise focus:outline-none">
+                    <option value="">Toutes les manches</option>
+                    {% for r in rounds %}
+                        <option value="{{ r.id }}" {{ roundId == r.id ? 'selected' : '' }}>
+                            {% if r.season %}{{ r.season.name }} · {% endif %}M{{ r.number }}{% if r.name %} · {{ r.name }}{% endif %}
+                        </option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="px-4 py-3 bg-orange/20 text-orange border border-orange rounded hover:bg-orange/30 transition-colors">
+                    <i class="fa fa-filter"></i>
+                </button>
+            </div>
         </form>
 
+        {% set hasFilters = search or author or seasonId or roundId %}
         {% if maps is empty %}
             <div class="bg-bg-card rounded-lg p-8 border border-metal-dark text-center">
                 <p class="text-gray-mid">
-                    {% if search %}Aucun circuit ne correspond à votre recherche.{% else %}{{ 'championship.no_maps'|trans({}, 'championship') }}{% endif %}
+                    {% if hasFilters %}Aucun circuit ne correspond à vos filtres.{% else %}{{ 'championship.no_maps'|trans({}, 'championship') }}{% endif %}
                 </p>
             </div>
         {% else %}
@@ -81,7 +107,11 @@
 
             {% if totalPages > 1 %}
                 <nav class="mt-8 flex items-center justify-center gap-2 flex-wrap" aria-label="Pagination">
-                    {% set baseParams = search ? {q: search} : {} %}
+                    {% set baseParams = {} %}
+                    {% if search %}{% set baseParams = baseParams|merge({q: search}) %}{% endif %}
+                    {% if author %}{% set baseParams = baseParams|merge({author: author}) %}{% endif %}
+                    {% if seasonId %}{% set baseParams = baseParams|merge({season: seasonId}) %}{% endif %}
+                    {% if roundId %}{% set baseParams = baseParams|merge({round: roundId}) %}{% endif %}
                     {% if page > 1 %}
                         <a href="{{ path('app_championship_maps', baseParams|merge({page: page - 1})) }}"
                            class="px-3 py-2 bg-bg-card border border-metal-dark rounded text-gray-light hover:text-turquoise hover:border-turquoise/50">‹</a>
