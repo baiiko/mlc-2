@@ -86,12 +86,14 @@ interface MapRecordRepositoryInterface
     public function findBestLapRecord(string $mapUid): ?array;
 
     /**
-     * Batched version of findBestLapRecord(): one row per map UID, keyed by map UID.
-     * Maps with no record are simply omitted from the result.
+     * For every given map UID and every requested laps count, return the single best
+     * record (player + time). Result is keyed by map UID; each map maps to a flat list
+     * of {record, playerPseudo} entries — one per laps when records exist.
      *
      * @param string[] $mapUids
+     * @param int[]    $lapsList
      *
-     * @return array<string, array{record: MapRecord, playerPseudo: ?string}>
+     * @return array<string, list<array{record: MapRecord, playerPseudo: ?string}>>
      */
-    public function findBestLapRecordsByMapUids(array $mapUids): array;
+    public function findBestRecordsByLapsForMapUids(array $mapUids, array $lapsList = [1, 5, 10]): array;
 }

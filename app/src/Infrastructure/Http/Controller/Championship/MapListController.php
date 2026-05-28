@@ -53,14 +53,14 @@ final readonly class MapListController
             $author,
         );
 
-        $bestRecords = $this->mapRecordRepository->findBestLapRecordsByMapUids(
+        $mapRecords = $this->mapRecordRepository->findBestRecordsByLapsForMapUids(
             array_filter(array_map(static fn ($m): ?string => $m->getUid(), $maps)),
         );
 
         return new Response(
             $this->twig->render('championship/map/list.html.twig', [
                 'maps' => $maps,
-                'bestRecords' => $bestRecords,
+                'mapRecords' => $mapRecords,
                 'total' => $total,
                 'page' => $page,
                 'totalPages' => $totalPages,

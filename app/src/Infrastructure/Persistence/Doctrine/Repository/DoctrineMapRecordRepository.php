@@ -254,40 +254,50 @@ final readonly class DoctrineMapRecordRepository implements MapRecordRepositoryI
         return $rankings;
     }
 
-    public function findBestLapRecordsByMapUids(array $mapUids): array
+    public function findBestRecordsByLapsForMapUids(array $mapUids, array $lapsList = [1, 5, 10]): array
     {
         $mapUids = array_values(array_unique(array_filter($mapUids, static fn ($u): bool => \is_string($u) && $u !== '')));
+        $lapsList = array_values(array_unique(array_filter($lapsList, static fn ($l): bool => \is_int($l) && $l > 0)));
 
-        if ($mapUids === []) {
+        if ($mapUids === [] || $lapsList === []) {
             return [];
         }
 
-        // Fetch every laps=1 record for the targeted maps along with the player pseudo;
-        // we then collapse to the best time per map in PHP. Single query, no N+1.
+        // Single query: pull every record for the targeted maps + laps combinations
+        // sorted by uid, laps, time ASC; then keep only the best (= first) per (uid, laps).
         $rows = $this->entityManager->createQueryBuilder()
             ->select('r', 'p.pseudo AS playerPseudo')
             ->from(MapRecord::class, 'r')
             ->leftJoin(Player::class, 'p', 'WITH', 'p.login = r.playerLogin')
             ->where('r.mapUid IN (:uids)')
-            ->andWhere('r.laps = 1')
+            ->andWhere('r.laps IN (:laps)')
             ->setParameter('uids', $mapUids)
-            ->orderBy('r.time', 'ASC')
+            ->setParameter('laps', $lapsList)
+            ->orderBy('r.mapUid', 'ASC')
+            ->addOrderBy('r.laps', 'ASC')
+            ->addOrderBy('r.time', 'ASC')
             ->getQuery()
             ->getResult();
 
+        /** @var array<string, array<int, true>> $seen */
+        $seen = [];
         $best = [];
 
         foreach ($rows as $row) {
             /** @var MapRecord $record */
             $record = $row[0];
             $uid = $record->getMapUid();
+            $laps = $record->getLaps();
 
-            if (!isset($best[$uid])) {
-                $best[$uid] = [
-                    'record' => $record,
-                    'playerPseudo' => $row['playerPseudo'] ?? null,
-                ];
+            if (isset($seen[$uid][$laps])) {
+                continue;
             }
+
+            $seen[$uid][$laps] = true;
+            $best[$uid][] = [
+                'record' => $record,
+                'playerPseudo' => $row['playerPseudo'] ?? null,
+            ];
         }
 
         return $best;
