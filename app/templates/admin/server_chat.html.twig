@@ -10,6 +10,32 @@
                 <span class="badge bg-secondary" id="chat-count">{{ messages|length }} message(s)</span>
             </h5>
 
+            {# Server commands #}
+            <div id="chat-commands" class="d-flex flex-wrap gap-2 mb-3">
+                {% if server.purpose.value == 'competition' %}
+                    <button type="button" class="btn btn-sm btn-outline-secondary chat-cmd-btn" data-command="warmup">
+                        <i class="fa fa-clock me-1"></i> WarmUp
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary chat-cmd-btn" data-command="restart_map">
+                        <i class="fa fa-redo me-1"></i> Restart
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary chat-cmd-btn" data-command="skip_map">
+                        <i class="fa fa-forward me-1"></i> Skip
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary chat-cmd-btn" data-command="phase_qualification">
+                        <i class="fa fa-flag-checkered me-1"></i> Phase qualif
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary chat-cmd-btn" data-command="reload_match_settings">
+                        <i class="fa fa-rotate me-1"></i> Recharger MatchSettings
+                    </button>
+                {% endif %}
+                <button type="button" class="btn btn-sm btn-outline-danger chat-cmd-btn" data-command="reboot"
+                        data-confirm="Redémarrer le serveur {{ server.name }} ?">
+                    <i class="fa fa-power-off me-1"></i> Reboot
+                </button>
+                <span id="chat-cmd-feedback" class="small align-self-center" style="min-height: 1.2em;"></span>
+            </div>
+
             <div style="display: flex; gap: 12px;">
                 <div style="flex: 1; min-width: 0;">
                     <div id="chat-messages"
@@ -76,6 +102,7 @@
             const url = {{ path('admin_server_chat_messages', {id: server.id})|json_encode|raw }};
             const sendUrl = {{ path('admin_server_chat_send', {id: server.id})|json_encode|raw }};
             const playersUrl = {{ path('admin_server_chat_players', {id: server.id})|json_encode|raw }};
+            const commandUrl = {{ path('admin_server_chat_command', {id: server.id})|json_encode|raw }};
             const container = document.getElementById('chat-messages');
             const counter = document.getElementById('chat-count');
             const playersList = document.getElementById('players-list');
@@ -195,7 +222,7 @@
                         return;
                     }
                     playersList.innerHTML = players.map(p =>
-                        `<div class="tm-colors player-row" data-login="${escapeHtml(p.login)}" style="padding: 2px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer;" title="Cliquer pour écrire en privé à ${(p.pseudoStrip || '').replace(/"/g, '&quot;')}">${p.pseudoHtml}</div>`
+                        `<div class="tm-colors player-row" data-login="${escapeHtml(p.login)}" style="padding: 2px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer;" title="Cliquer pour écrire en privé à ${(p.pseudoStrip || '').replace(/"/g, '&quot;')} (${escapeHtml(p.login)})">${p.pseudoHtml} <span style="color:#888; font-size:11px;">(${escapeHtml(p.login)})</span></div>`
                     ).join('');
                     playersList.querySelectorAll('.player-row').forEach(row => {
                         row.addEventListener('click', () => {
@@ -207,6 +234,34 @@
                     // network glitch
                 }
             }
+
+            // Server command buttons
+            const cmdFeedback = document.getElementById('chat-cmd-feedback');
+            document.querySelectorAll('.chat-cmd-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const confirmMsg = btn.dataset.confirm;
+                    if (confirmMsg && !window.confirm(confirmMsg)) return;
+                    const command = btn.dataset.command;
+                    btn.disabled = true;
+                    cmdFeedback.textContent = '';
+                    cmdFeedback.className = 'small align-self-center';
+                    try {
+                        const res = await fetch(commandUrl, {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+                            body: JSON.stringify({command}),
+                        });
+                        const data = await res.json().catch(() => ({}));
+                        cmdFeedback.textContent = data.message || (res.ok ? 'OK' : `Erreur HTTP ${res.status}`);
+                        cmdFeedback.classList.add(res.ok && data.success ? 'text-success' : 'text-danger');
+                    } catch (err) {
+                        cmdFeedback.textContent = 'Erreur réseau : ' + err.message;
+                        cmdFeedback.classList.add('text-danger');
+                    } finally {
+                        btn.disabled = false;
+                    }
+                });
+            });
 
             // Scroll to bottom on initial load
             container.scrollTop = container.scrollHeight;

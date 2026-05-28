@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Http\Controller\Admin;
 
+use App\Application\Championship\Service\CurrentPhaseResolverService;
 use App\Application\Championship\Service\ServerCommandService;
 use App\Application\Championship\Service\ServerInfoService;
 use App\Domain\Championship\Entity\Server;
+use App\Domain\Championship\Enum\ServerPurpose;
 use App\Domain\Championship\Repository\ServerRepositoryInterface;
 use App\Domain\Communication\Entity\ChatMessage;
 use App\Domain\Communication\Enum\ChatMessageType;
@@ -28,6 +30,7 @@ final class ServerChatController extends AbstractController
         private readonly ChatMessageRepositoryInterface $chatMessageRepository,
         private readonly ServerCommandService $serverCommandService,
         private readonly ServerInfoService $serverInfoService,
+        private readonly CurrentPhaseResolverService $currentPhaseResolver,
     ) {
     }
 
@@ -115,6 +118,36 @@ final class ServerChatController extends AbstractController
         return new JsonResponse($result, $result['success'] ? 200 : 502);
     }
 
+    #[Route('/admin/server/{id}/chat/command', name: 'admin_server_chat_command', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function command(int $id, Request $request): JsonResponse
+    {
+        $server = $this->loadServer($id);
+        $payload = json_decode($request->getContent(), true);
+        $command = (string) ($payload['command'] ?? $request->request->get('command', ''));
+
+        $isCompetition = $server->getPurpose() === ServerPurpose::Competition;
+
+        $result = match ($command) {
+            'warmup' => $isCompetition ? $this->serverCommandService->toggleWarmUp($server) : null,
+            'restart_map' => $isCompetition ? $this->serverCommandService->restartMap($server) : null,
+            'skip_map' => $isCompetition ? $this->serverCommandService->skipMap($server) : null,
+            'phase_qualification' => $isCompetition
+                ? $this->serverCommandService->sendChatMessage($server, '/phase qualification')
+                : null,
+            'reload_match_settings' => $isCompetition
+                ? $this->serverCommandService->reloadMatchSettings($server, $this->currentPhaseResolver->resolveCurrentPhaseName())
+                : null,
+            'reboot' => $this->serverCommandService->rebootServer($server),
+            default => null,
+        };
+
+        if ($result === null) {
+            return new JsonResponse(['success' => false, 'message' => 'Commande non autorisée.'], 400);
+        }
+
+        return new JsonResponse($result, $result['success'] ? 200 : 502);
+    }
+
     private function loadServer(int $id): Server
     {
         $server = $this->serverRepository->findById($id);
@@ -125,4 +158,5 @@ final class ServerChatController extends AbstractController
 
         return $server;
     }
+
 }
