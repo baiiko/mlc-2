@@ -44,7 +44,16 @@ final readonly class DoctrineTeamRepository implements TeamRepositoryInterface
         }
 
         try {
-            return $this->entityManager->getRepository(Team::class)->find($id);
+            $team = $this->entityManager->getRepository(Team::class)->find($id);
+
+            // find() may return an already-cached, uninitialized proxy without hitting
+            // the DB. Force the load now, while the soft-delete filter is still disabled,
+            // otherwise the lazy-load fires later with the filter back on and throws.
+            if ($team !== null) {
+                $this->entityManager->initializeObject($team);
+            }
+
+            return $team;
         } finally {
             if ($wasEnabled) {
                 $filters->enable('softdeleteable');

@@ -38,7 +38,15 @@ final readonly class DoctrinePlayerRepository implements PlayerRepositoryInterfa
         }
 
         try {
-            return $this->entityManager->getRepository(Player::class)->find($id);
+            $player = $this->entityManager->getRepository(Player::class)->find($id);
+
+            // Force-initialize in case find() returned a cached, uninitialized proxy:
+            // otherwise the lazy-load happens later with the filter re-enabled and throws.
+            if ($player !== null) {
+                $this->entityManager->initializeObject($player);
+            }
+
+            return $player;
         } finally {
             if ($wasEnabled) {
                 $filters->enable('softdeleteable');
