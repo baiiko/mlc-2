@@ -172,6 +172,25 @@ class Round
     }
 
     /**
+     * A round is considered finished once the end date of its latest phase is in the past.
+     * Used e.g. to decide whether its maps should be included in the inter-round "free" pool.
+     */
+    public function isFinished(): bool
+    {
+        $latestEnd = null;
+
+        foreach ($this->phases as $phase) {
+            $endAt = $phase->getEndAt();
+
+            if ($endAt instanceof \DateTimeImmutable && ($latestEnd === null || $endAt > $latestEnd)) {
+                $latestEnd = $endAt;
+            }
+        }
+
+        return $latestEnd !== null && $latestEnd < new \DateTimeImmutable();
+    }
+
+    /**
      * Registered players can still tweak their availabilities up to 2 h before
      * the first semi-final starts — even after the registration phase has ended.
      */

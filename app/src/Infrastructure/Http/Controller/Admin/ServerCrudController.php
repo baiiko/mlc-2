@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Http\Controller\Admin;
 
+use App\Application\Championship\Service\MatchSettingsGeneratorService;
 use App\Application\Championship\Service\ServerCommandService;
 use App\Domain\Championship\Entity\PhaseType;
+use App\Domain\Championship\Entity\Round;
 use App\Domain\Championship\Entity\Server;
+use App\Domain\Championship\Enum\ServerPurpose;
 use App\Domain\Championship\Repository\PhaseRepositoryInterface;
 use App\Domain\Championship\Repository\RoundRepositoryInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
@@ -15,6 +18,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\Field;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
@@ -33,6 +37,7 @@ class ServerCrudController extends AbstractCrudController
         private readonly AdminUrlGenerator $adminUrlGenerator,
         private readonly PhaseRepositoryInterface $phaseRepository,
         private readonly RoundRepositoryInterface $roundRepository,
+        private readonly MatchSettingsGeneratorService $matchSettingsGenerator,
     ) {
     }
 
@@ -52,27 +57,39 @@ class ServerCrudController extends AbstractCrudController
 
     public function configureActions(Actions $actions): Actions
     {
+        $competitionOnly = static fn (Server $server): bool => $server->getPurpose() === ServerPurpose::Competition;
+        $freeOnly = static fn (Server $server): bool => $server->getPurpose() === ServerPurpose::Free;
+
         $setWarmUp = Action::new('setWarmUp', 'admin.server.action.warmup', 'fa fa-clock')
-            ->linkToCrudAction('setWarmUp');
+            ->linkToCrudAction('setWarmUp')
+            ->displayIf($competitionOnly);
 
         $restartMap = Action::new('restartMap', 'admin.server.action.restart', 'fa fa-redo')
-            ->linkToCrudAction('restartMap');
+            ->linkToCrudAction('restartMap')
+            ->displayIf($competitionOnly);
 
         $skipMap = Action::new('skipMap', 'admin.server.action.skip', 'fa fa-forward')
-            ->linkToCrudAction('skipMap');
+            ->linkToCrudAction('skipMap')
+            ->displayIf($competitionOnly);
 
         $setPhaseQualification = Action::new('setPhaseQualification', 'admin.server.action.phase_qualification', 'fa fa-flag-checkered')
-            ->linkToCrudAction('setPhaseQualification');
+            ->linkToCrudAction('setPhaseQualification')
+            ->displayIf($competitionOnly);
 
         $openChat = Action::new('openChat', 'admin.server.action.chat', 'fa fa-comments')
-            ->linkToRoute('admin_server_chat', fn (\App\Domain\Championship\Entity\Server $server): array => ['id' => $server->getId()]);
+            ->linkToRoute('admin_server_chat', fn (Server $server): array => ['id' => $server->getId()]);
 
         $rebootServer = Action::new('rebootServer', 'admin.server.action.reboot', 'fa fa-power-off')
             ->linkToCrudAction('rebootServer')
             ->addCssClass('text-danger');
 
         $reloadMatchSettings = Action::new('reloadMatchSettings', 'admin.server.action.reload_match_settings', 'fa fa-rotate')
-            ->linkToCrudAction('reloadMatchSettings');
+            ->linkToCrudAction('reloadMatchSettings')
+            ->displayIf($competitionOnly);
+
+        $generateFree = Action::new('generateFree', 'admin.server.action.generate_free', 'fa fa-file-code')
+            ->linkToCrudAction('generateFree')
+            ->displayIf($freeOnly);
 
         return $actions
             ->add(Crud::PAGE_INDEX, Action::DETAIL)
@@ -81,6 +98,7 @@ class ServerCrudController extends AbstractCrudController
             ->add(Crud::PAGE_DETAIL, $skipMap)
             ->add(Crud::PAGE_DETAIL, $setPhaseQualification)
             ->add(Crud::PAGE_DETAIL, $reloadMatchSettings)
+            ->add(Crud::PAGE_DETAIL, $generateFree)
             ->add(Crud::PAGE_DETAIL, $openChat)
             ->add(Crud::PAGE_DETAIL, $rebootServer)
             ->add(Crud::PAGE_INDEX, $setWarmUp)
@@ -88,6 +106,7 @@ class ServerCrudController extends AbstractCrudController
             ->add(Crud::PAGE_INDEX, $skipMap)
             ->add(Crud::PAGE_INDEX, $setPhaseQualification)
             ->add(Crud::PAGE_INDEX, $reloadMatchSettings)
+            ->add(Crud::PAGE_INDEX, $generateFree)
             ->add(Crud::PAGE_INDEX, $openChat)
             ->add(Crud::PAGE_INDEX, $rebootServer);
     }
@@ -132,6 +151,18 @@ class ServerCrudController extends AbstractCrudController
         } else {
             yield BooleanField::new('isActive', 'admin.server.active');
         }
+
+        yield ChoiceField::new('purpose', 'admin.server.purpose')
+            ->setChoices(array_combine(
+                array_map(static fn (ServerPurpose $p): string => $p->getLabel(), ServerPurpose::cases()),
+                ServerPurpose::cases(),
+            ))
+            ->renderAsBadges([
+                ServerPurpose::Competition->value => 'primary',
+                ServerPurpose::Free->value => 'success',
+            ])
+            ->setHelp('admin.server.purpose_help')
+            ->formatValue(static fn ($value): string => $value instanceof ServerPurpose ? $value->getLabel() : (string) $value);
 
         yield TextField::new('connectionString', 'admin.server.connection')
             ->hideOnForm();
@@ -258,6 +289,29 @@ class ServerCrudController extends AbstractCrudController
             $this->addFlash('success', $result['message']);
         } else {
             $this->addFlash('danger', $result['message']);
+        }
+
+        return $this->redirect(
+            $this->adminUrlGenerator
+                ->setController(self::class)
+                ->setAction(Action::INDEX)
+                ->generateUrl()
+        );
+    }
+
+    public function generateFree(): Response
+    {
+        $round = $this->roundRepository->findCurrentOrUpcoming();
+
+        if (!$round instanceof Round) {
+            $this->addFlash('warning', 'Aucune manche courante ou à venir trouvée.');
+        } else {
+            try {
+                $path = $this->matchSettingsGenerator->saveFree($round);
+                $this->addFlash('success', \sprintf('free.xml généré (%s).', $path));
+            } catch (\Throwable $e) {
+                $this->addFlash('danger', 'Erreur génération free.xml : ' . $e->getMessage());
+            }
         }
 
         return $this->redirect(

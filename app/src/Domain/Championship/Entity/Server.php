@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Championship\Entity;
 
+use App\Domain\Championship\Enum\ServerPurpose;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Mapping\Annotation as Gedmo;
 use Gedmo\SoftDeleteable\Traits\SoftDeleteableEntity;
@@ -48,6 +49,9 @@ class Server
 
     #[ORM\Column(options: ['default' => true])]
     private bool $isActive = true;
+
+    #[ORM\Column(length: 30, enumType: ServerPurpose::class, options: ['default' => 'competition'])]
+    private ServerPurpose $purpose = ServerPurpose::Competition;
 
     /** Virtual property for password update (not persisted) */
     private ?string $plainPassword = null;
@@ -200,5 +204,22 @@ class Server
     public function getActiveLabel(): string
     {
         return $this->isActive ? 'Oui' : 'Non';
+    }
+
+    public function getPurpose(): ServerPurpose
+    {
+        return $this->purpose;
+    }
+
+    public function setPurpose(ServerPurpose $purpose): self
+    {
+        $this->purpose = $purpose;
+
+        return $this;
+    }
+
+    public function isFreeServer(): bool
+    {
+        return $this->purpose === ServerPurpose::Free;
     }
 }

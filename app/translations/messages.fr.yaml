@@ -99,6 +99,8 @@ admin.server.max_players_help: "Nombre maximum de joueurs sur ce serveur (défau
 admin.server.active: Actif
 admin.server.connection: Connexion
 admin.server.created_at: Créé le
+admin.server.purpose: Rôle
+admin.server.purpose_help: "Compétition = utilisé pour les phases. Free = tourne en permanence sur free.xml."
 
 # Server actions
 admin.server.action.warmup: WarmUp
@@ -108,6 +110,7 @@ admin.server.action.phase_qualification: Phase qualification
 admin.server.action.chat: Chat
 admin.server.action.reboot: Redémarrer
 admin.server.action.reload_match_settings: Recharger MatchSettings
+admin.server.action.generate_free: Générer free.xml
 
 # Phase admin
 Phase: Phase

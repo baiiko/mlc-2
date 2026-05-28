@@ -248,8 +248,12 @@ class MatchSettingsGeneratorService
         }
 
         $allMaps = [];
-        // Get rounds in reverse order (most recent first)
-        $rounds = $season->getRounds()->toArray();
+        // Get rounds in reverse order (most recent first) — only those whose phases
+        // have all wrapped up. The current/upcoming round must NOT pollute free.xml.
+        $rounds = array_filter(
+            $season->getRounds()->toArray(),
+            static fn (Round $r): bool => $r->isFinished(),
+        );
         usort($rounds, fn ($a, $b): int => ($b->getNumber() ?? 0) <=> ($a->getNumber() ?? 0));
 
         foreach ($rounds as $seasonRound) {
