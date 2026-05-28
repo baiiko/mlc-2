@@ -12,6 +12,12 @@ interface PlayerRepositoryInterface
 
     public function findById(int $id): ?Player;
 
+    /**
+     * Find a player by ID even if soft-deleted.
+     * Useful when historical rankings still reference removed accounts.
+     */
+    public function findByIdIncludingDeleted(int $id): ?Player;
+
     public function findByLogin(string $login): ?Player;
 
     public function findByEmail(string $email): ?Player;

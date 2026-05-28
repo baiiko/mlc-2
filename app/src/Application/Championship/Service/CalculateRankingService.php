@@ -16,16 +16,57 @@ use App\Domain\Championship\Repository\RoundRegistrationRepositoryInterface;
 use App\Domain\Player\Entity\Player;
 use App\Domain\Player\Repository\PlayerRepositoryInterface;
 use App\Domain\Team\Entity\Team;
+use App\Domain\Team\Repository\TeamRepositoryInterface;
 
-final readonly class CalculateRankingService implements CalculateRankingServiceInterface
+final class CalculateRankingService implements CalculateRankingServiceInterface
 {
     private const TEAM_BONUS = [1 => 10, 2 => 8, 3 => 6, 4 => 5, 5 => 4, 6 => 3, 7 => 2, 8 => 1];
 
+    /** @var array<int, Team> */
+    private array $teamCache = [];
+
+    /** @var array<int, Player> */
+    private array $playerCache = [];
+
     public function __construct(
-        private PhaseResultRepositoryInterface $phaseResultRepository,
-        private PlayerRepositoryInterface $playerRepository,
-        private RoundRegistrationRepositoryInterface $registrationRepository,
+        private readonly PhaseResultRepositoryInterface $phaseResultRepository,
+        private readonly PlayerRepositoryInterface $playerRepository,
+        private readonly RoundRegistrationRepositoryInterface $registrationRepository,
+        private readonly TeamRepositoryInterface $teamRepository,
     ) {
+    }
+
+    /**
+     * Reload a team including soft-deleted ones so historical rankings can still
+     * display its tag/fullName after the team was disbanded.
+     */
+    private function resolveTeam(?Team $team): ?Team
+    {
+        if ($team === null) {
+            return null;
+        }
+
+        $id = $team->getId();
+
+        if (isset($this->teamCache[$id])) {
+            return $this->teamCache[$id];
+        }
+
+        return $this->teamCache[$id] = $this->teamRepository->findByIdIncludingDeleted($id) ?? $team;
+    }
+
+    /**
+     * Reload a player including soft-deleted ones for the same reason as resolveTeam().
+     */
+    private function resolvePlayer(Player $player): Player
+    {
+        $id = $player->getId();
+
+        if (isset($this->playerCache[$id])) {
+            return $this->playerCache[$id];
+        }
+
+        return $this->playerCache[$id] = $this->playerRepository->findByIdIncludingDeleted($id) ?? $player;
     }
 
     public function calculatePhaseIndividualRanking(Phase $phase): array
@@ -36,8 +77,8 @@ final readonly class CalculateRankingService implements CalculateRankingServiceI
         foreach ($results as $result) {
             $rankings[] = new IndividualRankingDTO(
                 position: $result->getPosition(),
-                player: $result->getPlayer(),
-                team: $result->getRegistration()->getTeam(),
+                player: $this->resolvePlayer($result->getPlayer()),
+                team: $this->resolveTeam($result->getRegistration()->getTeam()),
                 time: $result->getTime(),
                 formattedTime: $result->getFormattedTime(),
                 isQualified: $result->isQualified(),
@@ -100,18 +141,20 @@ final readonly class CalculateRankingService implements CalculateRankingServiceI
 
             $topPlayers = [];
 
+            $resolvedTeam = $this->resolveTeam($teams[$teamId]);
+
             foreach ($topResults as $result) {
                 $topPlayers[] = new IndividualRankingDTO(
                     position: $result->getPosition(),
-                    player: $result->getPlayer(),
-                    team: $teams[$teamId],
+                    player: $this->resolvePlayer($result->getPlayer()),
+                    team: $resolvedTeam,
                     time: $result->getTime(),
                     formattedTime: $result->getFormattedTime(),
                 );
             }
 
             $teamRankings[] = [
-                'team' => $teams[$teamId],
+                'team' => $resolvedTeam,
                 'totalTime' => $totalTime,
                 'playerCount' => \count($playerResults),
                 'topPlayers' => $topPlayers,
@@ -250,7 +293,7 @@ final readonly class CalculateRankingService implements CalculateRankingServiceI
         foreach ($playerScores as $data) {
             $rankings[] = new SeasonRankingDTO(
                 position: $position++,
-                entity: $data['player'],
+                entity: $this->resolvePlayer($data['player']),
                 totalPoints: $data['totalPoints'],
                 roundScores: $data['roundScores'],
             );
@@ -299,7 +342,7 @@ final readonly class CalculateRankingService implements CalculateRankingServiceI
         foreach ($teamScores as $data) {
             $rankings[] = new SeasonRankingDTO(
                 position: $position++,
-                entity: $data['team'],
+                entity: $this->resolveTeam($data['team']),
                 totalPoints: $data['totalPoints'],
                 roundScores: $data['roundScores'],
             );
@@ -412,7 +455,7 @@ final readonly class CalculateRankingService implements CalculateRankingServiceI
 
             $rankings[] = new TeamRankingDTO(
                 position: $position,
-                team: $teams[$teamId],
+                team: $this->resolveTeam($teams[$teamId]),
                 totalTime: $rawTotal,
                 formattedTime: (string) $rawTotal,
                 playerCount: $teamPlayerCount[$teamId],

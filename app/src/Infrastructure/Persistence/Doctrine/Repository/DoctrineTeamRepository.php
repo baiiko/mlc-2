@@ -34,6 +34,24 @@ final readonly class DoctrineTeamRepository implements TeamRepositoryInterface
             ->find($id);
     }
 
+    public function findByIdIncludingDeleted(int $id): ?Team
+    {
+        $filters = $this->entityManager->getFilters();
+        $wasEnabled = $filters->isEnabled('softdeleteable');
+
+        if ($wasEnabled) {
+            $filters->disable('softdeleteable');
+        }
+
+        try {
+            return $this->entityManager->getRepository(Team::class)->find($id);
+        } finally {
+            if ($wasEnabled) {
+                $filters->enable('softdeleteable');
+            }
+        }
+    }
+
     public function findByTag(string $tag): ?Team
     {
         return $this->entityManager

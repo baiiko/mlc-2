@@ -28,6 +28,24 @@ final readonly class DoctrinePlayerRepository implements PlayerRepositoryInterfa
             ->find($id);
     }
 
+    public function findByIdIncludingDeleted(int $id): ?Player
+    {
+        $filters = $this->entityManager->getFilters();
+        $wasEnabled = $filters->isEnabled('softdeleteable');
+
+        if ($wasEnabled) {
+            $filters->disable('softdeleteable');
+        }
+
+        try {
+            return $this->entityManager->getRepository(Player::class)->find($id);
+        } finally {
+            if ($wasEnabled) {
+                $filters->enable('softdeleteable');
+            }
+        }
+    }
+
     public function findByLogin(string $login): ?Player
     {
         return $this->entityManager

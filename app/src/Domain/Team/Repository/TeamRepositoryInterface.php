@@ -14,6 +14,12 @@ interface TeamRepositoryInterface
 
     public function findById(int $id): ?Team;
 
+    /**
+     * Find a team by ID even if it has been soft-deleted.
+     * Useful when historical rankings still reference disbanded teams.
+     */
+    public function findByIdIncludingDeleted(int $id): ?Team;
+
     public function findByTag(string $tag): ?Team;
 
     /**
