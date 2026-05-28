@@ -52,10 +52,16 @@
                 </div>
             </div>
 
-            {# Round timeline (shared across all tabs) #}
-            <div class="mb-6">
+            {# Round timeline (shared across all tabs, collapsible) #}
+            <details class="group mb-6">
+                <summary class="inline-flex items-center gap-2 cursor-pointer select-none px-4 py-2 mb-3 rounded bg-bg-card border border-metal-dark hover:border-turquoise/50 text-sm font-semibold uppercase tracking-wider text-gray-light hover:text-white transition-all list-none [&::-webkit-details-marker]:hidden">
+                    <svg class="w-4 h-4 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                    <span>{{ 'nav.calendar'|trans({}, 'common') }}</span>
+                </summary>
                 {% include 'components/_round_timeline.html.twig' with {round: round} %}
-            </div>
+            </details>
 
             {# Content #}
             {% block tab_content %}{% endblock %}
