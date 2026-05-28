@@ -258,9 +258,9 @@ class MatchSettingsGeneratorService
 
         foreach ($rounds as $seasonRound) {
             foreach ($seasonRound->getMaps() as $map) {
-                if (!$map->isSurprise()) {
-                    $allMaps[] = $map;
-                }
+                // Surprise maps are included here because rounds are pre-filtered to
+                // isFinished(), so any surprise has already been revealed in the final.
+                $allMaps[] = $map;
             }
         }
 
