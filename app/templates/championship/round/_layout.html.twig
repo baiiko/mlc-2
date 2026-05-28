@@ -52,6 +52,11 @@
                 </div>
             </div>
 
+            {# Round timeline (shared across all tabs) #}
+            <div class="mb-6">
+                {% include 'components/_round_timeline.html.twig' with {round: round} %}
+            </div>
+
             {# Content #}
             {% block tab_content %}{% endblock %}
         {% else %}
