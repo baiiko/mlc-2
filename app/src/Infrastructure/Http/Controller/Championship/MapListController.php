@@ -29,11 +29,11 @@ final readonly class MapListController
     #[Route('/championship/maps', name: 'app_championship_maps', methods: ['GET'])]
     public function __invoke(Request $request): Response
     {
-        $page = max(1, $request->query->getInt('page', 1));
+        $page = max(1, $this->positiveInt($request, 'page') ?? 1);
         $search = $this->nonEmptyString($request, 'q');
         $author = $this->nonEmptyString($request, 'author');
-        $roundId = $request->query->getInt('round', 0) ?: null;
-        $seasonId = $request->query->getInt('season', 0) ?: null;
+        $roundId = $this->positiveInt($request, 'round');
+        $seasonId = $this->positiveInt($request, 'season');
 
         $total = $this->roundMapRepository->countAll($search, $roundId, $seasonId, $author);
         $totalPages = max(1, (int) ceil($total / self::PER_PAGE));
@@ -73,5 +73,22 @@ final readonly class MapListController
         $value = trim((string) $request->query->get($key, ''));
 
         return $value === '' ? null : $value;
+    }
+
+    /**
+     * Read a strictly positive int from the query string, tolerating empty values
+     * (Symfony's getInt() throws a 400 on empty strings).
+     */
+    private function positiveInt(Request $request, string $key): ?int
+    {
+        $value = trim((string) $request->query->get($key, ''));
+
+        if ($value === '' || !ctype_digit($value)) {
+            return null;
+        }
+
+        $int = (int) $value;
+
+        return $int > 0 ? $int : null;
     }
 }
