@@ -254,6 +254,45 @@ final readonly class DoctrineMapRecordRepository implements MapRecordRepositoryI
         return $rankings;
     }
 
+    public function findBestLapRecordsByMapUids(array $mapUids): array
+    {
+        $mapUids = array_values(array_unique(array_filter($mapUids, static fn ($u): bool => \is_string($u) && $u !== '')));
+
+        if ($mapUids === []) {
+            return [];
+        }
+
+        // Fetch every laps=1 record for the targeted maps along with the player pseudo;
+        // we then collapse to the best time per map in PHP. Single query, no N+1.
+        $rows = $this->entityManager->createQueryBuilder()
+            ->select('r', 'p.pseudo AS playerPseudo')
+            ->from(MapRecord::class, 'r')
+            ->leftJoin(Player::class, 'p', 'WITH', 'p.login = r.playerLogin')
+            ->where('r.mapUid IN (:uids)')
+            ->andWhere('r.laps = 1')
+            ->setParameter('uids', $mapUids)
+            ->orderBy('r.time', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        $best = [];
+
+        foreach ($rows as $row) {
+            /** @var MapRecord $record */
+            $record = $row[0];
+            $uid = $record->getMapUid();
+
+            if (!isset($best[$uid])) {
+                $best[$uid] = [
+                    'record' => $record,
+                    'playerPseudo' => $row['playerPseudo'] ?? null,
+                ];
+            }
+        }
+
+        return $best;
+    }
+
     public function findBestLapRecord(string $mapUid): ?array
     {
         $qb = $this->entityManager->createQueryBuilder();

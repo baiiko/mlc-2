@@ -84,4 +84,14 @@ interface MapRecordRepositoryInterface
      * @return array{record: MapRecord, playerPseudo: ?string}|null
      */
     public function findBestLapRecord(string $mapUid): ?array;
+
+    /**
+     * Batched version of findBestLapRecord(): one row per map UID, keyed by map UID.
+     * Maps with no record are simply omitted from the result.
+     *
+     * @param string[] $mapUids
+     *
+     * @return array<string, array{record: MapRecord, playerPseudo: ?string}>
+     */
+    public function findBestLapRecordsByMapUids(array $mapUids): array;
 }

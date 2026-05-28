@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Http\Controller\Championship;
 
+use App\Domain\Championship\Repository\MapRecordRepositoryInterface;
 use App\Domain\Championship\Repository\RoundMapRepositoryInterface;
 use App\Domain\Championship\Repository\RoundRepositoryInterface;
 use App\Domain\Championship\Repository\SeasonRepositoryInterface;
@@ -23,6 +24,7 @@ final readonly class MapListController
         private RoundMapRepositoryInterface $roundMapRepository,
         private RoundRepositoryInterface $roundRepository,
         private SeasonRepositoryInterface $seasonRepository,
+        private MapRecordRepositoryInterface $mapRecordRepository,
     ) {
     }
 
@@ -51,9 +53,14 @@ final readonly class MapListController
             $author,
         );
 
+        $bestRecords = $this->mapRecordRepository->findBestLapRecordsByMapUids(
+            array_filter(array_map(static fn ($m): ?string => $m->getUid(), $maps)),
+        );
+
         return new Response(
             $this->twig->render('championship/map/list.html.twig', [
                 'maps' => $maps,
+                'bestRecords' => $bestRecords,
                 'total' => $total,
                 'page' => $page,
                 'totalPages' => $totalPages,
