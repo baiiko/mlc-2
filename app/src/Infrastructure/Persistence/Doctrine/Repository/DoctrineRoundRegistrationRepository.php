@@ -39,16 +39,60 @@ final readonly class DoctrineRoundRegistrationRepository implements RoundRegistr
 
     public function findByRoundAndPlayer(Round $round, Player $player): ?RoundRegistration
     {
-        return $this->entityManager
-            ->getRepository(RoundRegistration::class)
-            ->findOneBy(['round' => $round, 'player' => $player]);
+        return $this->withSoftDeleteFilterDisabled(function () use ($round, $player): ?RoundRegistration {
+            return $this->entityManager->createQueryBuilder()
+                ->select('r', 't')
+                ->from(RoundRegistration::class, 'r')
+                ->leftJoin('r.team', 't')
+                ->andWhere('r.round = :round')
+                ->andWhere('r.player = :player')
+                ->setParameter('round', $round)
+                ->setParameter('player', $player)
+                ->getQuery()
+                ->getOneOrNullResult();
+        });
     }
 
     public function findByRound(Round $round): array
     {
-        return $this->entityManager
-            ->getRepository(RoundRegistration::class)
-            ->findBy(['round' => $round], ['registeredAt' => 'ASC']);
+        // Eager-fetch teams with the soft-delete filter disabled, so disbanded teams
+        // are still hydrated and don't trip EntityNotFoundException during template render.
+        return $this->withSoftDeleteFilterDisabled(function () use ($round): array {
+            return $this->entityManager->createQueryBuilder()
+                ->select('r', 't')
+                ->from(RoundRegistration::class, 'r')
+                ->leftJoin('r.team', 't')
+                ->andWhere('r.round = :round')
+                ->setParameter('round', $round)
+                ->orderBy('r.registeredAt', 'ASC')
+                ->getQuery()
+                ->getResult();
+        });
+    }
+
+    /**
+     * @template T
+     *
+     * @param callable(): T $callback
+     *
+     * @return T
+     */
+    private function withSoftDeleteFilterDisabled(callable $callback)
+    {
+        $filters = $this->entityManager->getFilters();
+        $wasEnabled = $filters->isEnabled('softdeleteable');
+
+        if ($wasEnabled) {
+            $filters->disable('softdeleteable');
+        }
+
+        try {
+            return $callback();
+        } finally {
+            if ($wasEnabled) {
+                $filters->enable('softdeleteable');
+            }
+        }
     }
 
     public function findByRoundAndTeam(Round $round, Team $team): array
