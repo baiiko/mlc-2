@@ -93,12 +93,13 @@
                                          style="width: {{ phaseProgress }}%;"></div>
                                 {% endif %}
 
-                                {# Dates inside bar #}
+                                {# Dates inside bar — white in live mode so they stay readable
+                                   both on the orange background and on the orange progress fill #}
                                 <div class="absolute inset-0 flex items-center justify-between px-2 text-[10px]">
-                                    <span class="{% if isLive %}text-orange{% elseif isPast %}text-gray-mid{% else %}text-turquoise{% endif %} font-medium truncate">
+                                    <span class="{% if isLive %}text-white{% elseif isPast %}text-gray-mid{% else %}text-turquoise{% endif %} font-medium truncate">
                                         {{ phase.startAt|format_datetime('short', 'short', locale=app.request.locale) }}
                                     </span>
-                                    <span class="{% if isLive %}text-orange{% elseif isPast %}text-gray-mid{% else %}text-turquoise{% endif %} font-medium truncate">
+                                    <span class="{% if isLive %}text-white{% elseif isPast %}text-gray-mid{% else %}text-turquoise{% endif %} font-medium truncate">
                                         {{ phase.endAt|format_datetime('short', 'short', locale=app.request.locale) }}
                                     </span>
                                 </div>
