@@ -8,11 +8,14 @@ use App\Application\Player\Service\PasswordResetServiceInterface;
 use App\Domain\Player\Entity\Player;
 use App\Infrastructure\Http\Form\ForgotPasswordType;
 use App\Infrastructure\Http\Form\ResetPasswordType;
+use App\Infrastructure\Security\Turnstile\TurnstileVerifier;
+use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment;
 
 #[AsController]
@@ -22,6 +25,8 @@ final readonly class ForgotPasswordController
         private Environment $twig,
         private FormFactoryInterface $formFactory,
         private PasswordResetServiceInterface $passwordResetService,
+        private TurnstileVerifier $turnstileVerifier,
+        private TranslatorInterface $translator,
     ) {
     }
 
@@ -30,6 +35,16 @@ final readonly class ForgotPasswordController
     {
         $form = $this->formFactory->create(ForgotPasswordType::class);
         $form->handleRequest($request);
+
+        if ($form->isSubmitted()) {
+            $token = (string) $request->request->get('cf-turnstile-response', '');
+
+            if (!$this->turnstileVerifier->verify($token, $request->getClientIp())) {
+                $form->addError(new FormError(
+                    $this->translator->trans('error.turnstile_invalid', [], 'player')
+                ));
+            }
+        }
 
         if ($form->isSubmitted() && $form->isValid()) {
             $email = $form->getData()->email;

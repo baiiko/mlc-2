@@ -6,11 +6,14 @@ namespace App\Infrastructure\Http\Controller\Player;
 
 use App\Application\Player\Service\RegisterPlayerServiceInterface;
 use App\Infrastructure\Http\Form\RegisterPlayerType;
+use App\Infrastructure\Security\Turnstile\TurnstileVerifier;
+use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment;
 
 #[AsController]
@@ -20,6 +23,8 @@ final readonly class RegisterController
         private Environment $twig,
         private FormFactoryInterface $formFactory,
         private RegisterPlayerServiceInterface $registerService,
+        private TurnstileVerifier $turnstileVerifier,
+        private TranslatorInterface $translator,
     ) {
     }
 
@@ -28,6 +33,16 @@ final readonly class RegisterController
     {
         $form = $this->formFactory->create(RegisterPlayerType::class);
         $form->handleRequest($request);
+
+        if ($form->isSubmitted()) {
+            $token = (string) $request->request->get('cf-turnstile-response', '');
+
+            if (!$this->turnstileVerifier->verify($token, $request->getClientIp())) {
+                $form->addError(new FormError(
+                    $this->translator->trans('error.turnstile_invalid', [], 'player')
+                ));
+            }
+        }
 
         if ($form->isSubmitted() && $form->isValid()) {
             $this->registerService->register($form->getData(), $request->getLocale());

@@ -1,0 +1,9 @@
+{# Cloudflare Turnstile widget.
+   Renders nothing when no site key is configured (dev / disabled). #}
+{% if turnstile_enabled() %}
+    <div class="cf-turnstile mb-4"
+         data-sitekey="{{ turnstile_site_key() }}"
+         data-theme="dark"
+         data-language="{{ app.request.locale }}"></div>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+{% endif %}

@@ -186,6 +186,7 @@ error:
     account_not_found: "Compte introuvable."
     invalid_link: "Ce lien est invalide ou a expiré."
     close_account_team_creator: "Vous devez transférer la propriété ou clôturer votre équipe avant de fermer votre compte."
+    turnstile_invalid: "Vérification anti-bot échouée, merci de réessayer."
 
 # Success messages
 success:

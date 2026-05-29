@@ -44,6 +44,8 @@
                         <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
                     </div>
 
+                    {% include 'security/_turnstile_widget.html.twig' %}
+
                     <div class="flex gap-4">
                         <button type="submit" class="inline-flex items-center justify-center px-8 py-4 font-semibold text-sm uppercase tracking-wider rounded transition-all duration-300 no-underline bg-gradient-to-br from-orange to-orange-dark text-white shadow-[0_4px_15px_rgba(255,140,0,0.4)] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(255,140,0,0.5)]">
                                 {{ 'login.submit'|trans({}, 'player') }}

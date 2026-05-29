@@ -186,6 +186,7 @@ error:
     account_not_found: "Account not found."
     invalid_link: "This link is invalid or has expired."
     close_account_team_creator: "You must transfer ownership or close your team before closing your account."
+    turnstile_invalid: "Anti-bot verification failed, please try again."
 
 # Success messages
 success:
