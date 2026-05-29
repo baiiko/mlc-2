@@ -12,6 +12,8 @@ services:
       DATABASE_URL: ${DATABASE_URL}
       MAILER_DSN: ${MAILER_DSN}
       TRUSTED_PROXIES: REMOTE_ADDR
+      TURNSTILE_SITE_KEY: ${TURNSTILE_SITE_KEY:-}
+      TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:-}
     networks:
       - mlc_network
     depends_on:
