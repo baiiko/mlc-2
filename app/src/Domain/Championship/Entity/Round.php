@@ -172,22 +172,41 @@ class Round
     }
 
     /**
-     * A round is considered finished once the end date of its latest phase is in the past.
-     * Used e.g. to decide whether its maps should be included in the inter-round "free" pool.
+     * A round is finished when it is no longer the active one AND at least one of
+     * its playable phases (qualif / semi / final) has already started — relying on
+     * the admin-curated isActive flag (enforced unique per season by
+     * UniqueActiveRoundValidator). The startAt check separates past rounds from
+     * future ones that have never been activated yet.
      */
     public function isFinished(): bool
     {
-        $latestEnd = null;
+        if ($this->isActive) {
+            return false;
+        }
+
+        $now = new \DateTimeImmutable();
 
         foreach ($this->phases as $phase) {
-            $endAt = $phase->getEndAt();
+            if (!$phase->getType()?->isPlayable()) {
+                continue;
+            }
 
-            if ($endAt instanceof \DateTimeImmutable && ($latestEnd === null || $endAt > $latestEnd)) {
-                $latestEnd = $endAt;
+            $startAt = $phase->getStartAt();
+
+            if ($startAt instanceof \DateTimeImmutable && $startAt < $now) {
+                return true;
             }
         }
 
-        return $latestEnd !== null && $latestEnd < new \DateTimeImmutable();
+        return false;
+    }
+
+    /**
+     * In progress = the admin-flagged active round of the season.
+     */
+    public function isInProgress(): bool
+    {
+        return $this->isActive;
     }
 
     /**

@@ -11,6 +11,7 @@ use App\Domain\Championship\Entity\RoundMap;
 use App\Domain\Championship\Entity\RoundRegistration;
 use App\Domain\Championship\Repository\PhaseRepositoryInterface;
 use App\Domain\Championship\Repository\RoundRegistrationRepositoryInterface;
+use Psr\Log\LoggerInterface;
 
 class QualificationClosingService
 {
@@ -18,6 +19,7 @@ class QualificationClosingService
         private readonly RoundRegistrationRepositoryInterface $registrationRepository,
         private readonly PhaseRepositoryInterface $phaseRepository,
         private readonly MatchSettingsGeneratorService $matchSettingsGenerator,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
@@ -82,37 +84,81 @@ class QualificationClosingService
             ++$totalMaps;
         }
 
+        $this->logger->info('[CloseQualif] start', [
+            'roundId' => $round->getId(),
+            'phaseId' => $qualificationPhase->getId(),
+            'qualifyToFinalCount' => $qualifyToFinalCount,
+            'qualifyToSemiCount' => $qualifyToSemiCount,
+            'totalMaps' => $totalMaps,
+            'rankingSize' => \count($ranking),
+            'registrationsCount' => \count($registrationsByLogin),
+        ]);
+
         $qualifiedForSemi = [];
         $finalSlotsUsed = 0;
         $semiSlotsUsed = 0;
 
         foreach ($ranking as $entry) {
+            $login = mb_strtolower((string) ($entry['login'] ?? ''));
+            $position = $entry['position'] ?? null;
+            $nbMaps = $entry['nbMaps'] ?? 0;
+
             if ($finalSlotsUsed >= $qualifyToFinalCount && $semiSlotsUsed >= $qualifyToSemiCount) {
+                $this->logger->debug('[CloseQualif] quotas full, stop', [
+                    'finalSlotsUsed' => $finalSlotsUsed,
+                    'semiSlotsUsed' => $semiSlotsUsed,
+                    'stoppedAtPosition' => $position,
+                ]);
+
                 break;
             }
 
-            $login = mb_strtolower((string) ($entry['login'] ?? ''));
             $registration = $registrationsByLogin[$login] ?? null;
 
             if (!$registration instanceof RoundRegistration) {
+                $this->logger->warning('[CloseQualif] skip: no registration', [
+                    'position' => $position,
+                    'login' => $login,
+                ]);
+
                 continue;
             }
 
-            if (($entry['nbMaps'] ?? 0) < $totalMaps) {
+            if ($nbMaps < $totalMaps) {
+                $this->logger->info('[CloseQualif] skip: incomplete maps', [
+                    'position' => $position,
+                    'login' => $login,
+                    'nbMaps' => $nbMaps,
+                    'totalMaps' => $totalMaps,
+                ]);
+
                 continue;
             }
 
             $availableFinal = $registration->isAvailableFinal();
-            $availableSemi = $registration->isAvailableSemiFinal1() || $registration->isAvailableSemiFinal2();
+            $availableSemi1 = $registration->isAvailableSemiFinal1();
+            $availableSemi2 = $registration->isAvailableSemiFinal2();
+            $availableSemi = $availableSemi1 || $availableSemi2;
 
             if (!$availableFinal) {
+                $this->logger->info('[CloseQualif] skip: forfait (availableFinal=false)', [
+                    'position' => $position,
+                    'login' => $login,
+                    'availableSemi1' => $availableSemi1,
+                    'availableSemi2' => $availableSemi2,
+                ]);
+
                 continue;
             }
 
             if ($finalSlotsUsed < $qualifyToFinalCount) {
-                // Slot finale (peuplement des joueurs de la finale géré ailleurs,
-                // on ne consomme ici que le quota pour décaler les suivants).
                 ++$finalSlotsUsed;
+                $this->logger->info('[CloseQualif] → finale slot', [
+                    'position' => $position,
+                    'login' => $login,
+                    'finalSlotsUsed' => $finalSlotsUsed,
+                    'finalQuota' => $qualifyToFinalCount,
+                ]);
 
                 continue;
             }
@@ -120,8 +166,32 @@ class QualificationClosingService
             if ($availableSemi && $semiSlotsUsed < $qualifyToSemiCount) {
                 $qualifiedForSemi[] = $entry;
                 ++$semiSlotsUsed;
+                $this->logger->info('[CloseQualif] → semi pool', [
+                    'position' => $position,
+                    'login' => $login,
+                    'semiSlotsUsed' => $semiSlotsUsed,
+                    'semiQuota' => $qualifyToSemiCount,
+                    'availableSemi1' => $availableSemi1,
+                    'availableSemi2' => $availableSemi2,
+                ]);
+
+                continue;
             }
+
+            $this->logger->info('[CloseQualif] skip: no semi dispo or semi quota full', [
+                'position' => $position,
+                'login' => $login,
+                'availableSemi' => $availableSemi,
+                'semiSlotsUsed' => $semiSlotsUsed,
+                'semiQuota' => $qualifyToSemiCount,
+            ]);
         }
+
+        $this->logger->info('[CloseQualif] selection done', [
+            'finalSlotsUsed' => $finalSlotsUsed,
+            'semiSlotsUsed' => $semiSlotsUsed,
+            'qualifiedForSemiLogins' => array_map(static fn (array $e): string => (string) ($e['login'] ?? ''), $qualifiedForSemi),
+        ]);
 
         // Si une seule demi-finale, tous les joueurs y vont
         if (\count($activeSemiFinals) === 1) {
@@ -183,6 +253,16 @@ class QualificationClosingService
                 $semi2Players[] = $login;
             }
         }
+
+        $this->logger->info('[CloseQualif] split semis', [
+            'semi1Count' => \count($semi1Players),
+            'semi1Players' => $semi1Players,
+            'semi2Count' => \count($semi2Players),
+            'semi2Players' => $semi2Players,
+            'onlySemi1Count' => \count($onlySemi1),
+            'onlySemi2Count' => \count($onlySemi2),
+            'bothAvailableCount' => \count($bothAvailable),
+        ]);
 
         // Mettre à jour les phases demi-finales
         $this->updateSemiFinalPhase($round, 1, $semi1Players);
