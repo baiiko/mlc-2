@@ -7,6 +7,8 @@ namespace App\Application\Championship\Service;
 use App\Domain\Championship\Entity\Phase;
 use App\Domain\Championship\Entity\PhaseType;
 use App\Domain\Championship\Entity\Round;
+use App\Domain\Championship\Entity\RoundMap;
+use App\Domain\Championship\Entity\RoundRegistration;
 use App\Domain\Championship\Repository\PhaseRepositoryInterface;
 use App\Domain\Championship\Repository\RoundRegistrationRepositoryInterface;
 
@@ -56,21 +58,69 @@ class QualificationClosingService
         // Trier le ranking par position
         usort($ranking, fn (array $a, array $b): int => $a['position'] <=> $b['position']);
 
-        // Joueurs qualifiés pour les demi-finales = positions (qualifyToFinalCount + 1) à (qualifyToFinalCount + qualifyToSemiCount)
-        $startPosition = $qualifyToFinalCount + 1;
-        $endPosition = $qualifyToFinalCount + $qualifyToSemiCount;
-
-        $qualifiedForSemi = array_filter(
-            $ranking,
-            fn (array $entry): bool => $entry['position'] >= $startPosition && $entry['position'] <= $endPosition
-        );
-
-        // Récupérer les inscriptions pour connaître les disponibilités
+        // Récupérer les inscriptions pour connaître les disponibilités à jour
+        // (le ranking stocké peut avoir des dispos obsolètes si elles ont été modifiées
+        //  après le dernier rafraîchissement du classement).
         $registrations = $this->registrationRepository->findByRound($round);
         $registrationsByLogin = [];
 
         foreach ($registrations as $registration) {
-            $registrationsByLogin[$registration->getPlayer()->getLogin()] = $registration;
+            $registrationsByLogin[mb_strtolower($registration->getPlayer()->getLogin())] = $registration;
+        }
+
+        // Sélection des qualifiés en suivant la même règle que la page de phase
+        // (templates/championship/round/phase.html.twig) : on descend le classement et on
+        // remplit d'abord le quota finale (joueurs dispo finale, ayant joué toutes les
+        // maps non-surprise), puis le quota demi (dispo finale ET au moins une demi).
+        // Les forfaits / incomplets sont sautés, ce qui fait remonter les suivants.
+        $totalMaps = 0;
+
+        foreach ($round->getMaps() as $roundMap) {
+            if (!$roundMap instanceof RoundMap || $roundMap->isSurprise()) {
+                continue;
+            }
+            ++$totalMaps;
+        }
+
+        $qualifiedForSemi = [];
+        $finalSlotsUsed = 0;
+        $semiSlotsUsed = 0;
+
+        foreach ($ranking as $entry) {
+            if ($finalSlotsUsed >= $qualifyToFinalCount && $semiSlotsUsed >= $qualifyToSemiCount) {
+                break;
+            }
+
+            $login = mb_strtolower((string) ($entry['login'] ?? ''));
+            $registration = $registrationsByLogin[$login] ?? null;
+
+            if (!$registration instanceof RoundRegistration) {
+                continue;
+            }
+
+            if (($entry['nbMaps'] ?? 0) < $totalMaps) {
+                continue;
+            }
+
+            $availableFinal = $registration->isAvailableFinal();
+            $availableSemi = $registration->isAvailableSemiFinal1() || $registration->isAvailableSemiFinal2();
+
+            if (!$availableFinal) {
+                continue;
+            }
+
+            if ($finalSlotsUsed < $qualifyToFinalCount) {
+                // Slot finale (peuplement des joueurs de la finale géré ailleurs,
+                // on ne consomme ici que le quota pour décaler les suivants).
+                ++$finalSlotsUsed;
+
+                continue;
+            }
+
+            if ($availableSemi && $semiSlotsUsed < $qualifyToSemiCount) {
+                $qualifiedForSemi[] = $entry;
+                ++$semiSlotsUsed;
+            }
         }
 
         // Si une seule demi-finale, tous les joueurs y vont
