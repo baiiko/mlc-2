@@ -14,6 +14,7 @@ use App\Domain\Communication\Entity\ChatMessage;
 use App\Domain\Communication\Enum\ChatMessageType;
 use App\Domain\Communication\Repository\ChatMessageRepositoryInterface;
 use App\Infrastructure\Service\TmColorParser;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -31,6 +32,7 @@ final class ServerChatController extends AbstractController
         private readonly ServerCommandService $serverCommandService,
         private readonly ServerInfoService $serverInfoService,
         private readonly CurrentPhaseResolverService $currentPhaseResolver,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
@@ -127,6 +129,15 @@ final class ServerChatController extends AbstractController
 
         $isCompetition = $server->getPurpose() === ServerPurpose::Competition;
 
+        $this->logger->info('[ServerChat] Command requested', [
+            'serverId' => $server->getId(),
+            'serverName' => $server->getName(),
+            'serverIp' => $server->getIp(),
+            'serverPort' => $server->getPort(),
+            'purpose' => $server->getPurpose()->value,
+            'command' => $command,
+        ]);
+
         $result = match ($command) {
             'warmup' => $isCompetition ? $this->serverCommandService->toggleWarmUp($server) : null,
             'restart_map' => $isCompetition ? $this->serverCommandService->restartMap($server) : null,
@@ -141,11 +152,24 @@ final class ServerChatController extends AbstractController
             default => null,
         };
 
+        $this->logger->info('[ServerChat] Command result', [
+            'serverId' => $server->getId(),
+            'command' => $command,
+            'result' => $result,
+        ]);
+
         if ($result === null) {
             return new JsonResponse(['success' => false, 'message' => 'Commande non autorisée.'], 400);
         }
 
-        return new JsonResponse($result, $result['success'] ? 200 : 502);
+        return new JsonResponse(
+            $result + [
+                'server' => $server->getName(),
+                'target' => $server->getIp() . ':' . $server->getPort(),
+                'command' => $command,
+            ],
+            $result['success'] ? 200 : 502,
+        );
     }
 
     private function loadServer(int $id): Server

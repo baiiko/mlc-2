@@ -11,7 +11,7 @@
             </h5>
 
             {# Server commands #}
-            <div id="chat-commands" class="d-flex flex-wrap gap-2 mb-3">
+            <div id="chat-commands" class="d-flex flex-wrap gap-2 mb-2">
                 {% if server.purpose.value == 'competition' %}
                     <button type="button" class="btn btn-sm btn-outline-secondary chat-cmd-btn" data-command="warmup">
                         <i class="fa fa-clock me-1"></i> WarmUp
@@ -33,8 +33,8 @@
                         data-confirm="Redémarrer le serveur {{ server.name }} ?">
                     <i class="fa fa-power-off me-1"></i> Reboot
                 </button>
-                <span id="chat-cmd-feedback" class="small align-self-center" style="min-height: 1.2em;"></span>
             </div>
+            <div id="chat-cmd-feedback" class="mb-3" style="min-height: 1.5em;"></div>
 
             <div style="display: flex; gap: 12px;">
                 <div style="flex: 1; min-width: 0;">
@@ -242,9 +242,10 @@
                     const confirmMsg = btn.dataset.confirm;
                     if (confirmMsg && !window.confirm(confirmMsg)) return;
                     const command = btn.dataset.command;
+                    console.log('[chat-cmd] sending', {command, url: commandUrl});
                     btn.disabled = true;
-                    cmdFeedback.textContent = '';
-                    cmdFeedback.className = 'small align-self-center';
+                    cmdFeedback.className = 'alert alert-info mb-0 py-1 px-2';
+                    cmdFeedback.textContent = `Envoi de "${command}"…`;
                     try {
                         const res = await fetch(commandUrl, {
                             method: 'POST',
@@ -252,11 +253,15 @@
                             body: JSON.stringify({command}),
                         });
                         const data = await res.json().catch(() => ({}));
-                        cmdFeedback.textContent = data.message || (res.ok ? 'OK' : `Erreur HTTP ${res.status}`);
-                        cmdFeedback.classList.add(res.ok && data.success ? 'text-success' : 'text-danger');
+                        console.log('[chat-cmd] response', {status: res.status, data});
+                        const target = data.target ? ` [${data.target}]` : '';
+                        const success = res.ok && data.success;
+                        cmdFeedback.className = `alert mb-0 py-1 px-2 ${success ? 'alert-success' : 'alert-danger'}`;
+                        cmdFeedback.textContent = (success ? '✔ ' : '✖ ') + (data.message || `HTTP ${res.status}`) + target;
                     } catch (err) {
+                        console.error('[chat-cmd] network error', err);
+                        cmdFeedback.className = 'alert alert-danger mb-0 py-1 px-2';
                         cmdFeedback.textContent = 'Erreur réseau : ' + err.message;
-                        cmdFeedback.classList.add('text-danger');
                     } finally {
                         btn.disabled = false;
                     }
