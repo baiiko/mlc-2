@@ -147,11 +147,11 @@ services:
 
     App\Infrastructure\Security\Turnstile\TurnstileVerifier:
         arguments:
-            $secretKey: '%env(default::TURNSTILE_SECRET_KEY)%'
+            $secretKey: '%env(string:default::TURNSTILE_SECRET_KEY)%'
 
     App\Infrastructure\Twig\TurnstileExtension:
         arguments:
-            $siteKey: '%env(default::TURNSTILE_SITE_KEY)%'
+            $siteKey: '%env(string:default::TURNSTILE_SITE_KEY)%'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
