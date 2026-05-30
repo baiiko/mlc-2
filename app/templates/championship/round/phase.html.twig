@@ -279,14 +279,14 @@
                     </div>
                 {% endif %}
 
-                {% if phaseRanking.team is not empty %}
+                {% if phaseRanking.team is not empty and phase.type.value != 'semi_final' %}
                     <div>
                         <h3 class="text-lg font-semibold mb-4">{{ 'championship.team_ranking'|trans({}, 'championship') }}</h3>
                         {% include 'championship/_ranking_team.html.twig' with {ranking: phaseRanking.team} %}
                     </div>
                 {% endif %}
 
-                {% if phaseRanking.individual is empty and phaseRanking.team is empty %}
+                {% if phaseRanking.individual is empty %}
                     <p class="text-gray-mid text-center py-8">{{ 'championship.no_results'|trans({}, 'championship') }}</p>
                 {% endif %}
             {% else %}
