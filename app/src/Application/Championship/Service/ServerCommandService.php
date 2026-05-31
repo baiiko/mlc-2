@@ -114,6 +114,25 @@ class ServerCommandService
     }
 
     /**
+     * Live-update the finish timeout (delay after the first player crosses the line
+     * before the race ends) on a running TM server.
+     *
+     * @return array{success: bool, message: string}
+     */
+    public function setFinishTimeout(Server $server, int $milliseconds): array
+    {
+        return $this->executeCommand($server, function (GbxRemote $client) use ($milliseconds): array {
+            $result = $client->query('SetFinishTimeout', $milliseconds);
+
+            if ($result === false) {
+                return ['success' => false, 'message' => $client->getError() ?? 'Erreur inconnue'];
+            }
+
+            return ['success' => true, 'message' => \sprintf('FinishTimeout réglé à %d ms.', $milliseconds)];
+        });
+    }
+
+    /**
      * @return array{success: bool, message: string}
      */
     public function skipMap(Server $server): array
