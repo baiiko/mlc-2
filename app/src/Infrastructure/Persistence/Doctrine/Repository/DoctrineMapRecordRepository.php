@@ -31,7 +31,7 @@ final readonly class DoctrineMapRecordRepository implements MapRecordRepositoryI
             ->findBy(['mapUid' => $mapUid], ['laps' => 'ASC']);
     }
 
-    public function findByMapUidWithPlayer(string $mapUid, ?int $roundId = null): array
+    public function findByMapUidWithPlayer(string $mapUid, ?int $roundId = null, ?int $phaseId = null): array
     {
         $qb = $this->entityManager->createQueryBuilder();
 
@@ -46,6 +46,15 @@ final readonly class DoctrineMapRecordRepository implements MapRecordRepositoryI
         if ($roundId !== null) {
             $qb->andWhere('r.roundId = :roundId')
                 ->setParameter('roundId', $roundId);
+        }
+
+        if ($phaseId !== null) {
+            // Accept legacy rows with NULL phase_id alongside the targeted phase.
+            // The OR group needs explicit parens — without them, AND/OR precedence
+            // turns the clause into "(... AND phase = X) OR phase IS NULL" and pulls
+            // in NULL-phase rows from the entire table.
+            $qb->andWhere('(IDENTITY(r.phase) = :phaseId OR r.phase IS NULL)')
+                ->setParameter('phaseId', $phaseId);
         }
 
         $results = $qb->getQuery()->getResult();

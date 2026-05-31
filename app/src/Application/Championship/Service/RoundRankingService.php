@@ -41,18 +41,42 @@ final readonly class RoundRankingService implements RoundRankingServiceInterface
                 continue;
             }
 
-            // Get records for this map, filtered by round and laps
-            $records = $this->getMapRecordsForRanking($map->getUid(), $round->getId(), $laps);
+            // Fetch every Laps record for this map once. Records are scoped to the
+            // current qualif phase (phase_id = qualif.id OR NULL for legacy rows),
+            // so semis / finale records on the same map don't pollute the ranking.
+            $allRecords = $this->mapRecordRepository->findByMapUidWithPlayer(
+                $map->getUid(),
+                $round->getId(),
+                $phase->getId(),
+            );
+
+            // Multi-lap records (5 laps by default) feed the main ranking.
+            $records = array_filter($allRecords, static function (array $data) use ($laps): bool {
+                $record = $data['record'];
+
+                return $record->getGameMode() === GameMode::Laps
+                    && $record->getLaps() === $laps;
+            });
 
             if ($records === []) {
                 continue;
             }
 
-            // Sort by time ASC
             usort($records, fn (array $a, array $b): int => $a['record']->getTime() <=> $b['record']->getTime());
 
-            // Find best lap time holder for this map (bonus 10 pts)
-            $bestLapHolder = $this->getBestLapHolder($map->getUid(), $round->getId());
+            // Best single-lap holder for this map (bonus +10).
+            $bestLapHolder = null;
+
+            foreach ($allRecords as $data) {
+                $record = $data['record'];
+
+                if ($record->getGameMode() !== GameMode::Laps || $record->getLaps() !== 1) {
+                    continue;
+                }
+                if ($bestLapHolder === null || $record->getTime() < $bestLapHolder['time']) {
+                    $bestLapHolder = ['login' => $record->getPlayerLogin(), 'time' => $record->getTime()];
+                }
+            }
 
             $totalPlayers = \count($records);
             $position = 1;
@@ -60,18 +84,14 @@ final readonly class RoundRankingService implements RoundRankingServiceInterface
             foreach ($records as $data) {
                 $login = $data['record']->getPlayerLogin();
 
-                // Calculate points: 1 point per player behind + 1 for self
                 $points = $totalPlayers - $position + 1;
-
-                // Calculate bonus for top 5
                 $bonus = 0;
 
                 if ($position <= 5) {
                     $bonus = (5 - $position) * 2;
                 }
 
-                // Best lap bonus: 10 pts
-                if ($login === $bestLapHolder) {
+                if ($bestLapHolder !== null && $login === $bestLapHolder['login']) {
                     $bonus += 10;
                 }
 
@@ -127,36 +147,4 @@ final readonly class RoundRankingService implements RoundRankingServiceInterface
         return $ranking;
     }
 
-    private function getMapRecordsForRanking(string $mapUid, int $roundId, int $laps): array
-    {
-        $allRecords = $this->mapRecordRepository->findByMapUidWithPlayer($mapUid, $roundId);
-
-        // Filter by laps and game mode (Laps = 3 for qualification)
-        return array_filter($allRecords, function (array $data) use ($laps): bool {
-            $record = $data['record'];
-
-            return $record->getLaps() === $laps && $record->getGameMode() === GameMode::Laps;
-        });
-    }
-
-    private function getBestLapHolder(string $mapUid, int $roundId): ?string
-    {
-        $allRecords = $this->mapRecordRepository->findByMapUidWithPlayer($mapUid, $roundId);
-
-        // Filter by laps = 1 (single lap) and game mode Laps
-        $lapRecords = array_filter($allRecords, function (array $data): bool {
-            $record = $data['record'];
-
-            return $record->getLaps() === 1 && $record->getGameMode() === GameMode::Laps;
-        });
-
-        if ($lapRecords === []) {
-            return null;
-        }
-
-        // Sort by time ASC and return the best
-        usort($lapRecords, fn (array $a, array $b): int => $a['record']->getTime() <=> $b['record']->getTime());
-
-        return $lapRecords[0]['record']->getPlayerLogin();
-    }
 }

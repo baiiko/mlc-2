@@ -10,7 +10,7 @@ use Gedmo\Timestampable\Traits\TimestampableEntity;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'map_record')]
-#[ORM\UniqueConstraint(name: 'unique_map_record', columns: ['map_uid', 'player_login', 'laps', 'game_mode', 'round_id'])]
+#[ORM\UniqueConstraint(name: 'unique_map_record', columns: ['map_uid', 'player_login', 'laps', 'game_mode', 'round_id', 'phase_id'])]
 class MapRecord
 {
     use TimestampableEntity;
@@ -44,6 +44,10 @@ class MapRecord
 
     #[ORM\Column(nullable: true)]
     private ?int $roundId = null;
+
+    #[ORM\ManyToOne(targetEntity: Phase::class)]
+    #[ORM\JoinColumn(name: 'phase_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
+    private ?Phase $phase = null;
 
     public function __construct(string $mapUid = '', string $playerLogin = '', int $laps = 1, int $time = 0, GameMode $gameMode = GameMode::Laps)
     {
@@ -162,6 +166,18 @@ class MapRecord
     public function setRoundId(?int $roundId): self
     {
         $this->roundId = $roundId;
+
+        return $this;
+    }
+
+    public function getPhase(): ?Phase
+    {
+        return $this->phase;
+    }
+
+    public function setPhase(?Phase $phase): self
+    {
+        $this->phase = $phase;
 
         return $this;
     }

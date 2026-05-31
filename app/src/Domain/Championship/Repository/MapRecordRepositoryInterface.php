@@ -18,9 +18,12 @@ interface MapRecordRepositoryInterface
     /**
      * Returns records with player pseudo if available.
      *
+     * When $phaseId is provided, returns rows where map_record.phase_id matches OR is NULL
+     * (NULL = legacy data from before the phase column existed).
+     *
      * @return array<array{record: MapRecord, playerPseudo: ?string}>
      */
-    public function findByMapUidWithPlayer(string $mapUid, ?int $roundId = null): array;
+    public function findByMapUidWithPlayer(string $mapUid, ?int $roundId = null, ?int $phaseId = null): array;
 
     public function findByMapUidAndLaps(string $mapUid, int $laps): ?MapRecord;
 
