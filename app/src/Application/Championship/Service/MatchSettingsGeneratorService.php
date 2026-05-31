@@ -8,7 +8,7 @@ use App\Domain\Championship\Entity\Phase;
 use App\Domain\Championship\Entity\PhaseType;
 use App\Domain\Championship\Entity\Round;
 use App\Domain\Championship\Entity\RoundMap;
-use App\Domain\Championship\Entity\Season;
+use App\Domain\Championship\Repository\RoundRepositoryInterface;
 use Symfony\Component\Filesystem\Filesystem;
 
 class MatchSettingsGeneratorService
@@ -26,8 +26,10 @@ class MatchSettingsGeneratorService
 
     private string $matchSettingsPath;
 
-    public function __construct(string $matchSettingsPath)
-    {
+    public function __construct(
+        private readonly RoundRepositoryInterface $roundRepository,
+        string $matchSettingsPath,
+    ) {
         $this->filesystem = new Filesystem();
         $this->matchSettingsPath = $matchSettingsPath;
     }
@@ -54,7 +56,7 @@ class MatchSettingsGeneratorService
         $generated['training.xml'] = $path;
 
         // Generate free.xml
-        $path = $this->saveFree($round);
+        $path = $this->saveFree();
         $generated['free.xml'] = $path;
 
         return $generated;
@@ -164,11 +166,12 @@ class MatchSettingsGeneratorService
     }
 
     /**
-     * Generate free.xml - last 30 maps from the season, no timeout/warmup.
+     * Generate free.xml from every map of every finished round across all
+     * seasons. No season filter, no map limit.
      */
-    public function generateFree(Round $round, int $limit = 30): string
+    public function generateFree(): string
     {
-        $maps = $this->getSeasonMaps($round, $limit);
+        $maps = $this->getFinishedRoundMaps();
 
         if ($maps === []) {
             throw new \InvalidArgumentException('No maps found for free mode');
@@ -186,9 +189,9 @@ class MatchSettingsGeneratorService
     /**
      * Save free.xml.
      */
-    public function saveFree(Round $round, int $limit = 30): string
+    public function saveFree(): string
     {
-        $xml = $this->generateFree($round, $limit);
+        $xml = $this->generateFree();
 
         return $this->saveFile('free.xml', $xml);
     }
@@ -232,39 +235,27 @@ class MatchSettingsGeneratorService
     }
 
     /**
-     * Get last N maps from all rounds of the season.
+     * Return every map of every finished round across all seasons. Surprises
+     * are included because the rounds are pre-filtered to isFinished(), so
+     * any surprise has already been revealed in its final.
      *
      * @return array<RoundMap>
      */
-    private function getSeasonMaps(Round $round, int $limit = 30): array
+    private function getFinishedRoundMaps(): array
     {
-        $season = $round->getSeason();
-
-        if (!$season instanceof Season) {
-            return array_filter(
-                $round->getMaps()->toArray(),
-                fn (RoundMap $map): bool => !$map->isSurprise()
-            );
-        }
-
         $allMaps = [];
-        // Get rounds in reverse order (most recent first) — only those whose phases
-        // have all wrapped up. The current/upcoming round must NOT pollute free.xml.
-        $rounds = array_filter(
-            $season->getRounds()->toArray(),
-            static fn (Round $r): bool => $r->isFinished(),
-        );
-        usort($rounds, fn ($a, $b): int => ($b->getNumber() ?? 0) <=> ($a->getNumber() ?? 0));
 
-        foreach ($rounds as $seasonRound) {
-            foreach ($seasonRound->getMaps() as $map) {
-                // Surprise maps are included here because rounds are pre-filtered to
-                // isFinished(), so any surprise has already been revealed in the final.
+        foreach ($this->roundRepository->findAllOrderedRecent() as $round) {
+            if (!$round instanceof Round || !$round->isFinished()) {
+                continue;
+            }
+
+            foreach ($round->getMaps() as $map) {
                 $allMaps[] = $map;
             }
         }
 
-        return \array_slice($allMaps, 0, $limit);
+        return $allMaps;
     }
 
     /**

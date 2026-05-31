@@ -7,10 +7,8 @@ namespace App\Infrastructure\Http\Controller\Admin;
 use App\Application\Championship\Service\CurrentPhaseResolverService;
 use App\Application\Championship\Service\MatchSettingsGeneratorService;
 use App\Application\Championship\Service\ServerCommandService;
-use App\Domain\Championship\Entity\Round;
 use App\Domain\Championship\Entity\Server;
 use App\Domain\Championship\Enum\ServerPurpose;
-use App\Domain\Championship\Repository\RoundRepositoryInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
@@ -34,7 +32,6 @@ class ServerCrudController extends AbstractCrudController
     public function __construct(
         private readonly ServerCommandService $serverCommandService,
         private readonly AdminUrlGenerator $adminUrlGenerator,
-        private readonly RoundRepositoryInterface $roundRepository,
         private readonly MatchSettingsGeneratorService $matchSettingsGenerator,
         private readonly CurrentPhaseResolverService $currentPhaseResolver,
     ) {
@@ -300,17 +297,11 @@ class ServerCrudController extends AbstractCrudController
 
     public function generateFree(): Response
     {
-        $round = $this->roundRepository->findCurrentOrUpcoming();
-
-        if (!$round instanceof Round) {
-            $this->addFlash('warning', 'Aucune manche courante ou à venir trouvée.');
-        } else {
-            try {
-                $path = $this->matchSettingsGenerator->saveFree($round);
-                $this->addFlash('success', \sprintf('free.xml généré (%s).', $path));
-            } catch (\Throwable $e) {
-                $this->addFlash('danger', 'Erreur génération free.xml : ' . $e->getMessage());
-            }
+        try {
+            $path = $this->matchSettingsGenerator->saveFree();
+            $this->addFlash('success', \sprintf('free.xml généré (%s).', $path));
+        } catch (\Throwable $e) {
+            $this->addFlash('danger', 'Erreur génération free.xml : ' . $e->getMessage());
         }
 
         return $this->redirect(
