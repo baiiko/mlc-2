@@ -66,6 +66,28 @@ final class ServerChatController extends AbstractController
         return new JsonResponse(['messages' => $payload]);
     }
 
+    #[Route('/admin/server/{id}/chat/maps', name: 'admin_server_chat_maps', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function maps(int $id): JsonResponse
+    {
+        $server = $this->loadServer($id);
+        $info = $this->serverInfoService->getMapList($server);
+
+        $maps = array_map(static fn (array $m): array => [
+            'uid' => $m['uid'],
+            'nameHtml' => TmColorParser::toHtml($m['name']),
+            'nameText' => TmColorParser::stripColors($m['name']),
+            'author' => $m['author'],
+            'environment' => $m['environment'],
+        ], $info['maps']);
+
+        return new JsonResponse([
+            'online' => $info['online'],
+            'currentUid' => $info['currentUid'],
+            'maps' => $maps,
+            'error' => $info['error'],
+        ]);
+    }
+
     #[Route('/admin/server/{id}/chat/players', name: 'admin_server_chat_players', requirements: ['id' => '\d+'], methods: ['GET'])]
     public function players(int $id): JsonResponse
     {
@@ -126,6 +148,7 @@ final class ServerChatController extends AbstractController
         $server = $this->loadServer($id);
         $payload = json_decode($request->getContent(), true);
         $command = (string) ($payload['command'] ?? $request->request->get('command', ''));
+        $target = trim((string) ($payload['target'] ?? $request->request->get('target', '')));
 
         $isCompetition = $server->getPurpose() === ServerPurpose::Competition;
 
@@ -136,12 +159,13 @@ final class ServerChatController extends AbstractController
             'serverPort' => $server->getPort(),
             'purpose' => $server->getPurpose()->value,
             'command' => $command,
+            'target' => $target,
         ]);
 
         $result = match ($command) {
             'warmup' => $isCompetition ? $this->serverCommandService->toggleWarmUp($server) : null,
-            'restart_map' => $isCompetition ? $this->serverCommandService->restartMap($server) : null,
-            'skip_map' => $isCompetition ? $this->serverCommandService->skipMap($server) : null,
+            'restart_map' => $this->serverCommandService->restartMap($server),
+            'skip_map' => $this->serverCommandService->skipMap($server),
             'phase_qualification' => $isCompetition
                 ? $this->serverCommandService->sendChatMessage($server, '/phase qualification')
                 : null,
@@ -149,6 +173,9 @@ final class ServerChatController extends AbstractController
                 ? $this->serverCommandService->reloadMatchSettings($server, $this->currentPhaseResolver->resolveCurrentPhaseName())
                 : null,
             'reboot' => $this->serverCommandService->rebootServer($server),
+            'kick' => $target !== '' ? $this->serverCommandService->kickPlayer($server, $target) : null,
+            'force_spectator' => $target !== '' ? $this->serverCommandService->forceSpectator($server, $target, 1) : null,
+            'force_player' => $target !== '' ? $this->serverCommandService->forceSpectator($server, $target, 2) : null,
             default => null,
         };
 

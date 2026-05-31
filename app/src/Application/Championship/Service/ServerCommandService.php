@@ -133,6 +133,26 @@ class ServerCommandService
     }
 
     /**
+     * Kick a player from a running TM server.
+     *
+     * @return array{success: bool, message: string}
+     */
+    public function kickPlayer(Server $server, string $login, ?string $reason = null): array
+    {
+        return $this->executeCommand($server, function (GbxRemote $client) use ($login, $reason): array {
+            $result = $reason !== null
+                ? $client->query('Kick', $login, $reason)
+                : $client->query('Kick', $login);
+
+            if ($result === false) {
+                return ['success' => false, 'message' => $client->getError() ?? 'Erreur inconnue'];
+            }
+
+            return ['success' => true, 'message' => \sprintf('%s kické.', $login)];
+        });
+    }
+
+    /**
      * Force a player into spectator (mode=1) or back to player (mode=2) on a
      * running TM server. Other modes: 0 = user-selectable, 3 = spectator-selectable.
      *

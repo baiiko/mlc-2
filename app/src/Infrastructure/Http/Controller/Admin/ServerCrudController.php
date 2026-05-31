@@ -61,12 +61,10 @@ class ServerCrudController extends AbstractCrudController
             ->displayIf($competitionOnly);
 
         $restartMap = Action::new('restartMap', 'admin.server.action.restart', 'fa fa-redo')
-            ->linkToCrudAction('restartMap')
-            ->displayIf($competitionOnly);
+            ->linkToCrudAction('restartMap');
 
         $skipMap = Action::new('skipMap', 'admin.server.action.skip', 'fa fa-forward')
-            ->linkToCrudAction('skipMap')
-            ->displayIf($competitionOnly);
+            ->linkToCrudAction('skipMap');
 
         $setPhaseQualification = Action::new('setPhaseQualification', 'admin.server.action.phase_qualification', 'fa fa-flag-checkered')
             ->linkToCrudAction('setPhaseQualification')

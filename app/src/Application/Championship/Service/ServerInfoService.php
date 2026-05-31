@@ -62,6 +62,96 @@ class ServerInfoService
     }
 
     /**
+     * Fetches the map list currently loaded on the TM server (GetMapList XML-RPC).
+     *
+     * @return array{
+     *     online: bool,
+     *     currentUid: string|null,
+     *     maps: list<array{uid: string, name: string, fileName: string, author: string, environment: string}>,
+     *     error: string|null,
+     * }
+     */
+    public function getMapList(Server $server): array
+    {
+        $default = [
+            'online' => false,
+            'currentUid' => null,
+            'maps' => [],
+            'error' => null,
+        ];
+
+        if (!$server->getIp() || !$server->getPort()) {
+            $default['error'] = 'IP ou port non configuré';
+
+            return $default;
+        }
+
+        $client = new GbxRemote();
+
+        try {
+            if (!$client->connect($server->getIp(), $server->getPort(), 2)) {
+                $default['error'] = $client->getError();
+
+                return $default;
+            }
+
+            $adminLogin = $server->getAdminLogin();
+            $password = $server->getPassword();
+
+            if ($adminLogin && $password && !$client->authenticate($adminLogin, $password)) {
+                $default['error'] = 'Authentification échouée';
+                $client->disconnect();
+
+                return $default;
+            }
+
+            $rawMaps = $client->query('GetMapList', 1000, 0);
+
+            if (!\is_array($rawMaps)) {
+                $rawMaps = $client->query('GetChallengeList', 1000, 0);
+            }
+
+            $current = $client->query('GetCurrentChallengeInfo');
+
+            if (!\is_array($current)) {
+                $current = $client->query('GetCurrentMapInfo');
+            }
+
+            $client->disconnect();
+
+            $currentUid = \is_array($current) ? ($current['UId'] ?? null) : null;
+            $maps = [];
+
+            if (\is_array($rawMaps)) {
+                foreach ($rawMaps as $m) {
+                    if (!\is_array($m)) {
+                        continue;
+                    }
+                    $maps[] = [
+                        'uid' => (string) ($m['UId'] ?? ''),
+                        'name' => (string) ($m['Name'] ?? $m['NickName'] ?? ''),
+                        'fileName' => (string) ($m['FileName'] ?? ''),
+                        'author' => (string) ($m['Author'] ?? ''),
+                        'environment' => (string) ($m['Environnement'] ?? $m['Environment'] ?? ''),
+                    ];
+                }
+            }
+
+            return [
+                'online' => true,
+                'currentUid' => $currentUid !== null ? (string) $currentUid : null,
+                'maps' => $maps,
+                'error' => null,
+            ];
+        } catch (\Throwable $e) {
+            $client->disconnect();
+            $default['error'] = $e->getMessage();
+
+            return $default;
+        }
+    }
+
+    /**
      * @return array{
      *     online: bool,
      *     name: string|null,

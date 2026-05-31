@@ -16,12 +16,14 @@
                     <button type="button" class="btn btn-sm btn-outline-secondary chat-cmd-btn" data-command="warmup">
                         <i class="fa fa-clock me-1"></i> WarmUp
                     </button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary chat-cmd-btn" data-command="restart_map">
-                        <i class="fa fa-redo me-1"></i> Restart
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary chat-cmd-btn" data-command="skip_map">
-                        <i class="fa fa-forward me-1"></i> Skip
-                    </button>
+                {% endif %}
+                <button type="button" class="btn btn-sm btn-outline-secondary chat-cmd-btn" data-command="restart_map">
+                    <i class="fa fa-redo me-1"></i> Restart
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary chat-cmd-btn" data-command="skip_map">
+                    <i class="fa fa-forward me-1"></i> Skip
+                </button>
+                {% if server.purpose.value == 'competition' %}
                     <button type="button" class="btn btn-sm btn-outline-secondary chat-cmd-btn" data-command="phase_qualification">
                         <i class="fa fa-flag-checkered me-1"></i> Phase qualif
                     </button>
@@ -72,6 +74,16 @@
                 </div>
             </div>
 
+            <details class="mt-3">
+                <summary style="cursor: pointer; font-size: 13px; color: #888; text-transform: uppercase;">
+                    Maps du serveur <span id="maps-count">(–)</span>
+                </summary>
+                <div id="maps-list"
+                     style="margin-top: 8px; max-height: 320px; overflow-y: auto; background: #1a1a1a; color: #e0e0e0; padding: 12px; border-radius: 4px; font-family: monospace; font-size: 12px;">
+                    <div class="text-muted">Chargement…</div>
+                </div>
+            </details>
+
             <form id="chat-send-form" class="mt-3" autocomplete="off">
                 <div style="display: flex; gap: 8px; align-items: stretch;">
                     <select id="chat-recipient" name="login"
@@ -103,6 +115,7 @@
             const sendUrl = {{ path('admin_server_chat_send', {id: server.id})|json_encode|raw }};
             const playersUrl = {{ path('admin_server_chat_players', {id: server.id})|json_encode|raw }};
             const commandUrl = {{ path('admin_server_chat_command', {id: server.id})|json_encode|raw }};
+            const mapsUrl = {{ path('admin_server_chat_maps', {id: server.id})|json_encode|raw }};
             const container = document.getElementById('chat-messages');
             const counter = document.getElementById('chat-count');
             const playersList = document.getElementById('players-list');
@@ -222,16 +235,90 @@
                         return;
                     }
                     playersList.innerHTML = players.map(p =>
-                        `<div class="tm-colors player-row" data-login="${escapeHtml(p.login)}" style="padding: 2px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer;" title="Cliquer pour écrire en privé à ${(p.pseudoStrip || '').replace(/"/g, '&quot;')} (${escapeHtml(p.login)})">${p.pseudoHtml} <span style="color:#888; font-size:11px;">(${escapeHtml(p.login)})</span></div>`
+                        `<div class="tm-colors player-row" data-login="${escapeHtml(p.login)}" data-pseudo="${escapeHtml(p.pseudoStrip || p.login)}" style="padding: 2px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer;" title="Cliquer pour ouvrir le menu (parler, spec, kick)">${p.pseudoHtml} <span style="color:#888; font-size:11px;">(${escapeHtml(p.login)})</span></div>`
                     ).join('');
                     playersList.querySelectorAll('.player-row').forEach(row => {
-                        row.addEventListener('click', () => {
-                            recipient.value = row.dataset.login || '';
-                            input.focus();
+                        row.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            openPlayerMenu(row);
                         });
                     });
                 } catch (e) {
                     // network glitch
+                }
+            }
+
+            // Player action menu (click on a player → Message / Spec / Kick)
+            let openMenu = null;
+
+            function closePlayerMenu() {
+                if (openMenu) { openMenu.remove(); openMenu = null; }
+            }
+
+            document.addEventListener('click', closePlayerMenu);
+
+            function openPlayerMenu(row) {
+                closePlayerMenu();
+                const login = row.dataset.login;
+                const pseudo = row.dataset.pseudo || login;
+                const rect = row.getBoundingClientRect();
+
+                const menu = document.createElement('div');
+                menu.style.cssText = `position: fixed; top: ${rect.bottom + 4}px; left: ${rect.left}px; z-index: 9999; background: #2a2a2a; border: 1px solid #444; border-radius: 4px; padding: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); min-width: 140px;`;
+                menu.addEventListener('click', (e) => e.stopPropagation());
+
+                const header = document.createElement('div');
+                header.style.cssText = 'padding: 6px 10px; border-bottom: 1px solid #444; font-size: 11px; color: #888; word-break: break-all;';
+                header.textContent = pseudo + ' (' + login + ')';
+                menu.appendChild(header);
+
+                const actions = [
+                    {label: '💬 Parler en privé', kind: 'whisper'},
+                    {label: '👁 Forcer en spectateur', kind: 'force_spectator', confirm: `Forcer ${pseudo} en spectateur ?`},
+                    {label: '🏎 Forcer en joueur', kind: 'force_player', confirm: `Forcer ${pseudo} en joueur ?`},
+                    {label: '🚫 Kick', kind: 'kick', danger: true, confirm: `Kick ${pseudo} du serveur ?`},
+                ];
+
+                actions.forEach(a => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.textContent = a.label;
+                    btn.style.cssText = `display: block; width: 100%; text-align: left; padding: 6px 10px; background: transparent; border: 0; color: ${a.danger ? '#ff6b6b' : '#e0e0e0'}; cursor: pointer; font-size: 13px;`;
+                    btn.addEventListener('mouseenter', () => btn.style.background = '#3a3a3a');
+                    btn.addEventListener('mouseleave', () => btn.style.background = 'transparent');
+                    btn.addEventListener('click', async () => {
+                        closePlayerMenu();
+                        if (a.confirm && !window.confirm(a.confirm)) return;
+                        if (a.kind === 'whisper') {
+                            recipient.value = login;
+                            input.focus();
+                            return;
+                        }
+                        await sendPlayerCommand(a.kind, login, pseudo);
+                    });
+                    menu.appendChild(btn);
+                });
+
+                document.body.appendChild(menu);
+                openMenu = menu;
+            }
+
+            async function sendPlayerCommand(command, login, pseudo) {
+                cmdFeedback.className = 'alert alert-info mb-0 py-1 px-2';
+                cmdFeedback.textContent = `Envoi de "${command}" sur ${pseudo}…`;
+                try {
+                    const res = await fetch(commandUrl, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+                        body: JSON.stringify({command, target: login}),
+                    });
+                    const data = await res.json().catch(() => ({}));
+                    const success = res.ok && data.success;
+                    cmdFeedback.className = `alert mb-0 py-1 px-2 ${success ? 'alert-success' : 'alert-danger'}`;
+                    cmdFeedback.textContent = (success ? '✔ ' : '✖ ') + (data.message || `HTTP ${res.status}`);
+                } catch (err) {
+                    cmdFeedback.className = 'alert alert-danger mb-0 py-1 px-2';
+                    cmdFeedback.textContent = 'Erreur réseau : ' + err.message;
                 }
             }
 
@@ -268,11 +355,46 @@
                 });
             });
 
+            const mapsList = document.getElementById('maps-list');
+            const mapsCount = document.getElementById('maps-count');
+
+            async function pollMaps() {
+                try {
+                    const res = await fetch(mapsUrl, {headers: {'Accept': 'application/json'}});
+                    if (!res.ok) return;
+                    const data = await res.json();
+                    if (!data.online) {
+                        mapsList.innerHTML = '<div class="text-muted">Serveur hors ligne</div>';
+                        mapsCount.textContent = '(–)';
+                        return;
+                    }
+                    const maps = data.maps || [];
+                    const currentUid = data.currentUid;
+                    mapsCount.textContent = `(${maps.length})`;
+                    if (maps.length === 0) {
+                        mapsList.innerHTML = '<div class="text-muted">Aucune map</div>';
+                        return;
+                    }
+                    mapsList.innerHTML = maps.map((m, i) => {
+                        const isCurrent = currentUid && m.uid === currentUid;
+                        const bg = isCurrent ? 'background: #2d4a1c; border-left: 3px solid #aed581;' : '';
+                        const idx = String(i + 1).padStart(2, '0');
+                        return `<div class="tm-colors" style="padding: 3px 6px; ${bg}" title="${escapeHtml(m.author)} — ${escapeHtml(m.environment)}">
+                            <span style="color: #888; margin-right: 8px;">${idx}.</span>${m.nameHtml || escapeHtml(m.nameText || '?')}
+                        </div>`;
+                    }).join('');
+                } catch (e) {
+                    // network glitch
+                }
+            }
+
             // Scroll to bottom on initial load
             container.scrollTop = container.scrollHeight;
             setInterval(poll, 1000);
             pollPlayers();
             setInterval(pollPlayers, 5000);
+            pollMaps();
+            setInterval(pollMaps, 15000);
         })();
     </script>
 {% endblock %}
