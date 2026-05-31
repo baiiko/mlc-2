@@ -194,6 +194,7 @@ class PhaseCrudController extends AbstractCrudController
         return $this->redirect($url);
     }
 
+
     public function generateAllMatchSettings(): Response
     {
         $round = $this->roundRepository->findCurrentOrUpcoming();
