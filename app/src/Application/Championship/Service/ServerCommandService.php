@@ -133,6 +133,32 @@ class ServerCommandService
     }
 
     /**
+     * Force a player into spectator (mode=1) or back to player (mode=2) on a
+     * running TM server. Other modes: 0 = user-selectable, 3 = spectator-selectable.
+     *
+     * @return array{success: bool, message: string}
+     */
+    public function forceSpectator(Server $server, string $login, int $mode = 1): array
+    {
+        return $this->executeCommand($server, function (GbxRemote $client) use ($login, $mode): array {
+            $result = $client->query('ForceSpectator', $login, $mode);
+
+            if ($result === false) {
+                return ['success' => false, 'message' => $client->getError() ?? 'Erreur inconnue'];
+            }
+
+            $label = match ($mode) {
+                1 => 'spectateur',
+                2 => 'joueur',
+                3 => 'spectateur sélectionnable',
+                default => 'user-sélectionnable',
+            };
+
+            return ['success' => true, 'message' => \sprintf('%s forcé en %s.', $login, $label)];
+        });
+    }
+
+    /**
      * @return array{success: bool, message: string}
      */
     public function skipMap(Server $server): array
