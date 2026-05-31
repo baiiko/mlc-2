@@ -360,9 +360,13 @@
 
             async function pollMaps() {
                 try {
-                    const res = await fetch(mapsUrl, {headers: {'Accept': 'application/json'}});
+                    const res = await fetch(mapsUrl, {
+                        headers: {'Accept': 'application/json'},
+                        cache: 'no-store',
+                    });
                     if (!res.ok) return;
                     const data = await res.json();
+                    console.log('[chat-maps] poll', {count: (data.maps || []).length, currentUid: data.currentUid, online: data.online});
                     if (!data.online) {
                         mapsList.innerHTML = '<div class="text-muted">Serveur hors ligne</div>';
                         mapsCount.textContent = '(–)';
@@ -384,7 +388,7 @@
                         </div>`;
                     }).join('');
                 } catch (e) {
-                    // network glitch
+                    console.error('[chat-maps] error', e);
                 }
             }
 
@@ -394,7 +398,7 @@
             pollPlayers();
             setInterval(pollPlayers, 5000);
             pollMaps();
-            setInterval(pollMaps, 15000);
+            setInterval(pollMaps, 5000);
         })();
     </script>
 {% endblock %}
