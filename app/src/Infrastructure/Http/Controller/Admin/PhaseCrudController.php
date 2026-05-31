@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Http\Controller\Admin;
 
+use App\Application\Championship\Service\FinalPopulationService;
 use App\Application\Championship\Service\MatchSettingsGeneratorService;
 use App\Application\Championship\Service\QualificationClosingService;
 use App\Application\Championship\Service\RoundRankingServiceInterface;
@@ -38,6 +39,7 @@ class PhaseCrudController extends AbstractCrudController
         private readonly RoundRankingServiceInterface $roundRankingService,
         private readonly PhaseRepositoryInterface $phaseRepository,
         private readonly QualificationClosingService $qualificationClosingService,
+        private readonly FinalPopulationService $finalPopulationService,
     ) {
     }
 
@@ -72,15 +74,21 @@ class PhaseCrudController extends AbstractCrudController
             ->linkToCrudAction('closeQualification')
             ->displayIf(fn (Phase $phase): bool => $phase->getType() === PhaseType::Qualification);
 
+        $populateFinal = Action::new('populateFinal', 'Peupler la finale', 'fa fa-trophy')
+            ->linkToCrudAction('populateFinal')
+            ->displayIf(fn (Phase $phase): bool => $phase->getType() === PhaseType::Final);
+
         return $actions
             ->add(Crud::PAGE_INDEX, Action::DETAIL)
             ->add(Crud::PAGE_INDEX, $generateMatchSettings)
             ->add(Crud::PAGE_INDEX, $generateAllMatchSettings)
             ->add(Crud::PAGE_INDEX, $refreshRanking)
             ->add(Crud::PAGE_INDEX, $closeQualification)
+            ->add(Crud::PAGE_INDEX, $populateFinal)
             ->add(Crud::PAGE_DETAIL, $generateMatchSettings)
             ->add(Crud::PAGE_DETAIL, $refreshRanking)
-            ->add(Crud::PAGE_DETAIL, $closeQualification);
+            ->add(Crud::PAGE_DETAIL, $closeQualification)
+            ->add(Crud::PAGE_DETAIL, $populateFinal);
     }
 
     public function generateMatchSettings(AdminContext $context): Response
@@ -151,6 +159,31 @@ class PhaseCrudController extends AbstractCrudController
             } catch (\RuntimeException $e) {
                 $this->addFlash('danger', $e->getMessage());
             }
+        }
+
+        $url = $this->adminUrlGenerator
+            ->setController(self::class)
+            ->setAction(Action::INDEX)
+            ->generateUrl();
+
+        return $this->redirect($url);
+    }
+
+    public function populateFinal(AdminContext $context): Response
+    {
+        /** @var Phase $phase */
+        $phase = $context->getEntity()->getInstance();
+
+        try {
+            $result = $this->finalPopulationService->populateFinal($phase);
+            $this->addFlash('success', \sprintf(
+                'Finale peuplée : %d joueurs au total (%d qualifiés direct + %d issus des demis).',
+                \count($result['all']),
+                \count($result['direct']),
+                \count($result['fromSemis']),
+            ));
+        } catch (\RuntimeException $e) {
+            $this->addFlash('danger', $e->getMessage());
         }
 
         $url = $this->adminUrlGenerator
