@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Http\Controller\Admin;
 
-use App\Application\Communication\Service\NewsletterSendingService;
+use App\Application\Communication\Message\SendNewsletterMessage;
 use App\Domain\Communication\Entity\Newsletter;
 use App\Domain\Player\Entity\Player;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
@@ -18,13 +18,14 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[IsGranted('ROLE_ADMIN')]
 class NewsletterCrudController extends AbstractCrudController
 {
     public function __construct(
-        private readonly NewsletterSendingService $newsletterSendingService,
+        private readonly MessageBusInterface $messageBus,
         private readonly AdminUrlGenerator $adminUrlGenerator,
     ) {
     }
@@ -105,9 +106,12 @@ class NewsletterCrudController extends AbstractCrudController
         /** @var Newsletter $newsletter */
         $newsletter = $this->getContext()->getEntity()->getInstance();
 
-        $count = $this->newsletterSendingService->send($newsletter);
-
-        $this->addFlash('success', \sprintf('Newsletter envoyée à %d destinataire(s).', $count));
+        if ($newsletter->getSentAt() !== null) {
+            $this->addFlash('warning', 'Cette newsletter a déjà été envoyée.');
+        } else {
+            $this->messageBus->dispatch(new SendNewsletterMessage($newsletter->getId()));
+            $this->addFlash('success', 'Newsletter mise en file d\'attente — l\'envoi est traité en arrière-plan par le worker.');
+        }
 
         $url = $this->adminUrlGenerator
             ->setController(self::class)
