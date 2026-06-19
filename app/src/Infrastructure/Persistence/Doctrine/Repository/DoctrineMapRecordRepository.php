@@ -6,6 +6,7 @@ namespace App\Infrastructure\Persistence\Doctrine\Repository;
 
 use App\Domain\Championship\Entity\MapRecord;
 use App\Domain\Championship\Entity\RoundMap;
+use App\Domain\Championship\Enum\GameMode;
 use App\Domain\Championship\Repository\MapRecordRepositoryInterface;
 use App\Domain\Player\Entity\Player;
 use Doctrine\ORM\EntityManagerInterface;
@@ -63,6 +64,36 @@ final readonly class DoctrineMapRecordRepository implements MapRecordRepositoryI
             'record' => $row[0],
             'playerPseudo' => $row['playerPseudo'],
         ], $results);
+    }
+
+    public function findOneByUniqueKey(string $mapUid, string $playerLogin, int $laps, GameMode $gameMode, ?int $roundId, ?int $phaseId): ?MapRecord
+    {
+        $qb = $this->entityManager->createQueryBuilder()
+            ->select('r')
+            ->from(MapRecord::class, 'r')
+            ->where('r.mapUid = :mapUid')
+            ->andWhere('r.playerLogin = :playerLogin')
+            ->andWhere('r.laps = :laps')
+            ->andWhere('r.gameMode = :gameMode')
+            ->setParameter('mapUid', $mapUid)
+            ->setParameter('playerLogin', $playerLogin)
+            ->setParameter('laps', $laps)
+            ->setParameter('gameMode', $gameMode)
+            ->setMaxResults(1);
+
+        if ($roundId === null) {
+            $qb->andWhere('r.roundId IS NULL');
+        } else {
+            $qb->andWhere('r.roundId = :roundId')->setParameter('roundId', $roundId);
+        }
+
+        if ($phaseId === null) {
+            $qb->andWhere('r.phase IS NULL');
+        } else {
+            $qb->andWhere('IDENTITY(r.phase) = :phaseId')->setParameter('phaseId', $phaseId);
+        }
+
+        return $qb->getQuery()->getOneOrNullResult();
     }
 
     public function findByMapUidAndLaps(string $mapUid, int $laps): ?MapRecord

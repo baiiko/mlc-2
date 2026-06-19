@@ -17,3 +17,13 @@ controllers:
         _locale: fr|en
     defaults:
         _locale: fr
+
+# yuggy integration API — served WITHOUT the locale prefix.
+# These controllers are also picked up by `routing.controllers` above (hence
+# prefixed with /{_locale}); re-importing the directory here with the same route
+# names overrides those definitions with locale-free paths (router "last wins").
+api_integration:
+    resource:
+        path: ../src/Infrastructure/Http/Controller/Api/
+        namespace: App\Infrastructure\Http\Controller\Api
+    type: attribute

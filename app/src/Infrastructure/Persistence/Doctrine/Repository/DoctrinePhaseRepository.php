@@ -105,6 +105,35 @@ final readonly class DoctrinePhaseRepository implements PhaseRepositoryInterface
             ->getOneOrNullResult();
     }
 
+    public function findActivePhaseByType(PhaseType $type, ?int $group = null): ?Phase
+    {
+        $now = new \DateTimeImmutable();
+
+        $qb = $this->entityManager
+            ->createQueryBuilder()
+            ->select('p')
+            ->from(Phase::class, 'p')
+            ->join('p.round', 'r')
+            ->join('r.season', 's')
+            ->where('p.type = :type')
+            ->andWhere('p.startAt <= :now')
+            ->andWhere('p.endAt IS NULL OR p.endAt >= :now')
+            ->andWhere('r.deletedAt IS NULL')
+            ->andWhere('p.deletedAt IS NULL')
+            ->andWhere('s.isActive = true')
+            ->setParameter('type', $type)
+            ->setParameter('now', $now)
+            ->orderBy('p.startAt', 'DESC')
+            ->setMaxResults(1);
+
+        if ($group !== null) {
+            $qb->andWhere('p.groupNumber = :group')
+                ->setParameter('group', $group);
+        }
+
+        return $qb->getQuery()->getOneOrNullResult();
+    }
+
     public function findActivePlayablePhase(): ?Phase
     {
         $now = new \DateTimeImmutable();

@@ -110,6 +110,9 @@ services:
     App\Domain\Championship\Repository\ServerRepositoryInterface:
         class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrineServerRepository
 
+    App\Domain\Championship\Repository\PhaseMapResultRepositoryInterface:
+        class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrinePhaseMapResultRepository
+
     # Interface bindings - Content
     App\Domain\Content\Repository\RuleRepositoryInterface:
         class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrineRuleRepository
@@ -135,6 +138,15 @@ services:
 
     App\Application\Championship\Service\ServerApiDataServiceInterface:
         class: App\Application\Championship\Service\ServerApiDataService
+
+    App\Application\Championship\Service\CompetitionStateServiceInterface:
+        class: App\Application\Championship\Service\CompetitionStateService
+
+    App\Application\Championship\Service\RecordIngestionServiceInterface:
+        class: App\Application\Championship\Service\RecordIngestionService
+
+    App\Application\Championship\Service\PhaseResultIngestionServiceInterface:
+        class: App\Application\Championship\Service\PhaseResultIngestionService
 
     App\Application\Championship\Service\RoundMapService:
         arguments:

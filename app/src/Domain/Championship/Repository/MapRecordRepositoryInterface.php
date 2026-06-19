@@ -5,10 +5,17 @@ declare(strict_types=1);
 namespace App\Domain\Championship\Repository;
 
 use App\Domain\Championship\Entity\MapRecord;
+use App\Domain\Championship\Enum\GameMode;
 
 interface MapRecordRepositoryInterface
 {
     public function findById(int $id): ?MapRecord;
+
+    /**
+     * Find the single record matching the natural unique key
+     * (map_uid, player_login, laps, game_mode, round_id, phase_id) for upserts.
+     */
+    public function findOneByUniqueKey(string $mapUid, string $playerLogin, int $laps, GameMode $gameMode, ?int $roundId, ?int $phaseId): ?MapRecord;
 
     /**
      * @return array<MapRecord>

@@ -34,6 +34,12 @@ interface PhaseRepositoryInterface
     public function findActiveQualificationPhase(): ?Phase;
 
     /**
+     * Find the phase of the given type currently running on the active season
+     * (startAt <= now <= endAt), optionally restricted to a group number.
+     */
+    public function findActivePhaseByType(PhaseType $type, ?int $group = null): ?Phase;
+
+    /**
      * Find the playable phase currently running (startAt <= now <= endAt).
      */
     public function findActivePlayablePhase(): ?Phase;
