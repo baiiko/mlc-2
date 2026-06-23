@@ -67,12 +67,17 @@ final class PhaseResultIngestionServiceTest extends TestCase
 
         $service = new PhaseResultIngestionService($this->state, $this->mapResults, $phaseResults, $this->players, $this->registrations);
 
-        self::assertSame(['accepted' => false, 'reason' => 'no_active_phase'], $service->ingest($this->dto(PhaseType::SemiFinal)));
+        self::assertSame(
+            ['accepted' => false, 'reason' => 'no_active_phase', 'semiComplete' => null, 'qualifiedCount' => null, 'qualifyTarget' => null],
+            $service->ingest($this->dto(PhaseType::SemiFinal)),
+        );
     }
 
     public function testSemiFinalQualifiesWinnerToFinalAtNextPosition(): void
     {
-        $this->state->method('getActivePhase')->willReturn($this->semiPhase());
+        $phase = $this->semiPhase();
+        $phase->getRound()->setQualifyFromSemiCount(8);
+        $this->state->method('getActivePhase')->willReturn($phase);
         $this->players->method('findByLogin')->with('alice')->willReturn(new Player('alice', 'a@example.com', 'Alice'));
         $this->registrations->method('findByRoundAndPlayer')->willReturn($this->createStub(RoundRegistration::class));
 
@@ -88,21 +93,31 @@ final class PhaseResultIngestionServiceTest extends TestCase
 
         $service = new PhaseResultIngestionService($this->state, $this->mapResults, $phaseResults, $this->players, $this->registrations);
 
-        self::assertSame(['accepted' => true, 'reason' => null], $service->ingest($this->dto(PhaseType::SemiFinal)));
+        self::assertSame(
+            ['accepted' => true, 'reason' => null, 'semiComplete' => false, 'qualifiedCount' => 0, 'qualifyTarget' => 8],
+            $service->ingest($this->dto(PhaseType::SemiFinal)),
+        );
     }
 
-    public function testSemiFinalIsIdempotentWhenWinnerAlreadyQualified(): void
+    public function testSemiCompleteSignalWhenTargetReached(): void
     {
-        $this->state->method('getActivePhase')->willReturn($this->semiPhase());
+        $phase = $this->semiPhase();
+        $phase->getRound()->setQualifyFromSemiCount(1); // single semi → per-semi target = 1
+        $this->state->method('getActivePhase')->willReturn($phase);
         $this->players->method('findByLogin')->willReturn(new Player('alice', 'a@example.com', 'Alice'));
 
         $phaseResults = $this->createMock(PhaseResultRepositoryInterface::class);
+        // Winner already recorded (idempotent path) → no new save, but the semi is now complete.
         $phaseResults->method('findByPhaseAndPlayer')->willReturn($this->createStub(PhaseResult::class));
+        $phaseResults->method('findQualifiedByPhase')->willReturn([$this->createStub(PhaseResult::class)]);
         $phaseResults->expects(self::never())->method('save');
 
         $service = new PhaseResultIngestionService($this->state, $this->mapResults, $phaseResults, $this->players, $this->registrations);
 
-        self::assertSame(['accepted' => true, 'reason' => null], $service->ingest($this->dto(PhaseType::SemiFinal)));
+        self::assertSame(
+            ['accepted' => true, 'reason' => null, 'semiComplete' => true, 'qualifiedCount' => 1, 'qualifyTarget' => 1],
+            $service->ingest($this->dto(PhaseType::SemiFinal)),
+        );
     }
 
     public function testFinalDoesNotCreatePhaseResult(): void
@@ -117,6 +132,9 @@ final class PhaseResultIngestionServiceTest extends TestCase
 
         $service = new PhaseResultIngestionService($this->state, $this->mapResults, $phaseResults, $this->players, $this->registrations);
 
-        self::assertSame(['accepted' => true, 'reason' => null], $service->ingest($this->dto(PhaseType::Final)));
+        self::assertSame(
+            ['accepted' => true, 'reason' => null, 'semiComplete' => null, 'qualifiedCount' => null, 'qualifyTarget' => null],
+            $service->ingest($this->dto(PhaseType::Final)),
+        );
     }
 }

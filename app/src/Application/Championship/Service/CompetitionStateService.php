@@ -106,6 +106,7 @@ final readonly class CompetitionStateService implements CompetitionStateServiceI
             'qualifyToFinalCount' => $round->getQualifyToFinalCount(),
             'qualifyToSemiCount' => $round->getQualifyToSemiCount(),
             'qualifyFromSemiCount' => $round->getQualifyFromSemiCount(),
+            'mapCount' => $this->countQualificationMaps($round),
         ];
     }
 
@@ -165,6 +166,24 @@ final readonly class CompetitionStateService implements CompetitionStateServiceI
             'round' => $this->roundToArray($this->getActiveRound()),
             'phase' => $this->phaseToArray($phase),
         ];
+    }
+
+    /**
+     * Number of qualification maps of the round (excluding surprise maps, which
+     * are final-only) — the "Y" of the ServerRank "X/Y maps" display, consistent
+     * with the qualification ranking's nbMaps cap.
+     */
+    private function countQualificationMaps(Round $round): int
+    {
+        $count = 0;
+
+        foreach ($round->getMaps() as $map) {
+            if (!$map->isSurprise()) {
+                ++$count;
+            }
+        }
+
+        return $count;
     }
 
     /**

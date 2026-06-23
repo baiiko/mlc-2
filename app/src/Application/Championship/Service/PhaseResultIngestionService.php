@@ -33,17 +33,73 @@ final readonly class PhaseResultIngestionService implements PhaseResultIngestion
         $phase = $this->competitionState->getActivePhase($dto->phaseType, $dto->groupNumber);
 
         if (!$phase instanceof Phase) {
-            return ['accepted' => false, 'reason' => 'no_active_phase'];
+            return $this->response(false, 'no_active_phase');
         }
 
         $this->upsertMapResult($phase, $dto);
 
-        // Only a semi-final promotes its map winner to the final.
+        // Only a semi-final promotes its map winner to the final and reports completion.
         if ($dto->phaseType === PhaseType::SemiFinal) {
             $this->qualifyWinnerToFinal($phase, $dto->winnerLogin, $dto->results);
+
+            [$qualifiedCount, $qualifyTarget] = $this->semiCompletion($phase);
+
+            return $this->response(
+                true,
+                null,
+                semiComplete: $qualifyTarget > 0 && $qualifiedCount >= $qualifyTarget,
+                qualifiedCount: $qualifiedCount,
+                qualifyTarget: $qualifyTarget,
+            );
         }
 
-        return ['accepted' => true, 'reason' => null];
+        return $this->response(true, null);
+    }
+
+    /**
+     * Number of players qualified in this specific semi vs the per-semi target
+     * (qualify_from_semi_count split across the round's active semis, matching
+     * MatchSettingsGeneratorService).
+     *
+     * @return array{0: int, 1: int} [qualifiedInThisPhase, perSemiTarget]
+     */
+    private function semiCompletion(Phase $phase): array
+    {
+        $qualified = \count($this->phaseResultRepository->findQualifiedByPhase($phase));
+
+        $round = $phase->getRound();
+
+        if (!$round instanceof Round) {
+            return [$qualified, 0];
+        }
+
+        $activeSemiCount = 0;
+
+        foreach ($round->getPhases() as $p) {
+            if ($p->getType() === PhaseType::SemiFinal) {
+                ++$activeSemiCount;
+            }
+        }
+
+        $target = $activeSemiCount > 0
+            ? (int) ceil($round->getQualifyFromSemiCount() / $activeSemiCount)
+            : $round->getQualifyFromSemiCount();
+
+        return [$qualified, $target];
+    }
+
+    /**
+     * @return array{accepted: bool, reason: string|null, semiComplete: bool|null, qualifiedCount: int|null, qualifyTarget: int|null}
+     */
+    private function response(bool $accepted, ?string $reason, ?bool $semiComplete = null, ?int $qualifiedCount = null, ?int $qualifyTarget = null): array
+    {
+        return [
+            'accepted' => $accepted,
+            'reason' => $reason,
+            'semiComplete' => $semiComplete,
+            'qualifiedCount' => $qualifiedCount,
+            'qualifyTarget' => $qualifyTarget,
+        ];
     }
 
     private function upsertMapResult(Phase $phase, PhaseResultNotificationDTO $dto): void

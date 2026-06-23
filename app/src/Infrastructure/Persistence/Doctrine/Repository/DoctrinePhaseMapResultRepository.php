@@ -28,4 +28,11 @@ final readonly class DoctrinePhaseMapResultRepository implements PhaseMapResultR
             ->getRepository(PhaseMapResult::class)
             ->findOneBy(['phase' => $phase, 'mapUid' => $mapUid, 'winner' => $winner]);
     }
+
+    public function hasWinner(Phase $phase, string $login): bool
+    {
+        return $this->entityManager
+            ->getRepository(PhaseMapResult::class)
+            ->count(['phase' => $phase, 'winner' => $login]) > 0;
+    }
 }

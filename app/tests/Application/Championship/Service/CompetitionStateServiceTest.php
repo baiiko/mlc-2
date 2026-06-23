@@ -152,6 +152,18 @@ final class CompetitionStateServiceTest extends TestCase
         self::assertSame('2026-06-19T12:00:00+00:00', $array['startAt']);
     }
 
+    public function testRoundToArrayCountsQualificationMapsExcludingSurprise(): void
+    {
+        $round = new Round();
+        $round->addMap(new \App\Domain\Championship\Entity\RoundMap($round, 'Map A', 'uidA'));
+        $round->addMap(new \App\Domain\Championship\Entity\RoundMap($round, 'Map B', 'uidB'));
+        $round->addMap((new \App\Domain\Championship\Entity\RoundMap($round, 'Surprise', 'uidS'))->setIsSurprise(true));
+
+        $array = $this->service->roundToArray($round);
+
+        self::assertSame(2, $array['mapCount']);
+    }
+
     public function testGetActivePhaseWithoutTypeDelegatesToPlayablePhase(): void
     {
         $phase = new Phase(new Round(), PhaseType::Final, new \DateTimeImmutable());

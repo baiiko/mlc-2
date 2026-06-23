@@ -16,4 +16,9 @@ interface PhaseMapResultRepositoryInterface
      * for idempotent upserts.
      */
     public function findOneByUniqueKey(Phase $phase, string $mapUid, string $winner): ?PhaseMapResult;
+
+    /**
+     * Whether the given player has already won at least one map of this phase.
+     */
+    public function hasWinner(Phase $phase, string $login): bool;
 }

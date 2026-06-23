@@ -45,7 +45,7 @@ interface CompetitionStateServiceInterface
     public function isCompetitor(string $login): bool;
 
     /**
-     * @return array{id: int|null, number: int|null, name: string|null, qualifyToFinalCount: int, qualifyToSemiCount: int, qualifyFromSemiCount: int}|null
+     * @return array{id: int|null, number: int|null, name: string|null, qualifyToFinalCount: int, qualifyToSemiCount: int, qualifyFromSemiCount: int, mapCount: int}|null
      */
     public function roundToArray(?Round $round): ?array;
 
