@@ -44,6 +44,7 @@ championship:
         final: "Finale"
     maps: "Circuits"
     no_maps: "Aucun circuit défini."
+    maps_hidden: "Les circuits seront dévoilés au début des qualifications."
     no_thumbnail: "Pas d'aperçu"
     surprise: "Surprise"
     map_author: "par"

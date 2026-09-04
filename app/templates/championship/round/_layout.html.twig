@@ -47,7 +47,9 @@
                         class="px-5 py-3 rounded-t font-semibold text-sm uppercase tracking-wider transition-all {{ activeTab == 'maps' ? 'bg-orange text-white shadow-[0_2px_10px_rgba(255,140,0,0.4)]' : 'bg-bg-card text-gray-light hover:text-white hover:bg-metal-dark' }}"
                     >
                         {{ 'championship.maps'|trans({}, 'championship') }}
-                        <span class="ml-1 text-xs">({{ round.maps|length }})</span>
+                        {% if round.areMapsRevealed %}
+                            <span class="ml-1 text-xs">({{ round.maps|length }})</span>
+                        {% endif %}
                     </a>
                 </div>
             </div>

@@ -3,7 +3,11 @@
 {% set activeTab = 'maps' %}
 
 {% block tab_content %}
-    {% if round.maps is empty %}
+    {% if not round.areMapsRevealed %}
+        <div class="bg-bg-card rounded-lg p-8 border border-metal-dark text-center">
+            <p class="text-gray-mid">{{ 'championship.maps_hidden'|trans({}, 'championship') }}</p>
+        </div>
+    {% elseif round.maps is empty %}
         <div class="bg-bg-card rounded-lg p-8 border border-metal-dark text-center">
             <p class="text-gray-mid">{{ 'championship.no_maps'|trans({}, 'championship') }}</p>
         </div>

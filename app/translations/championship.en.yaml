@@ -44,6 +44,7 @@ championship:
         final: "Final"
     maps: "Maps"
     no_maps: "No maps defined."
+    maps_hidden: "Maps will be revealed when the qualifications start."
     no_thumbnail: "No preview"
     surprise: "Surprise"
     map_author: "by"

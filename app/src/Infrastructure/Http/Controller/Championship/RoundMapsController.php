@@ -41,9 +41,11 @@ final readonly class RoundMapsController
         // Get records for each map
         $mapRecords = [];
 
-        foreach ($round->getMaps() as $map) {
-            if ($map->getUid()) {
-                $mapRecords[$map->getUid()] = $this->mapRecordRepository->findByMapUidWithPlayer($map->getUid(), $round->getId());
+        if ($round->areMapsRevealed()) {
+            foreach ($round->getMaps() as $map) {
+                if ($map->getUid()) {
+                    $mapRecords[$map->getUid()] = $this->mapRecordRepository->findByMapUidWithPlayer($map->getUid(), $round->getId());
+                }
             }
         }
 

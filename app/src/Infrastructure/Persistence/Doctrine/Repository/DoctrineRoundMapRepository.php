@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Persistence\Doctrine\Repository;
 
+use App\Domain\Championship\Entity\PhaseType;
 use App\Domain\Championship\Entity\RoundMap;
 use App\Domain\Championship\Repository\RoundMapRepositoryInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
 
 final readonly class DoctrineRoundMapRepository implements RoundMapRepositoryInterface
@@ -55,7 +57,11 @@ final readonly class DoctrineRoundMapRepository implements RoundMapRepositoryInt
             ->createQueryBuilder()
             ->from(RoundMap::class, 'm')
             ->leftJoin('m.round', 'r')
-            ->leftJoin('r.season', 's');
+            ->leftJoin('r.season', 's')
+            // A round's maps only surface once its qualification has started.
+            ->innerJoin('r.phases', 'qp', Join::WITH, 'qp.type = :qualification AND qp.startAt <= :now')
+            ->setParameter('qualification', PhaseType::Qualification)
+            ->setParameter('now', new \DateTimeImmutable());
 
         if ($search !== null && $search !== '') {
             $qb->andWhere('m.name LIKE :search')

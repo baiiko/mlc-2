@@ -172,6 +172,17 @@ class Round
     }
 
     /**
+     * Maps stay under wraps until the qualification phase actually starts, so
+     * that nobody can practise them beforehand.
+     */
+    public function areMapsRevealed(): bool
+    {
+        $startAt = $this->getPhaseByType(PhaseType::Qualification)?->getStartAt();
+
+        return $startAt instanceof \DateTimeImmutable && $startAt <= new \DateTimeImmutable();
+    }
+
+    /**
      * A round is finished when it is no longer the active one AND at least one of
      * its playable phases (qualif / semi / final) has already started — relying on
      * the admin-curated isActive flag (enforced unique per season by

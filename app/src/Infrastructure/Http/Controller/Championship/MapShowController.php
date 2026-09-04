@@ -32,7 +32,7 @@ final readonly class MapShowController
     {
         $map = $this->entityManager->getRepository(RoundMap::class)->findOneBy(['uid' => $uid]);
 
-        if (!$map instanceof RoundMap) {
+        if (!$map instanceof RoundMap || $map->getRound()?->areMapsRevealed() !== true) {
             throw new NotFoundHttpException('Map not found');
         }
 
