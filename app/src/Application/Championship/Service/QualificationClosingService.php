@@ -19,14 +19,16 @@ class QualificationClosingService
         private readonly RoundRegistrationRepositoryInterface $registrationRepository,
         private readonly PhaseRepositoryInterface $phaseRepository,
         private readonly MatchSettingsGeneratorService $matchSettingsGenerator,
+        private readonly FinalPopulationService $finalPopulation,
         private readonly LoggerInterface $logger,
     ) {
     }
 
     /**
      * Clôture la phase de qualification et répartit les joueurs dans les demi-finales.
+     * Sans demi-finale, la finale est peuplée directement.
      *
-     * @return array<int, array<string>>
+     * @return array{semis: array<int, list<string>>, final: list<string>|null}
      */
     public function closeQualification(Phase $qualificationPhase): array
     {
@@ -46,7 +48,7 @@ class QualificationClosingService
         $activeSemiFinals = $this->getActiveSemiFinals($round);
 
         if ($activeSemiFinals === []) {
-            throw new \RuntimeException('Aucune demi-finale active trouvée.');
+            return ['semis' => [], 'final' => $this->populateFinalsDirectly($round)];
         }
 
         // Nombre de qualifiés selon la config du round
@@ -209,7 +211,7 @@ class QualificationClosingService
             // Générer le MatchSettings pour cette demi-finale
             $this->matchSettingsGenerator->saveForPhase($semiPhase);
 
-            return [$groupNumber => $allPlayers];
+            return ['semis' => [$groupNumber => $allPlayers], 'final' => null];
         }
 
         // Deux demi-finales : répartition selon les disponibilités
@@ -274,9 +276,34 @@ class QualificationClosingService
         }
 
         return [
-            1 => $semi1Players,
-            2 => $semi2Players,
+            'semis' => [
+                1 => $semi1Players,
+                2 => $semi2Players,
+            ],
+            'final' => null,
         ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function populateFinalsDirectly(Round $round): array
+    {
+        $finalPlayers = null;
+
+        foreach ($round->getPhases() as $phase) {
+            if ($phase->getType() !== PhaseType::Final) {
+                continue;
+            }
+
+            $finalPlayers = $this->finalPopulation->populateFinal($phase)['all'];
+        }
+
+        if ($finalPlayers === null) {
+            throw new \RuntimeException('Aucune demi-finale ni finale active trouvée.');
+        }
+
+        return $finalPlayers;
     }
 
     /**

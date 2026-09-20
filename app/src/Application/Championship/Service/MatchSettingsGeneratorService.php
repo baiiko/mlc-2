@@ -121,13 +121,15 @@ class MatchSettingsGeneratorService
         return $this->saveFile($filename, $xml);
     }
 
+    /**
+     * Semis get one file per group (different players/maps). Both final
+     * phases run the same match on every server, so they share finale.xml.
+     */
     public static function getFilenameForPhase(Phase $phase): string
     {
-        $groupSuffix = $phase->getGroupNumber() !== null ? $phase->getGroupNumber() : '';
-
         return match ($phase->getType()) {
-            PhaseType::SemiFinal => 'demi' . $groupSuffix . '.xml',
-            PhaseType::Final => 'finale' . $groupSuffix . '.xml',
+            PhaseType::SemiFinal => 'demi' . ($phase->getGroupNumber() ?? '') . '.xml',
+            PhaseType::Final => 'finale.xml',
             default => 'default.xml',
         };
     }

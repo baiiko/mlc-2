@@ -152,8 +152,12 @@ class PhaseCrudController extends AbstractCrudController
                 $result = $this->qualificationClosingService->closeQualification($phase);
                 $details = [];
 
-                foreach ($result as $groupNumber => $players) {
+                foreach ($result['semis'] as $groupNumber => $players) {
                     $details[] = \sprintf('Demi %d : %d joueurs', $groupNumber, \count($players));
+                }
+
+                if ($result['final'] !== null) {
+                    $details[] = \sprintf('Finale : %d joueurs', \count($result['final']));
                 }
                 $this->addFlash('success', 'Qualification clôturée. ' . implode(', ', $details) . '.');
             } catch (\RuntimeException $e) {
