@@ -40,15 +40,12 @@ final class QualificationClosingServiceTest extends TestCase
 
     public function testRoundWithoutSemisPopulatesTheFinalDirectly(): void
     {
-        $round = new Round();
-        $qualif = (new Phase($round, PhaseType::Qualification, new \DateTimeImmutable()))->setRanking([]);
-        $final = new Phase($round, PhaseType::Final, new \DateTimeImmutable());
-        $round->addPhase($qualif)->addPhase($final);
+        [$round, $qualif] = $this->roundWithQualification(PhaseType::Final);
 
         $this->finalPopulation
             ->expects(self::once())
             ->method('populateFinal')
-            ->with($final)
+            ->with($round->getPhaseByType(PhaseType::Final))
             ->willReturn(['direct' => ['alice', 'bob'], 'fromSemis' => [], 'all' => ['alice', 'bob']]);
 
         $result = $this->service->closeQualification($qualif);
@@ -59,9 +56,7 @@ final class QualificationClosingServiceTest extends TestCase
 
     public function testRoundWithoutSemisNorFinalCannotBeClosed(): void
     {
-        $round = new Round();
-        $qualif = (new Phase($round, PhaseType::Qualification, new \DateTimeImmutable()))->setRanking([]);
-        $round->addPhase($qualif);
+        [, $qualif] = $this->roundWithQualification();
 
         $this->finalPopulation->expects(self::never())->method('populateFinal');
 
@@ -72,12 +67,9 @@ final class QualificationClosingServiceTest extends TestCase
 
     public function testRoundWithSemisLeavesTheFinalUntouched(): void
     {
-        $round = new Round();
+        [$round, $qualif] = $this->roundWithQualification(PhaseType::SemiFinal, PhaseType::Final);
         $round->setQualifyToSemiCount(8);
-        $qualif = (new Phase($round, PhaseType::Qualification, new \DateTimeImmutable()))->setRanking([]);
-        $semi = (new Phase($round, PhaseType::SemiFinal, new \DateTimeImmutable()))->setGroupNumber(1);
-        $final = new Phase($round, PhaseType::Final, new \DateTimeImmutable());
-        $round->addPhase($qualif)->addPhase($semi)->addPhase($final);
+        $round->getPhaseByType(PhaseType::SemiFinal)?->setGroupNumber(1);
 
         $this->finalPopulation->expects(self::never())->method('populateFinal');
 
@@ -85,5 +77,21 @@ final class QualificationClosingServiceTest extends TestCase
 
         self::assertSame([1 => []], $result['semis']);
         self::assertNull($result['final']);
+    }
+
+    /**
+     * @return array{Round, Phase} the round and its qualification phase (with an empty ranking)
+     */
+    private function roundWithQualification(PhaseType ...$otherPhases): array
+    {
+        $round = new Round();
+        $qualif = (new Phase($round, PhaseType::Qualification, new \DateTimeImmutable()))->setRanking([]);
+        $round->addPhase($qualif);
+
+        foreach ($otherPhases as $type) {
+            $round->addPhase(new Phase($round, $type, new \DateTimeImmutable()));
+        }
+
+        return [$round, $qualif];
     }
 }

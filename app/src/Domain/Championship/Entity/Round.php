@@ -305,6 +305,22 @@ class Round
     }
 
     /**
+     * @return list<Phase>
+     */
+    public function getPhasesByType(PhaseType $type): array
+    {
+        $phases = [];
+
+        foreach ($this->phases as $phase) {
+            if ($phase->getType() === $type) {
+                $phases[] = $phase;
+            }
+        }
+
+        return $phases;
+    }
+
+    /**
      * @return Collection<int, RoundRegistration>
      */
     public function getRegistrations(): Collection

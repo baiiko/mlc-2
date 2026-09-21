@@ -122,8 +122,8 @@ class MatchSettingsGeneratorService
     }
 
     /**
-     * Semis get one file per group (different players/maps). Both final
-     * phases run the same match on every server, so they share finale.xml.
+     * Semis get one file per group (each has its own shuffled map list). Both
+     * final phases run the same match on every server, so they share finale.xml.
      */
     public static function getFilenameForPhase(Phase $phase): string
     {

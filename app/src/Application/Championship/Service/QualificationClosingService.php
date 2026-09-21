@@ -45,7 +45,7 @@ class QualificationClosingService
         }
 
         // Récupérer les demi-finales actives (non supprimées)
-        $activeSemiFinals = $this->getActiveSemiFinals($round);
+        $activeSemiFinals = $round->getPhasesByType(PhaseType::SemiFinal);
 
         if ($activeSemiFinals === []) {
             return ['semis' => [], 'final' => $this->populateFinalsDirectly($round)];
@@ -289,37 +289,20 @@ class QualificationClosingService
      */
     private function populateFinalsDirectly(Round $round): array
     {
-        $finalPlayers = null;
+        $finals = $round->getPhasesByType(PhaseType::Final);
 
-        foreach ($round->getPhases() as $phase) {
-            if ($phase->getType() !== PhaseType::Final) {
-                continue;
-            }
-
-            $finalPlayers = $this->finalPopulation->populateFinal($phase)['all'];
-        }
-
-        if ($finalPlayers === null) {
+        if ($finals === []) {
             throw new \RuntimeException('Aucune demi-finale ni finale active trouvée.');
         }
 
-        return $finalPlayers;
-    }
+        // Every Final phase runs the same match, so they all get the same players.
+        $players = [];
 
-    /**
-     * @return Phase[]
-     */
-    private function getActiveSemiFinals(Round $round): array
-    {
-        $semiFinals = [];
-
-        foreach ($round->getPhases() as $phase) {
-            if ($phase->getType() === PhaseType::SemiFinal) {
-                $semiFinals[] = $phase;
-            }
+        foreach ($finals as $final) {
+            $players = $this->finalPopulation->populateFinal($final)['all'];
         }
 
-        return $semiFinals;
+        return $players;
     }
 
     /**
