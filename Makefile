@@ -16,7 +16,7 @@ help: ## Affiche cette aide
 
 # Docker commands
 build: ## Build les containers Docker
-	$(DOCKER_COMPOSE) build
+	$(DOCKER_COMPOSE) build --pull
 
 up: ## Démarre les containers
 	$(DOCKER_COMPOSE) up -d

@@ -1,7 +1,8 @@
 # =============================================================================
 # Stage: PHP Base - Common setup (no code, for dev with volumes)
 # =============================================================================
-FROM php:8.4-fpm-alpine AS php-base
+# Pinned to 8.4.27 for CVE-2026-109618 / CVE-2026-109619 (unauthenticated RCE)
+FROM php:8.4.27-fpm-alpine AS php-base
 WORKDIR /var/www/app
 
 # Create app user with configurable UID/GID

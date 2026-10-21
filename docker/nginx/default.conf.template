@@ -4,6 +4,9 @@ server {
     root /var/www/app/public;
     index index.php;
 
+    # Keep in sync with post_max_size in docker/php/app.ini
+    client_max_body_size 25m;
+
     # Vite dev server proxy (dev only)
     location @vite {
         proxy_pass http://${VITE_HOST}:5173;
